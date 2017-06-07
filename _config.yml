@@ -1,0 +1,95 @@
+# Hexo Configuration
+## Docs: https://hexo.io/docs/configuration.html
+## Source: https://github.com/hexojs/hexo/
+
+# Site
+title: 芋艿V的博客
+subtitle:
+description: 愿编码半生，好奇如初识！
+author: 王文斌
+language:
+timezone:
+
+# URL
+## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
+url: http://www.yunai.store
+root: /
+permalink: :title/
+permalink_defaults:
+
+# Directory
+source_dir: source
+public_dir: ./
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+# Writing
+new_post_name: :title.md # File name of new posts
+default_layout: post
+titlecase: false # Transform title into titlecase
+external_link: true # Open external links in new tab
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+relative_link: false
+future: true
+highlight:
+  enable: true
+  line_number: false
+  auto_detect: false
+  tab_replace:
+
+# Category & Tag
+default_category: uncategorized
+category_map:
+tag_map:
+
+# Date / Time format
+## Hexo uses Moment.js to parse and display date
+## You can customize the date format as defined in
+## http://momentjs.com/docs/#/displaying/format/
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+
+# Pagination
+## Set per_page to 0 to disable pagination
+per_page: 0
+pagination_dir: page
+
+# Extensions
+## Plugins: https://hexo.io/plugins/
+## Themes: https://hexo.io/themes/
+#theme: hexo-theme-cafe
+#theme: jiangshui-simple
+#theme: next
+#theme: again
+#theme: apollo
+theme: cactus-light
+
+# add post views
+leancloud_visitors:
+  enable: true
+  app_id: uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz
+  app_key: NTPUE2VIEE0gyPPGbAaLPtLb
+
+# 百度链接主动提交
+baidu_url_submit:
+  count: 20 # 提交最新的一个链接
+  host: www.yunai.store # 在百度站长平台中注册的域名
+  token: LkeCeFXLKy9m9Cqc # 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
+  path: baidu_urls.txt # 文本文档的地址， 新链接会保存在此文本文档里
+
+# Deployment
+## Docs: https://hexo.io/docs/deployment.html
+deploy:
+#  type: baidu_url_submitter
+  type: git
+  repo:
+    github: https://github.com/YunaiV/yunaiv.github.io.git
+    coding: git@git.coding.net:yunai/yunai.git
+
+

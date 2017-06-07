@@ -1,0 +1,49 @@
+nav:
+  Home: /
+  Writing: /archives/
+  GitHub: http://github.com/YunaiV
+
+projects_url: http://github.com/YunaiV
+
+customize:
+    gravatar:
+        email:
+    logo:
+        enabled: true
+        width: 50
+        height: 50
+        url: /images/logo.png
+        gravatar: false
+    favicon:
+      # eg. generate with http://realfavicongenerator.net/
+      desktop:
+        url: /images/favicon.ico
+        gravatar: false
+      android:
+        url: /images/favicon-192x192.png
+        gravator: false
+      apple:
+        url: /images/apple-touch-icon.png
+        gravator: false
+    social_links:
+        github: http://github.com/YunaiV
+        wechat: https://camo.githubusercontent.com/423fcb60c5a2862b45bd1eeeeafdda3f3c09e724/687474703a2f2f7777322e73696e61696d672e636e2f6c617267652f303036484a3339776779316667336f31346e66726e6a333037363037366a72752e6a7067
+    show_all_posts: true
+    post_count: 5
+    highlight: monokai
+
+# RSS
+rss: false
+
+# Plugins
+plugins:
+    disqus_shortname: # Disqus Comments Shortname
+    google_analytics: UA-86660611-1 # enter the tracking ID for your Google Analytics
+
+# Miscellaneous
+miscellaneous:
+    open_graph: # see http://ogp.me
+        fb_app_id:
+        fb_admins:
+        twitter_id:
+        google_plus:

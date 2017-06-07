@@ -1,0 +1,157 @@
+<!-- jquery -->
+<%- js('lib/jquery/jquery.min') %>
+<%- js('lib/justified-gallery/jquery.justifiedGallery.min.js') %>
+<%- js('js/main') %>
+<!-- Google Analytics -->
+<% if (theme.plugins.google_analytics){ %>
+<script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    ga('create', '<%= theme.plugins.google_analytics %>', 'auto');
+    ga('send', 'pageview');
+</script>
+<% } %>
+<!-- Disqus Comments -->
+<% if (theme.plugins.disqus_shortname){ %>
+<script type="text/javascript">
+    var disqus_shortname = '<%= theme.plugins.disqus_shortname %>';
+
+    (function () {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/<% if (page.comments){ %>embed.js<% } else { %>count.js<% } %>';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+<% } %>
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append((counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append(results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        if ($('.posttitle').length == 1) {
+            var Counter = AV.Object.extend("Counter");
+            // 增加文章访问次数
+            addCount(Counter);
+        }
+        // 记录访问日志
+        addVisitLog();
+        // 计算多少人访问
+        countVisitLog();
+    });
+</script>

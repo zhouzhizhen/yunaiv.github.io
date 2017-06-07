@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="原文地址：谈谈单元测试😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Dao 层   4. 建议  本文主要面向">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈单元测试">
+<meta property="og:url" content="http://www.yunai.store/Architecture/talk-about-java-unit-test/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="原文地址：谈谈单元测试😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Dao 层   4. 建议  本文主要面向">
+<meta property="og:updated_time" content="2017-06-07T18:26:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="谈谈单元测试">
+<meta name="twitter:description" content="原文地址：谈谈单元测试😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Dao 层   4. 建议  本文主要面向">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>谈谈单元测试</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/RocketMQ/why-read-RocketMQ-source-code/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/Architecture/talk-about-global-id/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.store/Architecture/talk-about-java-unit-test/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&text=谈谈单元测试"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&is_video=false&description=谈谈单元测试"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=谈谈单元测试&body=Check out this article: http://www.yunai.store/Architecture/talk-about-java-unit-test/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&name=谈谈单元测试&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-为什么做单元测试"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-选型"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-JUnit"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Mockito"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-PowerMock"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-实践"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Service-层"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Controller-层"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Dao-层"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-建议"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        谈谈单元测试
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-03-18T16:00:00.000Z" itemprop="datePublished">2017-03-19</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Architecture/0002-%E6%89%AF%E6%89%AF%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.md" target="_blank" rel="external">谈谈单元测试</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
+</blockquote>
+<hr>
+<ul>
+<li><a href="#">1. 为什么做单元测试</a></li>
+<li><a href="#">2. 选型</a><ul>
+<li><a href="#">2.1 JUnit</a></li>
+<li><a href="#">2.2 Mockito</a></li>
+<li><a href="#">2.3 PowerMock</a></li>
+</ul>
+</li>
+<li><a href="#">3. 实践</a><ul>
+<li><a href="#">3.1 Service 层</a></li>
+<li><a href="#">3.2 Controller 层</a></li>
+<li><a href="#">3.3 Dao 层</a></li>
+</ul>
+</li>
+<li><a href="#">4. 建议</a></li>
+</ul>
+<p><strong>本文主要面向Java工程师，见谅</strong></p>
+<h1 id="1-为什么做单元测试"><a href="#1-为什么做单元测试" class="headerlink" title="1. 为什么做单元测试"></a>1. 为什么做单元测试</h1><ul>
+<li>提升重复测试效率</li>
+<li>提升代码质量</li>
+<li>提升部署可靠性</li>
+</ul>
+<h1 id="2-选型"><a href="#2-选型" class="headerlink" title="2. 选型"></a>2. 选型</h1><h2 id="2-1-JUnit"><a href="#2-1-JUnit" class="headerlink" title="2.1 JUnit"></a>2.1 JUnit</h2><blockquote>
+<p>单元测试套件</p>
+</blockquote>
+<p>为什么不使用 TestNG ？在整合 TestNG + Mockito + PowerMock + Spring 时，Spring 容器初始化失败， <code>@Autowired</code> 的属性无法注入，查找资料，基本无解，只好退而求其次，选择 JUnit 。从功能强大程度，易用性上，个人较为推荐 TestNG 。</p>
+<h2 id="2-2-Mockito"><a href="#2-2-Mockito" class="headerlink" title="2.2 Mockito"></a>2.2 Mockito</h2><blockquote>
+<p>Mock 工具</p>
+</blockquote>
+<p>为什么不使用 JMock 、EasyMock ？因为 API 上更加轻量级，用起来爽爽的。</p>
+<h2 id="2-3-PowerMock"><a href="#2-3-PowerMock" class="headerlink" title="2.3 PowerMock"></a>2.3 PowerMock</h2><blockquote>
+<p>作为 Mockito 的补充，增加对 <code>private</code>、<code>static</code>、<code>final</code> 的支持。</p>
+</blockquote>
+<p>为什么 Mockito 不自己支持？<a href="https://github.com/mockito/mockito/wiki/Mockito-And-Private-Methods" target="_blank" rel="external">Mockito-And-Private-Methods</a> 作者有自己的考虑，不过对于使用者，增加了很多整合的痛苦。</p>
+<h1 id="3-实践"><a href="#3-实践" class="headerlink" title="3. 实践"></a>3. 实践</h1><h2 id="3-1-Service-层"><a href="#3-1-Service-层" class="headerlink" title="3.1 Service 层"></a>3.1 Service 层</h2><blockquote>
+<p>方案一：</p>
+</blockquote>
+<ul>
+<li>依赖的 Dao 层代码，使用 mock 进行模拟</li>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
+</ul>
+<blockquote>
+<p>方案二：</p>
+</blockquote>
+<ul>
+<li>依赖的 Dao 层代码，使用内嵌数据库，例如说 h2database </li>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
+</ul>
+<p><strong>个人较为推荐方案二。从可靠性角度考虑，相对真实的模拟了 Dao 层，例如数据插入后，可以进行查询，判断Service是否正确设置值，是否有属性漏设置会设置错；当然，该方案在维护上会相对麻烦一些，各有利弊。</strong></p>
+<h2 id="3-2-Controller-层"><a href="#3-2-Controller-层" class="headerlink" title="3.2 Controller 层"></a>3.2 Controller 层</h2><blockquote>
+<p>方案一：</p>
+</blockquote>
+<ul>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
+</ul>
+<blockquote>
+<p>方案二：</p>
+</blockquote>
+<ul>
+<li>依赖的 Service 层【<strong>读</strong>】类逻辑，执行真实逻辑。读取依赖的数据，使用内嵌数据库插入。</li>
+<li>依赖的 Service 层【<strong>写</strong>】类逻辑，使用 mock 进行模拟。和 Controller 类的逻辑或者返回有关系的数据，使用内嵌数据库插入。</li>
+</ul>
+<p><strong>个人较为推荐方案二。原因同 Service 层单元测试。</strong></p>
+<p>另外，大部门互联网公司 MVC 框架选用的是 SpringMVC ，可以使用 SpringMVC Test 框架。使用方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">MockMvcBuilders.standaloneSetup(XXXController).build()</div></pre></td></tr></table></figure>
+<h2 id="3-3-Dao-层"><a href="#3-3-Dao-层" class="headerlink" title="3.3 Dao 层"></a>3.3 Dao 层</h2><p>使用内嵌的数据实现进行测试。</p>
+<ul>
+<li>MySQL ：<a href="https://github.com/h2database/h2database" target="_blank" rel="external">h2database</a> </li>
+<li>MongoDB ：<a href="https://github.com/fakemongo/fongo" target="_blank" rel="external">fongo</a></li>
+<li>Redis ：<a href="https://github.com/kstyrc/embedded-redis" target="_blank" rel="external">embedded-redis</a></li>
+</ul>
+<h1 id="4-建议"><a href="#4-建议" class="headerlink" title="4. 建议"></a>4. 建议</h1><ol>
+<li>加 QQ：<strong>7685413</strong>，进行互相交流。😜。</li>
+<li>当使用 TestNG + Mockito + PowerMock ，测试类使用 IObjectFactory 而不要去继承 PowerMockTestCase 。Java 无法多继承，如果此时你有必须继承的类就十分棘手。</li>
+</ol>
+<pre><code>@ObjectFactory  
+public IObjectFactory getObjectFactory() {  
+    return new PowerMockObjectFactory();  
+}
+</code></pre><ol>
+<li>当使用 PowerMockTestCase 每个测试单元执行完后，会清理掉对方法的 mock。因此，如果有公用的 mock 方法，需要使用下 @BeforeMethod（TestNG）、@Before（JUnit）里在进行一次mock。</li>
+<li>当使用 Mockito + PowerMock ，对测试类进行测试时，有需要对测试类的一些私有方法、或者静态方法进行 mock 时，不要使用 @Spy，而要使用PowerMokito.spy()进行 mock 。很酸爽。</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-为什么做单元测试"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-选型"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-JUnit"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Mockito"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-PowerMock"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-实践"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Service-层"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Controller-层"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Dao-层"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-建议"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.store/Architecture/talk-about-java-unit-test/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&text=谈谈单元测试"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&is_video=false&description=谈谈单元测试"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=谈谈单元测试&body=Check out this article: http://www.yunai.store/Architecture/talk-about-java-unit-test/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&title=谈谈单元测试"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.store/Architecture/talk-about-java-unit-test/&name=谈谈单元测试&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-86660611-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append((counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append(results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        if ($('.posttitle').length == 1) {
+            var Counter = AV.Object.extend("Counter");
+            // 增加文章访问次数
+            addCount(Counter);
+        }
+        // 记录访问日志
+        addVisitLog();
+        // 计算多少人访问
+        countVisitLog();
+    });
+</script>
