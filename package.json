@@ -6,6 +6,13 @@
     "version": "3.3.7"
   },
   "dependencies": {
+    "gulp-csso": "^3.0.0",
+    "gulp-htmlclean": "^2.7.14",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-imagemin": "^3.3.0",
+    "gulp-jsmin": "^0.1.5",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-uglify": "^3.0.0",
     "hexo": "^3.2.0",
     "hexo-baidu-url-submit": "0.0.5",
     "hexo-browsersync": "^0.2.0",
@@ -24,6 +31,7 @@
     "hexo-renderer-sass": "^0.3.1",
     "hexo-renderer-stylus": "^0.3.1",
     "hexo-server": "^0.2.0",
+    "imagemin-pngquant": "^5.0.1",
     "markdown-it-emoji": "^1.3.0",
     "twemoji": "^2.3.0"
   }
