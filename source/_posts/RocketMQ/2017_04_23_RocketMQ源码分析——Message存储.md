@@ -10,6 +10,8 @@ permalink: RocketMQ/message-store
 > `RocketMQ` **带注释源码**地址 ：[https://github.com/YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
 > **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号 **  
 
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
+
 -------
 
 - [1、概述](#)
@@ -35,7 +37,7 @@ permalink: RocketMQ/message-store
 
 `CommitLog`、`MappedFileQueue`、`MappedFile` 的关系如下：
 
-> ![CommitLog、MappedFileQueue、MappedFile的关系](http://www.yunai.me/image/RocketMQ/2017_04_23/02.png)
+> ![CommitLog、MappedFileQueue、MappedFile的关系](http://www.yunai.me/images/RocketMQ/2017_04_23/02.png)
 `CommitLog` : `MappedFileQueue` : `MappedFile` = 1 : 1 : N。
 
 反应到系统文件如下：
@@ -103,7 +105,7 @@ total 10485760
 
 # 3、CommitLog 存储消息
 
-> ![Broker存储发送消息顺序图](http://www.yunai.me/images/RocketMQ/01.png)
+> ![Broker存储发送消息顺序图](http://www.yunai.me/images/RocketMQ/2017_04_23/01.png)
 
 ## CommitLog#putMessage(...)
 
@@ -595,7 +597,7 @@ total 10485760
 |   |   | 计算方式 | 长度 | |
 | --- | --- | --- | --- |  --- |
 | offsetMsgId | Broker存储时生成 | Hex(storeHostBytes, wroteOffset) | 32 |
-| msgId | Client发送消息时生成 | Hex(进程编号, IP, ClassLoader, startTime, currentTime, 自增序列) | 32 | [《RocketMQ源码解析：Message基础》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1002-RocketMQ源码解析：Message基础.md) |
+| msgId | Client发送消息时生成 | Hex(进程编号, IP, ClassLoader, startTime, currentTime, 自增序列) | 32 | [《RocketMQ 源码分析 —— Message 基础》](http://www.yunai.me/RocketMQ/message/) |
 
 * 第 51 至 61 行 ：获取队列位置(offset)。
 * 第 78 至 95 行 ：计算消息总长度。
@@ -605,7 +607,7 @@ total 10485760
 
 ## FlushCommitLogService
 
-![FlushCommitLogService类图](http://www.yunai.me/image/RocketMQ/2017_04_23/03.png)
+![FlushCommitLogService类图](http://www.yunai.me/images/RocketMQ/2017_04_23/03.png)
 
 | 线程服务 | 场景 | 插入消息性能 |
 | --- | --- | --- |
@@ -621,7 +623,7 @@ total 10485760
 | 方式一 | 写入内存字节缓冲区(writeBuffer) | 从内存字节缓冲区(write buffer)提交(commit)到文件通道(fileChannel) | 文件通道(fileChannel)flush |
 | 方式二 |  | 写入映射文件字节缓冲区(mappedByteBuffer) | 映射文件字节缓冲区(mappedByteBuffer)flush  |
 
-![MappedFile的position迁移图](http://www.yunai.me/image/RocketMQ/2017_04_23/04.png)
+![MappedFile的position迁移图](http://www.yunai.me/images/RocketMQ/2017_04_23/04.jpeg)
 
 **flush相关代码**
 
@@ -1077,6 +1079,6 @@ total 10485760
 
 再次感谢大家的阅读、点赞、收藏。
 
-下一篇：[《Message拉取&消费》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1005-RocketMQ源码解析：Message拉取&消费（上）.md) 起航！
+下一篇：[《RocketMQ 源码分析 —— Message 拉取与消费》](http://www.yunai.me/RocketMQ/message-pull-and-consume-first/) 起航！
 
 

@@ -2,30 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    
+    <lastmod>2017-06-08T13:17:58.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
+    
+    <lastmod>2017-06-08T13:09:59.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
+    
+    <lastmod>2017-06-08T10:47:50.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
     
     <lastmod>2017-06-08T10:21:07.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
@@ -100,7 +100,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
+    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -142,14 +142,14 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
+    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
