@@ -6,9 +6,11 @@ permalink: RocketMQ/filtersrv
 
 -------
 
->  原文地址：[RocketMQ源码解析：Filtersrv](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1008-RocketMQ源码解析：Filtersrv.md)  
-> `RocketMQ` **带注释**地址 ：[YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。**  
+>  原文地址：[http://www.yunai.me/RocketMQ/filtersrv](http://www.yunai.me/RocketMQ/filtersrv)  
+> `RocketMQ` **带注释源码**地址 ：[https://github.com/YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
+> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号**  
+
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
 
 -------
 
@@ -27,7 +29,7 @@ permalink: RocketMQ/filtersrv
 
 `Filtersrv` ，负责**自定义规则**过滤 `Consumer` 从 `Broker` 拉取的消息。
 
-![Filtersrv.png](https://raw.githubusercontent.com/YunaiV/Blog/master/RocketMQ/images/1008/Filtersrv.png)
+![Filtersrv.png](http://www.yunai.me/images/RocketMQ/2017_05_17/Filtersrv.png)
 
 为什么 `Broker` 不提供过滤消息的功能呢？我们来看看官方的说法：
 
@@ -98,7 +100,7 @@ permalink: RocketMQ/filtersrv
 
 # 3. 过滤类 
 
-![Filtersrv过滤类](https://raw.githubusercontent.com/YunaiV/Blog/master/RocketMQ/images/1008/Filtersrv过滤类.png)
+![Filtersrv过滤类](http://www.yunai.me/images/RocketMQ/2017_05_17/03.png)
 
 ## 3.1 Consumer 订阅时设置 过滤类代码
 
@@ -238,7 +240,7 @@ permalink: RocketMQ/filtersrv
 
 # 4. 过滤消息
 
-![Filtersrv.png](https://raw.githubusercontent.com/YunaiV/Blog/master/RocketMQ/images/1008/Filtersrv.png)
+![Filtersrv.png](http://www.yunai.me/images/RocketMQ/2017_05_17/Filtersrv.png)
 
 ## 4.1 Consumer 从 Filtersrv 拉取消息
 
@@ -452,6 +454,6 @@ permalink: RocketMQ/filtersrv
 
 # 5. Filtersrv 高可用
 
-![Filtersrv过可用](https://raw.githubusercontent.com/YunaiV/Blog/master/RocketMQ/images/1008/Filtersrv过可用.png)
+![Filtersrv过可用](http://www.yunai.me/images/RocketMQ/2017_05_17/02.png)
 
 
