@@ -7,7 +7,7 @@ permalink: RocketMQ/message-send-and-receive
 -------
 
 >  原文地址：http://www.yunai.me/RocketMQ/message-send-and-receive/
-> `RocketMQ` **带注释**地址 ：https://github.com/YunaiV/incubator-rocketmq
+> `RocketMQ` **带注释源码**地址 ：https://github.com/YunaiV/incubator-rocketmq
 > **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号：![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg) **  
 
 -------
@@ -34,11 +34,11 @@ permalink: RocketMQ/message-send-and-receive
 1. `Producer` 发送消息。主要是**同步**发送消息源码，涉及到 异步/Oneway发送消息，事务消息会跳过。
 2. `Broker` 接收消息。(*存储消息在[《RocketMQ源码解析：Message存储》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1004-RocketMQ源码解析：Message存储.md)解析*)
 
-> ![Producer发送消息全局顺序图](images/1003/Producer发送消息全局顺序图.png)
+> ![Producer发送消息全局顺序图](http://www.yunai.me/images/RocketMQ/2017_04_18/01.png)
 
 # 2、Producer 发送消息
 
- > ![Producer发送消息顺序图](images/1003/Producer发送消息顺序图.png)
+ > ![Producer发送消息顺序图](http://www.yunai.me/images/RocketMQ/2017_04_18/02.png)
 
 ## DefaultMQProducer#send(Message)
 
@@ -231,7 +231,7 @@ permalink: RocketMQ/message-send-and-receive
 
 ### MQFaultStrategy
 
-> ![Latency类图](images/1003/Client之Latency类图.png)
+> ![Latency类图](http://www.yunai.me/images/RocketMQ/2017_04_18/03.png)
 
 #### MQFaultStrategy
 
@@ -722,7 +722,7 @@ permalink: RocketMQ/message-send-and-receive
 
 # 3、Broker 接收消息
 
-> ![接收发送消息API顺序图](images/1003/Broker接收发送消息API顺序图.png)
+> ![接收发送消息API顺序图](http://www.yunai.me/images/RocketMQ/2017_04_18/04.png)
 
 ## SendMessageProcessor#sendMessage
 
