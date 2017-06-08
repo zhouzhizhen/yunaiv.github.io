@@ -18,3 +18,5 @@ http://www.yunai.me/RocketMQ/namesrv-intro/
 http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/
 http://www.yunai.me/Architecture/talk-about-java-unit-test/
 http://www.yunai.me/Architecture/talk-about-global-id/
+http://www.yunai.me/Docker/docker-network-flannel/
+http://www.yunai.me/Nginx/nginx-dynamic-upstream/

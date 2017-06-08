@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+    <meta name="description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      Namesrv组件 KVConfigManager：KV配置管理 key-value配置管理，增删改查">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 之 Namesrv 小结">
 <meta property="og:url" content="http://www.yunai.me/RocketMQ/namesrv-intro/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+<meta property="og:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      Namesrv组件 KVConfigManager：KV配置管理 key-value配置管理，增删改查">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-06-08T16:15:39.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 之 Namesrv 小结">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      Namesrv组件 KVConfigManager：KV配置管理 key-value配置管理，增删改查">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -55,6 +55,21 @@
             hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
             var s = document.getElementsByTagName("script")[0];
             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
         })();
     </script>
 </head>
@@ -113,7 +128,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Namesrv组件"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -148,21 +163,16 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p>原文地址：<a href="http://www.yunai.me/RocketMQ/namesrv-intro/">http://www.yunai.me/RocketMQ/namesrv-intro/</a><br>
-<code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br>
-<strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+<p> 原文地址：<a href="http://www.yunai.me/RocketMQ/namesrv-intro/">http://www.yunai.me/RocketMQ/namesrv-intro/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
-<h2>Namesrv组件</h2>
-<ul>
-<li>KVConfigManager：KV配置管理
-<ul>
+<h2 id="Namesrv组件"><a href="#Namesrv组件" class="headerlink" title="Namesrv组件"></a>Namesrv组件</h2><ul>
+<li>KVConfigManager：KV配置管理<ul>
 <li>key-value配置管理，增删改查</li>
 </ul>
 </li>
-<li>RouteInfoManager：路由信息管理
-<ul>
+<li>RouteInfoManager：路由信息管理<ul>
 <li>注册Broker，提供Broker信息（名字、角色编号、地址、集群名）</li>
 <li>注册Topic，提供Topic信息（Topic名、读写权限、队列情况）</li>
 </ul>
@@ -192,7 +202,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Namesrv组件"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

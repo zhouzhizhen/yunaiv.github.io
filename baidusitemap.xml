@@ -364,12 +364,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message</title>
-        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Topic</title>
+        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
         
          
            
@@ -382,12 +382,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Topic</title>
-        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message</title>
+        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
         
          
            

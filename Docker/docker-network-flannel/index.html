@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel// 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    todo flannel简介 A. 安装Etcd 😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel $ mkdir /root/work/flannel">
+    <meta name="description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel//😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      todo flannel简介 A. 安装Etcd😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel$ mkdir /root/work/flannel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Docker 网络 —— Flannel 配置">
 <meta property="og:url" content="http://www.yunai.me/Docker/docker-network-flannel/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel// 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    todo flannel简介 A. 安装Etcd 😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel $ mkdir /root/work/flannel">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel//😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      todo flannel简介 A. 安装Etcd😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel$ mkdir /root/work/flannel">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:image" content="http://www.yunai.me/images/Docker/2017_02_04/00AD067C-53F7-43EF-A8CA-F77CD72471BA.png">
 <meta property="og:image" content="http://www.yunai.me/images/Docker/2017_02_04/D7087C8C-E6D7-408E-A088-3517E454A592.png">
@@ -21,7 +21,7 @@
 <meta property="og:updated_time" content="2017-06-08T16:35:32.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker 网络 —— Flannel 配置">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel// 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    todo flannel简介 A. 安装Etcd 😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel $ mkdir /root/work/flannel">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Docker/docker-network-flannel//😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      todo flannel简介 A. 安装Etcd😉网络上一大抄，我相信你能找到。 ##B. 安装Flannel 基于CentOS 7.2 1. 下载Flannel$ mkdir /root/work/flannel">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -60,6 +60,21 @@
             hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
             var s = document.getElementsByTagName("script")[0];
             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
         })();
     </script>
 </head>
@@ -118,7 +133,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">A. 安装Etcd</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">1. 下载Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.2.</span> <span class="toc-text">2. 启动Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.3.</span> <span class="toc-text">3. 配置Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.4.</span> <span class="toc-text">4. 验证网络是否通畅</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">C. 原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">D. 性能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">E. 碰到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">F. 参考文章列表</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#A-安装Etcd"><span class="toc-number">1.</span> <span class="toc-text">A. 安装Etcd</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-下载Flannel"><span class="toc-number">1.1.</span> <span class="toc-text">1. 下载Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-启动Flannel"><span class="toc-number">1.2.</span> <span class="toc-text">2. 启动Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-配置Docker"><span class="toc-number">1.3.</span> <span class="toc-text">3. 配置Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-验证网络是否通畅"><span class="toc-number">1.4.</span> <span class="toc-text">4. 验证网络是否通畅</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C-原理"><span class="toc-number">2.</span> <span class="toc-text">C. 原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#D-性能"><span class="toc-number">3.</span> <span class="toc-text">D. 性能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#E-碰到的问题"><span class="toc-number">4.</span> <span class="toc-text">E. 碰到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#F-参考文章列表"><span class="toc-number">5.</span> <span class="toc-text">F. 参考文章列表</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -153,77 +168,58 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p>原文地址：<a href="http://www.yunai.me/Docker/docker-network-flannel//">http://www.yunai.me/Docker/docker-network-flannel//</a><br>
-<strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+<p> 原文地址：<a href="http://www.yunai.me/Docker/docker-network-flannel//">http://www.yunai.me/Docker/docker-network-flannel//</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
 <p>todo flannel简介</p>
-<h2>A. 安装Etcd</h2>
-<p>😉网络上一大抄，我相信你能找到。</p>
+<h2 id="A-安装Etcd"><a href="#A-安装Etcd" class="headerlink" title="A. 安装Etcd"></a>A. 安装Etcd</h2><p>😉网络上一大抄，我相信你能找到。</p>
 <p>##B. 安装Flannel</p>
 <p>基于CentOS 7.2</p>
-<h3>1. 下载Flannel</h3>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ mkdir /root/work/flannel -p</div><div class="line">$ cd /root/work/flannel</div><div class="line">$ wget https://github.com/coreos/flannel/releases/download/v0.7.0/flannel-v0.7.0-linux-amd64.tar.gz</div><div class="line">$ tar -zxvf flannel-v0.7.0-linux-amd64.tar.gz</div><div class="line">$ ls -ls</div></pre></td></tr></table></figure></p>
-<p>结果：<img src="http://www.yunai.me/images/Docker/2017_02_04/00AD067C-53F7-43EF-A8CA-F77CD72471BA.png" alt=""></p>
-<h3>2. 启动Flannel</h3>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ nohup ./flanneld -etcd-endpoints=http://10.29.76.96:2379 &amp;  </div><div class="line"># 说明：http://10.29.76.96:2379 为etcd请求地址，需要改成你自己的噢</div><div class="line">$ cat /run/flannel/subnet.env</div></pre></td></tr></table></figure></p>
-<p>结果：<img src="http://www.yunai.me/images/Docker/2017_02_04/D7087C8C-E6D7-408E-A088-3517E454A592.png" alt=""></p>
+<h3 id="1-下载Flannel"><a href="#1-下载Flannel" class="headerlink" title="1. 下载Flannel"></a>1. 下载Flannel</h3><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ mkdir /root/work/flannel -p</div><div class="line">$ cd /root/work/flannel</div><div class="line">$ wget https://github.com/coreos/flannel/releases/download/v0.7.0/flannel-v0.7.0-linux-amd64.tar.gz</div><div class="line">$ tar -zxvf flannel-v0.7.0-linux-amd64.tar.gz</div><div class="line">$ ls -ls</div></pre></td></tr></table></figure>
+<p>结果：<img src="http://www.yunai.me/images/Docker/2017_02_04/00AD067C-53F7-43EF-A8CA-F77CD72471BA.png" alt="">    </p>
+<h3 id="2-启动Flannel"><a href="#2-启动Flannel" class="headerlink" title="2. 启动Flannel"></a>2. 启动Flannel</h3><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ nohup ./flanneld -etcd-endpoints=http://10.29.76.96:2379 &amp;  </div><div class="line"># 说明：http://10.29.76.96:2379 为etcd请求地址，需要改成你自己的噢</div><div class="line">$ cat /run/flannel/subnet.env</div></pre></td></tr></table></figure>
+<p>结果：<img src="http://www.yunai.me/images/Docker/2017_02_04/D7087C8C-E6D7-408E-A088-3517E454A592.png" alt="">    </p>
 <p>ps：重要！重要！重要！目前该方式仅仅用于测试，如果正式使用，请将Flannel配置到Systemd。</p>
-<h3>3. 配置Docker</h3>
-<ul>
+<h3 id="3-配置Docker"><a href="#3-配置Docker" class="headerlink" title="3. 配置Docker"></a>3. 配置Docker</h3><ul>
 <li>Docker版本：Docker version 1.12.5, build 047e51b/1.12.5</li>
 <li>Docker安装方式：yum</li>
 </ul>
 <p><strong>该步骤可能Docker安装方式不同，配置方式不同。目的是修改Docker的bip、mtu。</strong></p>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ vi /etc/sysconfig/docker-network </div><div class="line"># 说明：DOCKER_NETWORK_OPTIONS=&apos; --bip=10.1.77.1/24 --mtu=1472 &apos; </div><div class="line"># 说明：bip为subnet.env里的FLANNEL_SUBNET，mtu为subnet.env里的FLANNEL_MTU</div><div class="line">$ systemctl daemon-reload</div><div class="line">$ systemctl restart docker</div><div class="line">$ ifconfig docker0</div><div class="line">$ ifconfig flannel0</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ vi /etc/sysconfig/docker-network </div><div class="line"># 说明：DOCKER_NETWORK_OPTIONS=&apos; --bip=10.1.77.1/24 --mtu=1472 &apos; </div><div class="line"># 说明：bip为subnet.env里的FLANNEL_SUBNET，mtu为subnet.env里的FLANNEL_MTU</div><div class="line">$ systemctl daemon-reload</div><div class="line">$ systemctl restart docker</div><div class="line">$ ifconfig docker0</div><div class="line">$ ifconfig flannel0</div></pre></td></tr></table></figure>
 <p>结果：<img src="http://www.yunai.me/images/Docker/2017_02_04/3B5B0FEC-E65D-4D02-87FD-70C443952845.png" alt=""></p>
-<h3>4. 验证网络是否通畅</h3>
-<ul>
+<h3 id="4-验证网络是否通畅"><a href="#4-验证网络是否通畅" class="headerlink" title="4. 验证网络是否通畅"></a>4. 验证网络是否通畅</h3><ul>
 <li>节点1：ip=10.1.97.1/24</li>
 <li>节点2：ip=10.1.77.1/24</li>
 </ul>
 <p>节点1：</p>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ docker run -it --rm ubuntu</div><div class="line"># 假设ip为10.1.97.2</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ docker run -it --rm ubuntu</div><div class="line"># 假设ip为10.1.97.2</div></pre></td></tr></table></figure>
 <p>节点2:</p>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ docker run -it --rm ubuntu</div><div class="line"># 假设ip为10.1.77.2</div><div class="line">$ apt-get update</div><div class="line">$ apt-get install iputils-ping</div><div class="line">$ ping 10.1.97.2</div><div class="line"># ping通即配置成功！</div></pre></td></tr></table></figure></p>
-<h2>C. 原理</h2>
-<ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">$ docker run -it --rm ubuntu</div><div class="line"># 假设ip为10.1.77.2</div><div class="line">$ apt-get update</div><div class="line">$ apt-get install iputils-ping</div><div class="line">$ ping 10.1.97.2</div><div class="line"># ping通即配置成功！</div></pre></td></tr></table></figure>
+<h2 id="C-原理"><a href="#C-原理" class="headerlink" title="C. 原理"></a>C. 原理</h2><ol>
 <li><a href="https://xuxinkun.github.io/2016/07/18/flannel-docker/" rel="external nofollow noopener noreferrer" target="_blank">浅析flannel与docker结合的机制和原理</a></li>
 <li><a href="http://dockone.io/article/618" rel="external nofollow noopener noreferrer" target="_blank">DockOne技术分享（十八）：一篇文章带你了解Flannel</a></li>
 </ol>
-<h2>D. 性能</h2>
-<ul>
-<li>
-<p><img src="http://www.yunai.me/images/Docker/2017_02_04/F7429465-2334-48C6-B84E-4C7FC735F5F9.png" alt="">
-（来自文章<a href="http://mp.weixin.qq.com/s?__biz=MjM5MzI5NjY2MA==&amp;mid=2653782073&amp;idx=1&amp;sn=6db70559acabae67e35e13af7883e1d5&amp;chksm=bd4018428a37915415ffda36c4f9f5e31088063ef3ad83e325d3e4ecd4eccf8d202709ac9629&amp;mpshare=1&amp;scene=1&amp;srcid=0203g7cy4y9XpVhqA9fr5PGp#rd" rel="external nofollow noopener noreferrer" target="_blank">干货|你想要的百分点大规模Kubernetes集群的应用实践来了</a>）</p>
+<h2 id="D-性能"><a href="#D-性能" class="headerlink" title="D. 性能"></a>D. 性能</h2><ul>
+<li><p><img src="http://www.yunai.me/images/Docker/2017_02_04/F7429465-2334-48C6-B84E-4C7FC735F5F9.png" alt=""><br>（来自文章<a href="http://mp.weixin.qq.com/s?__biz=MjM5MzI5NjY2MA==&amp;mid=2653782073&amp;idx=1&amp;sn=6db70559acabae67e35e13af7883e1d5&amp;chksm=bd4018428a37915415ffda36c4f9f5e31088063ef3ad83e325d3e4ecd4eccf8d202709ac9629&amp;mpshare=1&amp;scene=1&amp;srcid=0203g7cy4y9XpVhqA9fr5PGp#rd" rel="external nofollow noopener noreferrer" target="_blank">干货|你想要的百分点大规模Kubernetes集群的应用实践来了</a>）</p>
 </li>
-<li>
-<p><img src="http://www.yunai.me/images/Docker/2017_02_04/0BF283C9-C26C-46C1-9BDA-604EAD67B2E2.png" alt="">
-（来自文章[Weave is kinda slow](http://www.generictestdomain.net/docker/weave/networking/stupidity/2015/04/05/weave-is-kinda-slow/）</p>
+<li><p><img src="http://www.yunai.me/images/Docker/2017_02_04/0BF283C9-C26C-46C1-9BDA-604EAD67B2E2.png" alt=""><br>（来自文章[Weave is kinda slow](<a href="http://www.generictestdomain.net/docker/weave/networking/stupidity/2015/04/05/weave-is-kinda-slow/）" rel="external nofollow noopener noreferrer" target="_blank">http://www.generictestdomain.net/docker/weave/networking/stupidity/2015/04/05/weave-is-kinda-slow/）</a></p>
 </li>
-<li>
-<p><a href="http://www.do1618.com/archives/869" rel="external nofollow noopener noreferrer" target="_blank">Docker或Kubernets的网络模型</a></p>
+<li><p><a href="http://www.do1618.com/archives/869" rel="external nofollow noopener noreferrer" target="_blank">Docker或Kubernets的网络模型</a></p>
 </li>
-<li>
-<p><a href="http://pangxiekr.com/kubernetsflannel-wang-luo-xing-neng-ce-shi-ji-diao-you/" rel="external nofollow noopener noreferrer" target="_blank">Kubernets,Flannel,Docker网络性能深度测试</a></p>
+<li><p><a href="http://pangxiekr.com/kubernetsflannel-wang-luo-xing-neng-ce-shi-ji-diao-you/" rel="external nofollow noopener noreferrer" target="_blank">Kubernets,Flannel,Docker网络性能深度测试</a></p>
 </li>
 </ul>
-<p>总结的话：host-gw &gt; vxlan &gt; udp。
-kubernetes在阿里云已经有host-gw + vpc的支持。</p>
-<h2>E. 碰到的问题</h2>
-<ol>
-<li>Flannel刚安装好，配置完Docker后，启动的Container无法被ping通，而Docker0的IP可以被ping通。
-TODO: 已解决，但是原因未知。目前猜测Kubernetes可能对Flannel第一次初始化有些影响。
-<ul>
+<p>总结的话：host-gw &gt; vxlan &gt; udp。<br>kubernetes在阿里云已经有host-gw + vpc的支持。</p>
+<h2 id="E-碰到的问题"><a href="#E-碰到的问题" class="headerlink" title="E. 碰到的问题"></a>E. 碰到的问题</h2><ol>
+<li>Flannel刚安装好，配置完Docker后，启动的Container无法被ping通，而Docker0的IP可以被ping通。<br> TODO: 已解决，但是原因未知。目前猜测Kubernetes可能对Flannel第一次初始化有些影响。<ul>
 <li>新开一台服务器，重新安装并进行配置(yum安装docker1.12版本），未重现该情况。出问题的机子都安装过Kubernetes。</li>
 <li>在出问题的机子上使用<code>tcpdump -i flannel0</code>，命令行输出了<code>01:57:55.680586 IP 10.1.77.0 &gt; 10.1.11.2: ICMP echo request, id 12091, seq 514, length 64</code>。可以得出网络本身应该是通的，但是未进行响应。进入Container，<code>tcpdump -i eth0</code>，未输出任何东西。得出结论：<code>flannel0</code>未将ping转到Container。</li>
 <li>关闭有问题机子的Kubernetes相关的服务。重启启动Container，结果可以ping通了。此时重启服务器，结果这个时候，即使Kubernetes启动着，依然可以ping通。好怪T T。</li>
 </ul>
 </li>
 </ol>
-<h2>F. 参考文章列表</h2>
-<ol>
+<h2 id="F-参考文章列表"><a href="#F-参考文章列表" class="headerlink" title="F. 参考文章列表"></a>F. 参考文章列表</h2><ol>
 <li><a href="https://mritd.me/2016/09/03/Dokcer-%E4%BD%BF%E7%94%A8-Flannel-%E8%B7%A8%E4%B8%BB%E6%9C%BA%E9%80%9A%E8%AE%AF/" rel="external nofollow noopener noreferrer" target="_blank">Dokcer 使用 Flannel 跨主机通讯</a></li>
 <li><a href="http://zdevops.blog.51cto.com/2579684/1735492" rel="external nofollow noopener noreferrer" target="_blank">kubernetes入门1：kubernetes+flannel+etcd环境搭建(通用安装)</a></li>
 <li><a href="http://dockone.io/article/1186" rel="external nofollow noopener noreferrer" target="_blank">用 Flannel 配置 Kubernetes 网络</a></li>
@@ -252,7 +248,7 @@ TODO: 已解决，但是原因未知。目前猜测Kubernetes可能对Flannel第
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">A. 安装Etcd</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">1. 下载Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.2.</span> <span class="toc-text">2. 启动Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.3.</span> <span class="toc-text">3. 配置Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.4.</span> <span class="toc-text">4. 验证网络是否通畅</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">C. 原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">D. 性能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">E. 碰到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">F. 参考文章列表</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#A-安装Etcd"><span class="toc-number">1.</span> <span class="toc-text">A. 安装Etcd</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-下载Flannel"><span class="toc-number">1.1.</span> <span class="toc-text">1. 下载Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-启动Flannel"><span class="toc-number">1.2.</span> <span class="toc-text">2. 启动Flannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-配置Docker"><span class="toc-number">1.3.</span> <span class="toc-text">3. 配置Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-验证网络是否通畅"><span class="toc-number">1.4.</span> <span class="toc-text">4. 验证网络是否通畅</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C-原理"><span class="toc-number">2.</span> <span class="toc-text">C. 原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#D-性能"><span class="toc-number">3.</span> <span class="toc-text">D. 性能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#E-碰到的问题"><span class="toc-number">4.</span> <span class="toc-text">E. 碰到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#F-参考文章列表"><span class="toc-number">5.</span> <span class="toc-text">F. 参考文章列表</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

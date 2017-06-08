@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 为什么做单元测试 2. 选型  2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践  3.1 Service 层 3.2 Controller 层 3.3 Da">
+    <meta name="description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Da">
 <meta property="og:type" content="article">
 <meta property="og:title" content="谈谈单元测试">
 <meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-java-unit-test/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 为什么做单元测试 2. 选型  2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践  3.1 Service 层 3.2 Controller 层 3.3 Da">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Da">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-06-08T16:16:38.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谈谈单元测试">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 为什么做单元测试 2. 选型  2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践  3.1 Service 层 3.2 Controller 层 3.3 Da">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-java-unit-test/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 为什么做单元测试 2. 选型 2.1 JUnit 2.2 Mockito 2.3 PowerMock   3. 实践 3.1 Service 层 3.2 Controller 层 3.3 Da">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -55,6 +55,21 @@
             hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
             var s = document.getElementsByTagName("script")[0];
             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
         })();
     </script>
 </head>
@@ -113,7 +128,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-为什么做单元测试"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-选型"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-JUnit"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Mockito"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-PowerMock"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-实践"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Service-层"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Controller-层"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Dao-层"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-建议"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -148,22 +163,19 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p>原文地址：<a href="http://www.yunai.me/Architecture/talk-about-java-unit-test/">http://www.yunai.me/Architecture/talk-about-java-unit-test/</a><br>
-<strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+<p> 原文地址：<a href="http://www.yunai.me/Architecture/talk-about-java-unit-test/">http://www.yunai.me/Architecture/talk-about-java-unit-test/</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
 <ul>
 <li><a href="#">1. 为什么做单元测试</a></li>
-<li><a href="#">2. 选型</a>
-<ul>
+<li><a href="#">2. 选型</a><ul>
 <li><a href="#">2.1 JUnit</a></li>
 <li><a href="#">2.2 Mockito</a></li>
 <li><a href="#">2.3 PowerMock</a></li>
 </ul>
 </li>
-<li><a href="#">3. 实践</a>
-<ul>
+<li><a href="#">3. 实践</a><ul>
 <li><a href="#">3.1 Service 层</a></li>
 <li><a href="#">3.2 Controller 层</a></li>
 <li><a href="#">3.3 Dao 层</a></li>
@@ -172,31 +184,24 @@
 <li><a href="#">4. 建议</a></li>
 </ul>
 <p><strong>本文主要面向Java工程师，见谅</strong></p>
-<h1>1. 为什么做单元测试</h1>
-<ul>
+<h1 id="1-为什么做单元测试"><a href="#1-为什么做单元测试" class="headerlink" title="1. 为什么做单元测试"></a>1. 为什么做单元测试</h1><ul>
 <li>提升重复测试效率</li>
 <li>提升代码质量</li>
 <li>提升部署可靠性</li>
 </ul>
-<h1>2. 选型</h1>
-<h2>2.1 JUnit</h2>
-<blockquote>
+<h1 id="2-选型"><a href="#2-选型" class="headerlink" title="2. 选型"></a>2. 选型</h1><h2 id="2-1-JUnit"><a href="#2-1-JUnit" class="headerlink" title="2.1 JUnit"></a>2.1 JUnit</h2><blockquote>
 <p>单元测试套件</p>
 </blockquote>
 <p>为什么不使用 TestNG ？在整合 TestNG + Mockito + PowerMock + Spring 时，Spring 容器初始化失败， <code>@Autowired</code> 的属性无法注入，查找资料，基本无解，只好退而求其次，选择 JUnit 。从功能强大程度，易用性上，个人较为推荐 TestNG 。</p>
-<h2>2.2 Mockito</h2>
-<blockquote>
+<h2 id="2-2-Mockito"><a href="#2-2-Mockito" class="headerlink" title="2.2 Mockito"></a>2.2 Mockito</h2><blockquote>
 <p>Mock 工具</p>
 </blockquote>
 <p>为什么不使用 JMock 、EasyMock ？因为 API 上更加轻量级，用起来爽爽的。</p>
-<h2>2.3 PowerMock</h2>
-<blockquote>
+<h2 id="2-3-PowerMock"><a href="#2-3-PowerMock" class="headerlink" title="2.3 PowerMock"></a>2.3 PowerMock</h2><blockquote>
 <p>作为 Mockito 的补充，增加对 <code>private</code>、<code>static</code>、<code>final</code> 的支持。</p>
 </blockquote>
 <p>为什么 Mockito 不自己支持？<a href="https://github.com/mockito/mockito/wiki/Mockito-And-Private-Methods" target="_blank" rel="external">Mockito-And-Private-Methods</a> 作者有自己的考虑，不过对于使用者，增加了很多整合的痛苦。</p>
-<h1>3. 实践</h1>
-<h2>3.1 Service 层</h2>
-<blockquote>
+<h1 id="3-实践"><a href="#3-实践" class="headerlink" title="3. 实践"></a>3. 实践</h1><h2 id="3-1-Service-层"><a href="#3-1-Service-层" class="headerlink" title="3.1 Service 层"></a>3.1 Service 层</h2><blockquote>
 <p>方案一：</p>
 </blockquote>
 <ul>
@@ -207,12 +212,11 @@
 <p>方案二：</p>
 </blockquote>
 <ul>
-<li>依赖的 Dao 层代码，使用内嵌数据库，例如说 h2database</li>
+<li>依赖的 Dao 层代码，使用内嵌数据库，例如说 h2database </li>
 <li>依赖的 Service 层代码，使用 mock 进行模拟</li>
 </ul>
 <p><strong>个人较为推荐方案二。从可靠性角度考虑，相对真实的模拟了 Dao 层，例如数据插入后，可以进行查询，判断Service是否正确设置值，是否有属性漏设置会设置错；当然，该方案在维护上会相对麻烦一些，各有利弊。</strong></p>
-<h2>3.2 Controller 层</h2>
-<blockquote>
+<h2 id="3-2-Controller-层"><a href="#3-2-Controller-层" class="headerlink" title="3.2 Controller 层"></a>3.2 Controller 层</h2><blockquote>
 <p>方案一：</p>
 </blockquote>
 <ul>
@@ -227,25 +231,22 @@
 </ul>
 <p><strong>个人较为推荐方案二。原因同 Service 层单元测试。</strong></p>
 <p>另外，大部门互联网公司 MVC 框架选用的是 SpringMVC ，可以使用 SpringMVC Test 框架。使用方式如下：</p>
-<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">MockMvcBuilders.standaloneSetup(XXXController).build()</div></pre></td></tr></table></figure></p>
-<h2>3.3 Dao 层</h2>
-<p>使用内嵌的数据实现进行测试。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">MockMvcBuilders.standaloneSetup(XXXController).build()</div></pre></td></tr></table></figure>
+<h2 id="3-3-Dao-层"><a href="#3-3-Dao-层" class="headerlink" title="3.3 Dao 层"></a>3.3 Dao 层</h2><p>使用内嵌的数据实现进行测试。</p>
 <ul>
-<li>MySQL ：<a href="https://github.com/h2database/h2database" target="_blank" rel="external">h2database</a></li>
+<li>MySQL ：<a href="https://github.com/h2database/h2database" target="_blank" rel="external">h2database</a> </li>
 <li>MongoDB ：<a href="https://github.com/fakemongo/fongo" target="_blank" rel="external">fongo</a></li>
 <li>Redis ：<a href="https://github.com/kstyrc/embedded-redis" target="_blank" rel="external">embedded-redis</a></li>
 </ul>
-<h1>4. 建议</h1>
-<ol>
+<h1 id="4-建议"><a href="#4-建议" class="headerlink" title="4. 建议"></a>4. 建议</h1><ol>
 <li>加 QQ：<strong>7685413</strong>，进行互相交流。😜。</li>
 <li>当使用 TestNG + Mockito + PowerMock ，测试类使用 IObjectFactory 而不要去继承 PowerMockTestCase 。Java 无法多继承，如果此时你有必须继承的类就十分棘手。</li>
 </ol>
 <pre><code>@ObjectFactory  
 public IObjectFactory getObjectFactory() {  
-	return new PowerMockObjectFactory();  
-}   
-</code></pre>
-<ol start="3">
+    return new PowerMockObjectFactory();  
+}
+</code></pre><ol>
 <li>当使用 PowerMockTestCase 每个测试单元执行完后，会清理掉对方法的 mock。因此，如果有公用的 mock 方法，需要使用下 @BeforeMethod（TestNG）、@Before（JUnit）里在进行一次mock。</li>
 <li>当使用 Mockito + PowerMock ，对测试类进行测试时，有需要对测试类的一些私有方法、或者静态方法进行 mock 时，不要使用 @Spy，而要使用PowerMokito.spy()进行 mock 。很酸爽。</li>
 </ol>
@@ -273,7 +274,7 @@ public IObjectFactory getObjectFactory() {
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-为什么做单元测试"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么做单元测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-选型"><span class="toc-number">2.</span> <span class="toc-text">2. 选型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-JUnit"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 JUnit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Mockito"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Mockito</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-PowerMock"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PowerMock</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-实践"><span class="toc-number">3.</span> <span class="toc-text">3. 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Service-层"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Service 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Controller-层"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Controller 层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Dao-层"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Dao 层</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-建议"><span class="toc-number">4.</span> <span class="toc-text">4. 建议</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

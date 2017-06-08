@@ -63,6 +63,21 @@
             s.parentNode.insertBefore(hm, s);
         })();
     </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
 </head>
 
 <body>
@@ -275,7 +290,7 @@
 <ul>
 <li>PushConsumer：<ul>
 <li>在大多数场景下使用。</li>
-<li>名字虽然是 <code>Push</code> 开头，实际在实现时，使用 <code>Pull</code> 方式实现。通过 <code>Pull</code> <strong>不断不断不断</strong>轮询 <code>Broker</code> 获取消息。当不存在新消息时，<code>Broker</code> 会<strong>挂起请求</strong>，直到有新消息产生，取消挂起，返回新消息。这样，基本和 <code>Broker</code> 主动 <code>Push</code> 做到<strong>接近</strong>的实时性（当然，还是有相应的实时性损失）。原理类似 <strong><a href="https://www.ibm.com/developerworks/cn/web/wa-lo-comet/" target="_blank" rel="external nofollow noopener noreferrer">长轮询( <code>Long-Polling</code> )</a></strong>。</li>
+<li>名字虽然是 <code>Push</code> 开头，实际在实现时，使用 <code>Pull</code> 方式实现。通过 <code>Pull</code> <strong>不断不断不断</strong>轮询 <code>Broker</code> 获取消息。当不存在新消息时，<code>Broker</code> 会<strong>挂起请求</strong>，直到有新消息产生，取消挂起，返回新消息。这样，基本和 <code>Broker</code> 主动 <code>Push</code> 做到<strong>接近</strong>的实时性（当然，还是有相应的实时性损失）。原理类似 <strong><a href="https://www.ibm.com/developerworks/cn/web/wa-lo-comet/" rel="external nofollow noopener noreferrer" target="_blank">长轮询( <code>Long-Polling</code> )</a></strong>。</li>
 </ul>
 </li>
 <li>PullConsumer</li>

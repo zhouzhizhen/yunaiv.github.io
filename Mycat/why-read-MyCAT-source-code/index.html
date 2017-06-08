@@ -6,17 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+    <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 MyCAT 源码？ 深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么阅读 MyCAT 源码？">
 <meta property="og:url" content="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+<meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 MyCAT 源码？ 深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-06-08T16:20:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么阅读 MyCAT 源码？">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 MyCAT 源码？ 深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -55,6 +55,21 @@
             hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
             var s = document.getElementsByTagName("script")[0];
             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
         })();
     </script>
 </head>
@@ -113,7 +128,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-MyCAT-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -148,14 +163,11 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p>原文地址：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a><br>
-<code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br>
-<strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+<p> 原文地址：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
-<h2>为什么阅读 MyCAT 源码？</h2>
-<ul>
+<h2 id="为什么阅读-MyCAT-源码？"><a href="#为什么阅读-MyCAT-源码？" class="headerlink" title="为什么阅读 MyCAT 源码？"></a>为什么阅读 MyCAT 源码？</h2><ul>
 <li>深入了解<strong>数据库中间件</strong> ，知其然知其所以然。</li>
 <li>NIO 的实现 与 Netty 有什么特殊的地方？</li>
 <li>分布式事务如何实现的？</li>
@@ -163,8 +175,7 @@
 <li>SQL 解析</li>
 <li>等等</li>
 </ul>
-<h2>步骤</h2>
-<ul>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ul>
 <li>[ ] NIO</li>
 <li>[ ] 分布式事务</li>
 <li>[ ] 分表</li>
@@ -217,7 +228,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-MyCAT-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
