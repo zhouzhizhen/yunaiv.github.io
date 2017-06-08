@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
+    
+    <lastmod>2017-06-08T13:21:38.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
     
     <lastmod>2017-06-08T13:17:58.000Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
     
     <lastmod>2017-06-08T10:21:07.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
@@ -121,7 +121,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
+    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -142,7 +142,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
+    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     

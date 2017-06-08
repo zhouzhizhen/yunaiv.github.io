@@ -6,9 +6,11 @@ permalink: RocketMQ/message-send-and-consume-orderly
 
 -------
 
->  原文地址：[RocketMQ源码解析：Message顺序发送与消费](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1007-RocketMQ源码解析：Message顺序发送与消费.md)  
-> `RocketMQ` **带注释**地址 ：[YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。**  
+>  原文地址：[http://www.yunai.me/RocketMQ/message-send-and-consume-orderly](http://www.yunai.me/RocketMQ/message-send-and-consume-orderly)  
+> `RocketMQ` **带注释源码**地址 ：[https://github.com/YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
+> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号 **  
+
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
 
 -------
 
@@ -26,8 +28,8 @@ permalink: RocketMQ/message-send-and-consume-orderly
 
 **建议**前置阅读内容：
 
-* [《Message发送&接收》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ源码解析：Message发送&接收.md)
-* [《Message拉取&消费（下）》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1005-RocketMQ源码解析：Message拉取&消费（下）.md)
+* [《RocketMQ 源码分析 —— Message 发送与接收》](http://www.yunai.me/RocketMQ/message-send-and-receive/)
+* [《RocketMQ 源码分析 —— Message 拉取与消费（下）》](http://www.yunai.me/RocketMQ/message-pull-and-consume-second/)
 
 当然对 `Message` 发送与消费已经有一定了解的同学，可以选择跳过。
 
@@ -357,11 +359,11 @@ permalink: RocketMQ/message-send-and-consume-orderly
 
 ## 3.3 消费消息队列
 
-😏本节会类比**并发消费消费队列**，建议对照 [PushConsumer并发消费消息](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1005-RocketMQ源码解析：Message拉取&消费（下）.md#6pushconsumer-消费消息) 一起理解。
+😏本节会类比**并发消费消费队列**，建议对照 [PushConsumer并发消费消息](http://www.yunai.me/RocketMQ/message-pull-and-consume-second/#6、PushConsumer-消费消息) 一起理解。
 
 ### 3.1.1 消费消息
 
-![顺序消费活动图-消费消息](images/1007/顺序消费活动图-消费消息.png)
+![顺序消费活动图-消费消息](http://www.yunai.me/images/RocketMQ/2017_05_13/01.png)
 
 ```Java
   1: // ⬇️⬇️⬇️【ConsumeMessageOrderlyService.java】
