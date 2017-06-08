@@ -8,7 +8,7 @@ permalink: RocketMQ/message-pull-and-consume-first
 
 >  原文地址：[http://www.yunai.me/RocketMQ/message-pull-and-consume-first/](http://www.yunai.me/RocketMQ/message-pull-and-consume-first/)  
 > `RocketMQ` **带注释源码**地址 ：[https://github.com/YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号 **  
+> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号**  
 
 ![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
 

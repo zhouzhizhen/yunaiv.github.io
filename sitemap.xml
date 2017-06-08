@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    
+    <lastmod>2017-06-08T13:26:53.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
+    
+    <lastmod>2017-06-08T13:26:49.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
+    
+    <lastmod>2017-06-08T13:26:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
+    
+    <lastmod>2017-06-08T13:26:26.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
     
     <lastmod>2017-06-08T13:21:38.000Z</lastmod>
@@ -9,30 +37,9 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
     
-    <lastmod>2017-06-08T13:17:58.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
-    
-    <lastmod>2017-06-08T13:09:59.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
-    
-    <lastmod>2017-06-08T10:47:50.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
-    
-    <lastmod>2017-06-08T10:21:07.000Z</lastmod>
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
@@ -51,14 +58,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
+    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -72,7 +72,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
+    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -86,6 +86,20 @@
   </url>
   
   <url>
+    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
@@ -93,7 +107,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -121,20 +135,6 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
@@ -149,7 +149,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
