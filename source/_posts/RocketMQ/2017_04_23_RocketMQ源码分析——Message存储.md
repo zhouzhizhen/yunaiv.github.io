@@ -6,9 +6,9 @@ permalink: RocketMQ/message-store
 
 -------
 
->  原文地址：[RocketMQ源码解析：Message存储](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1004-RocketMQ源码解析：Message存储.md)  
-> `RocketMQ` **带注释**地址 ：[YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。**  
+>  原文地址：[http://www.yunai.me/RocketMQ/message-store/](http://www.yunai.me/RocketMQ/message-store/)  
+> `RocketMQ` **带注释源码**地址 ：[https://github.com/YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
+> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号 **  
 
 -------
 
@@ -28,14 +28,14 @@ permalink: RocketMQ/message-store
 
 # 1、概述
 
-本文接[《RocketMQ源码解析：Message发送&接收》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%EF%BC%9AMessage%E5%8F%91%E9%80%81%26%E6%8E%A5%E6%94%B6.md)。
+本文接[《RocketMQ 源码分析 —— Message 发送与接收》](http://www.yunai.me/RocketMQ/message-send-and-receive/)。
 主要解析 `CommitLog` 存储消息部分。
 
 # 2、CommitLog 结构
 
 `CommitLog`、`MappedFileQueue`、`MappedFile` 的关系如下：
 
-> ![CommitLog、MappedFileQueue、MappedFile的关系](images/1004/CommitLog&MappedQueue&MappedFile类图.png)
+> ![CommitLog、MappedFileQueue、MappedFile的关系](http://www.yunai.me/image/RocketMQ/2017_04_23/02.png)
 `CommitLog` : `MappedFileQueue` : `MappedFile` = 1 : 1 : N。
 
 反应到系统文件如下：
@@ -103,7 +103,7 @@ total 10485760
 
 # 3、CommitLog 存储消息
 
-> ![Broker存储发送消息顺序图](images/1004/Broker存储发送消息顺序图.png)
+> ![Broker存储发送消息顺序图](http://www.yunai.me/images/RocketMQ/01.png)
 
 ## CommitLog#putMessage(...)
 
@@ -605,7 +605,7 @@ total 10485760
 
 ## FlushCommitLogService
 
-![FlushCommitLogService类图](images/1004/FlushCommitLogService类图.png)
+![FlushCommitLogService类图](http://www.yunai.me/image/RocketMQ/2017_04_23/03.png)
 
 | 线程服务 | 场景 | 插入消息性能 |
 | --- | --- | --- |
@@ -621,7 +621,7 @@ total 10485760
 | 方式一 | 写入内存字节缓冲区(writeBuffer) | 从内存字节缓冲区(write buffer)提交(commit)到文件通道(fileChannel) | 文件通道(fileChannel)flush |
 | 方式二 |  | 写入映射文件字节缓冲区(mappedByteBuffer) | 映射文件字节缓冲区(mappedByteBuffer)flush  |
 
-![MappedFile的position迁移图](images/1004/MappedFile的position迁移图.jpeg)
+![MappedFile的position迁移图](http://www.yunai.me/image/RocketMQ/2017_04_23/04.png)
 
 **flush相关代码**
 
