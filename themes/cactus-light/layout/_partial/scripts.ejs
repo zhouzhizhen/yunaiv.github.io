@@ -53,7 +53,7 @@
                     counter.increment("time");
                     counter.save();
                     // 插入次数
-                    $('.postdate').append((counter.get('time') + 1) + '  Views');
+                    $('.postdate').append(' ' + (counter.get('time') + 1) + '  Views');
                 } else {
                     var newcounter = new Counter();
                     newcounter.set("title", title);
@@ -62,7 +62,7 @@
                     newcounter.save(null, {
                         success: function (newcounter) {
                             // 插入次数
-                            $('.postdate').append('1  Views');
+                            $('.postdate').append(' 1  Views');
                         },
                         error: function (newcounter, error) {
                         }
@@ -135,7 +135,7 @@
         var query = new AV.Query(Log);
         query.count({
             success: function (results) {
-                $('.footer-left').append(results + '  Views');
+                $('.footer-left').append(' ' + results + '  Views');
             },
             error: function (error) {
             }
@@ -144,14 +144,16 @@
 
     $(function () {
         // 判断是否在文章页
-        if ($('.posttitle').length == 1) {
-            var Counter = AV.Object.extend("Counter");
-            // 增加文章访问次数
-            addCount(Counter);
-        }
-        // 记录访问日志
-        addVisitLog();
-        // 计算多少人访问
-        countVisitLog();
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
     });
 </script>
