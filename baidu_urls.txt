@@ -1,7 +1,7 @@
-http://www.yunai.me/Mycat/single-db-single-table-insert/
+http://www.yunai.me/Mycat/single-db-single-table-select/
 http://www.yunai.me/Mycat/single-db-single-table-insert/
 http://www.yunai.me/Mycat/build-debugging-environment/
-http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/
+http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/
 http://www.yunai.me/RocketMQ/message-transaction/
 http://www.yunai.me/RocketMQ/filtersrv/
 http://www.yunai.me/RocketMQ/message-schedule-and-retry/

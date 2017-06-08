@@ -4,7 +4,14 @@ tags:
 categories: Nginx
 permalink: Nginx/nginx-dynamic-upstream
 
----
+-------
+
+>  原文地址：[http://www.yunai.me/Nginx/nginx-dynamic-upstream/](http://www.yunai.me/Nginx/nginx-dynamic-upstream/)  
+> **😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号**  
+
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
+
+-------
 
 随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该怎么做呢？
 参考类似服务发现的方案，我们选择了微博开源的nginx插件：https://github.com/weibocom/nginx-upsync-module 。

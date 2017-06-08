@@ -2,6 +2,76 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
+    
+    <lastmod>2017-06-08T16:35:32.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Mycat/single-db-single-table-select/</loc>
+    
+    <lastmod>2017-06-08T16:33:07.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
+    
+    <lastmod>2017-06-08T16:32:20.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
+    
+    <lastmod>2017-06-08T16:31:48.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
+    
+    <lastmod>2017-06-08T16:20:14.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
+    
+    <lastmod>2017-06-08T16:17:38.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
+    
+    <lastmod>2017-06-08T16:16:38.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    
+    <lastmod>2017-06-08T16:16:20.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/namesrv-intro/</loc>
+    
+    <lastmod>2017-06-08T16:15:39.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
+    
+    <lastmod>2017-06-08T16:15:19.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
     
     <lastmod>2017-06-08T15:58:02.000Z</lastmod>
@@ -65,21 +135,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
+    <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -93,63 +149,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/RocketMQ/topic/</loc>
-    
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/namesrv-intro/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     

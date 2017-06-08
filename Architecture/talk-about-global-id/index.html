@@ -1,1 +1,523 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="HandheldFriendly" content="True"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="description" content="原文地址：谈谈ID😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Boundary flake 3.5 自己"><meta property="og:type" content="article"><meta property="og:title" content="谈谈 ID"><meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-global-id/index.html"><meta property="og:site_name" content="芋艿V的博客"><meta property="og:description" content="原文地址：谈谈ID😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Boundary flake 3.5 自己"><meta property="og:updated_time" content="2017-06-07T18:42:52.000Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="谈谈 ID"><meta name="twitter:description" content="原文地址：谈谈ID😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。      1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Boundary flake 3.5 自己"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192"><link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"><title>谈谈 ID</title><link rel="stylesheet" href="/css/style.css"><script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script><script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz","NTPUE2VIEE0gyPPGbAaLPtLb")</script></head><body><div id="header-post"><a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a> <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a> <a id="top-icon-tablet" href="#" onclick='$("html, body").animate({scrollTop:0},"fast")' style="display:visible"><i class="fa fa-chevron-up fa-lg"></i> </a><span id="menu" style="visibility:visible"><span id="nav"><ul><li><a href="/">Home</a></li><li><a href="/archives/">Writing</a></li><li><a href="http://github.com/YunaiV">GitHub</a></li></ul></span><br><span id="actions"><ul><li><a class="icon" href="/Architecture/talk-about-java-unit-test/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle()' onmouseout='$("#i-prev").toggle()'></i></a></li><li><a class="icon" href="/Docker/docker-network-flannel/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle()' onmouseout='$("#i-next").toggle()'></i></a></li><li><a class="icon" href="#" onclick='$("html, body").animate({scrollTop:0},"fast")'><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle()' onmouseout='$("#i-top").toggle()'></i></a></li><li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle()' onmouseout='$("#i-share").toggle()' onclick='return $("#share").toggle(),!1'></i></a></li></ul><span id="i-prev" class="info" style="display:none">Previous post</span> <span id="i-next" class="info" style="display:none">Next post</span> <span id="i-top" class="info" style="display:none">Back to top</span> <span id="i-share" class="info" style="display:none">Share post</span></span><br><div id="share" style="display:none"><ul><li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-facebook" aria-hidden="true"></i></a></li><li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Architecture/talk-about-global-id/&text=谈谈 ID"><i class="fa fa-twitter" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li><li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Architecture/talk-about-global-id/&is_video=false&description=谈谈 ID"><i class="fa fa-pinterest" aria-hidden="true"></i></a></li><li><a class="icon" href="mailto:?subject=谈谈 ID&body=Check out this article: http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-envelope" aria-hidden="true"></i></a></li><li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-get-pocket" aria-hidden="true"></i></a></li><li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-reddit" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-stumbleupon" aria-hidden="true"></i></a></li><li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-digg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Architecture/talk-about-global-id/&name=谈谈 ID&description="><i class="fa fa-tumblr" aria-hidden="true"></i></a></li></ul></div><div id="toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol></div></span></div><div class="content index width mx-auto px2 my4"><article class="post" itemscope itemtype="http://schema.org/BlogPosting"><header><h1 class="posttitle" itemprop="name headline">谈谈 ID</h1><div class="meta"><span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">芋艿V的博客</span></span><div class="postdate"><time datetime="2017-03-03T16:00:00.000Z" itemprop="datePublished">2017-03-04</time></div></div></header><div class="content" itemprop="articleBody"><blockquote><p>原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Architecture/0001-%E8%B0%88%E8%B0%88ID.md" target="_blank" rel="external">谈谈ID</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong></p></blockquote><hr><ul><li><a href="#">1. 数据库自增</a></li><li><a href="#">2. 类UUID算法</a></li><li><a href="#">3. SnowFlake</a><ul><li><a href="#">3.1 Twitter-Snowflake</a></li><li><a href="#">3.2 Instagram SnowFlake</a></li><li><a href="#">3.3 Simpleflake</a></li><li><a href="#">3.4 Boundary flake</a></li><li><a href="#">3.5 自己的想法</a></li></ul></li><li><a href="#">4. 参考文章</a></li><li><a href="#">草稿</a></li></ul><p>在日常开发中，数据库的id是不可少的。在各个场景下会有不同的选择，本文对互联网上常见的ID算法进行归纳，希望对工程师们有一点点帮助。</p><h1 id="1-数据库自增"><a href="#1-数据库自增" class="headerlink" title="1. 数据库自增"></a>1. 数据库自增</h1><ol><li>MySQL、Oracle、PGSQL等关系数据库的id主键自增</li><li>Redis、Memcached等K/V数据库的incr操作自增<ul><li>需要考虑持久化的问题</li></ul></li><li>MongoDB自己维护一个id自增集合<ul><li>MongoDB的Update操作支持incr操作，因此可以这么做。</li><li>该方式适用于支持该操作的其他数据库。</li></ul></li></ol><h1 id="2-类UUID算法"><a href="#2-类UUID算法" class="headerlink" title="2. 类UUID算法"></a>2. 类UUID算法</h1><ol><li>UUID</li><li>MongoDB的ObjectId</li></ol><h1 id="3-SnowFlake"><a href="#3-SnowFlake" class="headerlink" title="3. SnowFlake"></a>3. SnowFlake</h1><h2 id="3-1-Twitter-Snowflake"><a href="#3-1-Twitter-Snowflake" class="headerlink" title="3.1 Twitter-Snowflake"></a>3.1 Twitter-Snowflake</h2><blockquote><p>Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p></blockquote><p>64bits从左往右依次是</p><ul><li>1bit 保留</li><li>41bits 时间戳<ul><li>支持69.7年需要的id。2 ^41 /365/24/60/60/1000=69.7</li></ul></li><li>10bits work-id<ul><li>支持1024个work</li></ul></li><li>12bits sequence-id<ul><li>支持每work每毫秒4096个id</li><li>支持每work每秒4096000个id</li><li>若当前毫秒超过4096，则sleep1毫秒，获取下一毫秒的自增</li></ul></li></ul><p><strong>snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景</strong></p><h2 id="3-2-Instagram-SnowFlake"><a href="#3-2-Instagram-SnowFlake" class="headerlink" title="3.2 Instagram SnowFlake"></a>3.2 Instagram SnowFlake</h2><p>去中性化，基于PGSQL实现</p><p>64bits从左至右依次是</p><ul><li>41bits 时间戳</li><li>13bits logic-shard-id</li><li>10bits sequence-id</li></ul><p>实现方式</p><ul><li>根据<code>share-key</code>获取对应的PGSQL实例-库</li><li>id使用PGSQL的存储过程</li><li>13bits = <code>share-key对应值%logic-share-id</code></li><li>10bits = <code>该Table的auto_increment_id%(2 ^10)</code></li></ul><p>好处</p><ul><li>去中性化</li><li>根据id可以获得对应PGSQL实例-库</li></ul><h2 id="3-3-Simpleflake"><a href="#3-3-Simpleflake" class="headerlink" title="3.3 Simpleflake"></a>3.3 Simpleflake</h2><p>64bits</p><ul><li>去中性化</li><li>将work-id的12bits给sequence-id。完全随机，每毫秒有1/(2^22 )出现冲突的情况。数据量大时需要注意。</li><li>未来可以平滑迁移到Twitter SnowFlake</li></ul><h2 id="3-4-Boundary-flake"><a href="#3-4-Boundary-flake" class="headerlink" title="3.4 Boundary flake"></a>3.4 Boundary flake</h2><p>去中性化，基于erlang实现<br>128bits从左到右依次是</p><ul><li>64bits 时间戳<ul><li>和毫秒时间戳等长</li></ul></li><li>48bits work-id<ul><li>和mac地址等长，使用时要避免相同mac多个进程</li></ul></li><li>14bits sequence-id</li></ul><h2 id="3-5-自己的想法"><a href="#3-5-自己的想法" class="headerlink" title="3.5 自己的想法"></a>3.5 自己的想法</h2><p><strong><em>参考Instagram SnowFlake的做法</em></strong></p><p>去中心化，基于redis实现<br>64bits从左到右依次是</p><ul><li>1bit 保留</li><li>41bits 时间戳</li><li>12bits 基于logic-shard-id</li><li>10bits 基于时间戳+logic-shard-id在redis里自增</li></ul><h1 id="4-参考文章"><a href="#4-参考文章" class="headerlink" title="4. 参考文章"></a>4. 参考文章</h1><ol><li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" target="_blank" rel="external">互联网分布式id生成方法|msup微课干货</a></li><li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="external">服务化框架－分布式Unique ID的生成方法一览</a></li><li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" target="_blank" rel="external">分布式系统中 Unique ID 的生成方法</a></li></ol><h1 id="草稿"><a href="#草稿" class="headerlink" title="草稿"></a>草稿</h1><ol><li>2实例、4分表</li></ol><ul><li>a：0<em>2</em>4*6</li><li>b：1<em>3</em>5*7</li></ul><ol><li>4实例、4分表</li></ol><ul><li>a：0<em>4</em>8*12</li><li>b：1<em>5</em>9*13</li><li>c：2<em>6</em>10*14</li><li>d：3<em>7</em>11*15</li></ul><p>扩展方式：</p><ul><li>a与c双主〈a c〉</li><li>b与d双主〈b d〉</li></ul></div></article></div><div id="footer-post-container"><div id="footer-post"><div id="nav-footer" style="display:none"><ul><li><a href="/">Home</a></li><li><a href="/archives/">Writing</a></li><li><a href="http://github.com/YunaiV">GitHub</a></li></ul></div><div id="toc-footer" style="display:none"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol></div><div id="share-footer" style="display:none"><ul><li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Architecture/talk-about-global-id/&text=谈谈 ID"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Architecture/talk-about-global-id/&is_video=false&description=谈谈 ID"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="mailto:?subject=谈谈 ID&body=Check out this article: http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li><li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Architecture/talk-about-global-id/&name=谈谈 ID&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li></ul></div><div id="actions-footer"><ul><li id="toc"><a class="icon" href="#" onclick='return $("#toc-footer").toggle(),!1'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li><li id="share"><a class="icon" href="#" onclick='return $("#share-footer").toggle(),!1'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li><li id="top" style="display:none"><a class="icon" href="#" onclick='$("html, body").animate({scrollTop:0},"fast")'><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li><li id="menu"><a class="icon" href="#" onclick='return $("#nav-footer").toggle(),!1'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li></ul></div></div></div><footer id="footer"><div class="footer-left">Copyright &copy; 2017 王文斌</div><div class="footer-right"><nav><ul><li><a href="/">Home</a></li><li><a href="/archives/">Writing</a></li><li><a href="http://github.com/YunaiV">GitHub</a></li><li>Hosted by <a href="https://pages.coding.me" style="font-weight:700">Coding Pages</a></li></ul></nav></div></footer></body></html><link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css"><link rel="stylesheet" href="/lib/meslo-LG/styles.css"><link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css"><script src="/lib/jquery/jquery.min.js"></script><script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script><script src="/js/main.js"></script><script type="text/javascript">!function(e,a,t,n,c,o,s){e.GoogleAnalyticsObject=c,e[c]=e[c]||function(){(e[c].q=e[c].q||[]).push(arguments)},e[c].l=1*new Date,o=a.createElement(t),s=a.getElementsByTagName(t)[0],o.async=1,o.src="//www.google-analytics.com/analytics.js",s.parentNode.insertBefore(o,s)}(window,document,"script",0,"ga"),ga("create","UA-86660611-1","auto"),ga("send","pageview")</script><script>function addCount(e){url=$("#actions .icon").attr("href").trim(),title=$(".posttitle").text().trim();var t=new AV.Query(e);t.equalTo("url",url),t.find({success:function(t){if(t.length>0){var n=t[0];n.fetchWhenSave(!0),n.increment("time"),n.save(),$(".postdate").append("&nbsp;"+(n.get("time")+1)+"  Views")}else{var o=new e;o.set("title",title),o.set("url",url),o.set("time",1),o.save(null,{success:function(e){$(".postdate").append("&nbsp;1  Views")},error:function(e,t){}})}},error:function(e){}})}function getCookie(e){return document.cookie.length>0&&(c_start=document.cookie.indexOf(e+"="),-1!=c_start)?(c_start=c_start+e.length+1,c_end=document.cookie.indexOf(";",c_start),-1==c_end&&(c_end=document.cookie.length),unescape(document.cookie.substring(c_start,c_end))):""}function setCookie(e,t,n){var o=new Date;o.setDate(o.getDate()+n),document.cookie=e+"="+escape(t)+(null==n?"":";expires="+o.toGMTString())}function addVisitLog(){var e=getCookie("blog_visitor_id");36!=e.length&&setCookie("blog_visitor_id",e=uuid());var t=location.href,n=navigator.userAgent,o=document.referrer,i=new(AV.Object.extend("VisitLog"));i.set("url",t),i.set("ua",n),i.set("referer",o),i.set("visitorId",e),i.save()}function uuid(){for(var e=[],t=0;t<36;t++)e[t]="0123456789abcdef".substr(Math.floor(16*Math.random()),1);return e[14]="4",e[19]="0123456789abcdef".substr(3&e[19]|8,1),e[8]=e[13]=e[18]=e[23]="-",e.join("")}function countVisitLog(){var e=AV.Object.extend("VisitLog");new AV.Query(e).count({success:function(e){$(".footer-left").append("&nbsp;"+e+"  Views")},error:function(e){}})}$(function(){setTimeout(function(){1==$(".posttitle").length&&addCount(AV.Object.extend("Counter")),addVisitLog(),countVisitLog()},1e3)})</script>
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈 ID">
+<meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-global-id/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
+<meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta property="og:updated_time" content="2017-06-08T16:16:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="谈谈 ID">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
+<meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>谈谈 ID</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/Architecture/talk-about-java-unit-test/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
+        
+        
+        <li><a class="icon" href="/Docker/docker-network-flannel/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Architecture/talk-about-global-id/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Architecture/talk-about-global-id/&text=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Architecture/talk-about-global-id/&is_video=false&description=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=谈谈 ID&body=Check out this article: http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Architecture/talk-about-global-id/&name=谈谈 ID&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        谈谈 ID
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-03-03T16:00:00.000Z" itemprop="datePublished">2017-03-04</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>原文地址：<a href="http://www.yunai.me/Architecture/talk-about-global-id/">http://www.yunai.me/Architecture/talk-about-global-id/</a><br>
+<strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+</blockquote>
+<p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
+<hr>
+<ul>
+<li><a href="#">1. 数据库自增</a></li>
+<li><a href="#">2. 类UUID算法</a></li>
+<li><a href="#">3. SnowFlake</a>
+<ul>
+<li><a href="#">3.1 Twitter-Snowflake</a></li>
+<li><a href="#">3.2 Instagram SnowFlake</a></li>
+<li><a href="#">3.3 Simpleflake</a></li>
+<li><a href="#">3.4 Boundary flake</a></li>
+<li><a href="#">3.5 自己的想法</a></li>
+</ul>
+</li>
+<li><a href="#">4. 参考文章</a></li>
+<li><a href="#">草稿</a></li>
+</ul>
+<p>在日常开发中，数据库的id是不可少的。在各个场景下会有不同的选择，本文对互联网上常见的ID算法进行归纳，希望对工程师们有一点点帮助。</p>
+<h1>1. 数据库自增</h1>
+<ol>
+<li>MySQL、Oracle、PGSQL等关系数据库的id主键自增</li>
+<li>Redis、Memcached等K/V数据库的incr操作自增
+<ul>
+<li>需要考虑持久化的问题</li>
+</ul>
+</li>
+<li>MongoDB自己维护一个id自增集合
+<ul>
+<li>MongoDB的Update操作支持incr操作，因此可以这么做。</li>
+<li>该方式适用于支持该操作的其他数据库。</li>
+</ul>
+</li>
+</ol>
+<h1>2. 类UUID算法</h1>
+<ol>
+<li>UUID</li>
+<li>MongoDB的ObjectId</li>
+</ol>
+<h1>3. SnowFlake</h1>
+<h2>3.1 Twitter-Snowflake</h2>
+<blockquote>
+<p>Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p>
+</blockquote>
+<p>64bits从左往右依次是</p>
+<ul>
+<li>1bit 保留</li>
+<li>41bits 时间戳
+<ul>
+<li>支持69.7年需要的id。2 ^41 /365/24/60/60/1000=69.7</li>
+</ul>
+</li>
+<li>10bits work-id
+<ul>
+<li>支持1024个work</li>
+</ul>
+</li>
+<li>12bits sequence-id
+<ul>
+<li>支持每work每毫秒4096个id</li>
+<li>支持每work每秒4096000个id</li>
+<li>若当前毫秒超过4096，则sleep1毫秒，获取下一毫秒的自增</li>
+</ul>
+</li>
+</ul>
+<p>** snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景 **</p>
+<h2>3.2 Instagram SnowFlake</h2>
+<p>去中性化，基于PGSQL实现</p>
+<p>64bits从左至右依次是</p>
+<ul>
+<li>41bits 时间戳</li>
+<li>13bits logic-shard-id</li>
+<li>10bits sequence-id</li>
+</ul>
+<p>实现方式</p>
+<ul>
+<li>根据<code>share-key</code>获取对应的PGSQL实例-库</li>
+<li>id使用PGSQL的存储过程</li>
+<li>13bits = <code>share-key对应值%logic-share-id</code></li>
+<li>10bits = <code>该Table的auto_increment_id%(2 ^10)</code></li>
+</ul>
+<p>好处</p>
+<ul>
+<li>去中性化</li>
+<li>根据id可以获得对应PGSQL实例-库</li>
+</ul>
+<h2>3.3 Simpleflake</h2>
+<p>64bits</p>
+<ul>
+<li>去中性化</li>
+<li>将work-id的12bits给sequence-id。完全随机，每毫秒有1/(2^22 )出现冲突的情况。数据量大时需要注意。</li>
+<li>未来可以平滑迁移到Twitter SnowFlake</li>
+</ul>
+<h2>3.4 Boundary flake</h2>
+<p>去中性化，基于erlang实现
+128bits从左到右依次是</p>
+<ul>
+<li>64bits 时间戳
+<ul>
+<li>和毫秒时间戳等长</li>
+</ul>
+</li>
+<li>48bits work-id
+<ul>
+<li>和mac地址等长，使用时要避免相同mac多个进程</li>
+</ul>
+</li>
+<li>14bits sequence-id</li>
+</ul>
+<h2>3.5 自己的想法</h2>
+<p><strong><em>参考Instagram SnowFlake的做法</em></strong></p>
+<p>去中心化，基于redis实现
+64bits从左到右依次是</p>
+<ul>
+<li>1bit 保留</li>
+<li>41bits 时间戳</li>
+<li>12bits 基于logic-shard-id</li>
+<li>10bits 基于时间戳+logic-shard-id在redis里自增</li>
+</ul>
+<h1>4. 参考文章</h1>
+<ol>
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" rel="external nofollow noopener noreferrer" target="_blank">互联网分布式id生成方法|msup微课干货</a></li>
+<li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" rel="external nofollow noopener noreferrer" target="_blank">服务化框架－分布式Unique ID的生成方法一览</a></li>
+<li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" rel="external nofollow noopener noreferrer" target="_blank">分布式系统中 Unique ID 的生成方法</a></li>
+</ol>
+<h1>草稿</h1>
+<ol>
+<li>2实例、4分表</li>
+</ol>
+<ul>
+<li>a：0<em>2</em>4*6</li>
+<li>b：1<em>3</em>5*7</li>
+</ul>
+<ol start="2">
+<li>4实例、4分表</li>
+</ol>
+<ul>
+<li>a：0<em>4</em>8*12</li>
+<li>b：1<em>5</em>9*13</li>
+<li>c：2<em>6</em>10*14</li>
+<li>d：3<em>7</em>11*15</li>
+</ul>
+<p>扩展方式：</p>
+<ul>
+<li>a与c双主〈a c〉</li>
+<li>b与d双主〈b d〉</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Architecture/talk-about-global-id/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Architecture/talk-about-global-id/&text=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Architecture/talk-about-global-id/&is_video=false&description=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=谈谈 ID&body=Check out this article: http://www.yunai.me/Architecture/talk-about-global-id/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Architecture/talk-about-global-id/&title=谈谈 ID" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Architecture/talk-about-global-id/&name=谈谈 ID&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$(" #toc-footer").toggle();return="" false;"=""><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$(" #share-footer").toggle();return="" false;"=""><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$(" #nav-footer").toggle();return="" false;"=""><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-86660611-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append('&nbsp;' + (counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('&nbsp;1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append('&nbsp;' + results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
+    });
+</script>
