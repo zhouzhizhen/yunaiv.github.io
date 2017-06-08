@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.store/"/>
-  <updated>2017-06-07T18:27:02.000Z</updated>
+  <updated>2017-06-07T18:42:52.000Z</updated>
   <id>http://www.yunai.store/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://www.yunai.store/Mycat/single-db-single-table-insert/"/>
     <id>http://www.yunai.store/Mycat/single-db-single-table-insert/</id>
     <published>2017-05-29T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:02.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Database/MyCAT/1004-MyCAT源码分析：【单库单表】查询.md" target="_blank" rel="external">MyCAT源码分析：【单库单表】查询</a><br><code>MyCat-Server</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog" target="_blank" rel="external">https://github.com/YunaiV/Blog</a></strong>  </p>
@@ -96,7 +96,7 @@
     <link href="http://www.yunai.store/Mycat/single-db-single-table-insert/"/>
     <id>http://www.yunai.store/Mycat/single-db-single-table-insert/</id>
     <published>2017-05-28T16:00:00.000Z</published>
-    <updated>2017-06-07T18:26:57.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Database/MyCAT/1003-MyCAT%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E3%80%90%E5%8D%95%E5%BA%93%E5%8D%95%E8%A1%A8%E3%80%91%E6%8F%92%E5%85%A5.md" target="_blank" rel="external">MyCAT源码分析：【单库单表】插入</a><br><code>MyCat-Server</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog" target="_blank" rel="external">https://github.com/YunaiV/Blog</a></strong>  </p>
@@ -181,7 +181,7 @@
     <link href="http://www.yunai.store/Mycat/build-debugging-environment/"/>
     <id>http://www.yunai.store/Mycat/build-debugging-environment/</id>
     <published>2017-05-22T16:00:00.000Z</published>
-    <updated>2017-06-07T18:26:54.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Database/MyCAT/1001-MyCAT%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E8%B0%83%E8%AF%95%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md" target="_blank" rel="external">MyCAT源码分析：调试环境搭建</a><br><code>MyCat-Server</code> <strong>带注释</strong>地址 ：[<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a>)<br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -251,7 +251,7 @@
     <link href="http://www.yunai.store/RocketMQ/why-read-MyCAT-source-code/"/>
     <id>http://www.yunai.store/RocketMQ/why-read-MyCAT-source-code/</id>
     <published>2017-05-21T16:00:00.000Z</published>
-    <updated>2017-06-07T18:26:22.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<h2 id="为什么阅读-MyCAT-源码？"><a href="#为什么阅读-MyCAT-源码？" class="headerlink" title="为什么阅读 MyCAT 源码？"></a>为什么阅读 MyCAT 源码？</h2><ul>
 <li>深入了解<strong>数据库中间件</strong> ，知其然知其所以然。</li>
@@ -307,7 +307,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-transaction/"/>
     <id>http://www.yunai.store/RocketMQ/message-transaction/</id>
     <published>2017-05-20T16:00:00.000Z</published>
-    <updated>2017-06-07T18:28:15.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1011-RocketMQ源码解析：事务消息.md" target="_blank" rel="external">RocketMQ源码解析：事务消息</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -548,7 +548,7 @@
     <link href="http://www.yunai.store/RocketMQ/filtersrv/"/>
     <id>http://www.yunai.store/RocketMQ/filtersrv/</id>
     <published>2017-05-16T16:00:00.000Z</published>
-    <updated>2017-06-07T18:28:12.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1008-RocketMQ源码解析：Filtersrv.md" target="_blank" rel="external">RocketMQ源码解析：Filtersrv</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -748,7 +748,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-schedule-and-retry/"/>
     <id>http://www.yunai.store/RocketMQ/message-schedule-and-retry/</id>
     <published>2017-05-14T16:00:00.000Z</published>
-    <updated>2017-06-07T18:28:09.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1010-RocketMQ源码解析：定时消息与消息重试.md" target="_blank" rel="external">RocketMQ源码解析：定时消息与消息重试</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -927,7 +927,7 @@
     <link href="http://www.yunai.store/RocketMQ/high-availability/"/>
     <id>http://www.yunai.store/RocketMQ/high-availability/</id>
     <published>2017-05-13T16:00:00.000Z</published>
-    <updated>2017-06-07T18:28:04.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1009-RocketMQ源码解析：高可用.md" target="_blank" rel="external">RocketMQ源码解析：高可用</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -1232,7 +1232,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/"/>
     <id>http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/</id>
     <published>2017-05-12T16:00:00.000Z</published>
-    <updated>2017-06-07T18:28:00.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1007-RocketMQ源码解析：Message顺序发送与消费.md" target="_blank" rel="external">RocketMQ源码解析：Message顺序发送与消费</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -1365,7 +1365,7 @@
     <link href="http://www.yunai.store/RocketMQ/store-init-and-shutdown/"/>
     <id>http://www.yunai.store/RocketMQ/store-init-and-shutdown/</id>
     <published>2017-05-11T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:58.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <summary type="html">
     
@@ -1381,7 +1381,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-pull-and-consume-second/"/>
     <id>http://www.yunai.store/RocketMQ/message-pull-and-consume-second/</id>
     <published>2017-05-10T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:41.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1005-RocketMQ源码解析：Message拉取&amp;消费（下）.md" target="_blank" rel="external">RocketMQ源码解析：Message拉取&amp;消费（下）</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -1970,7 +1970,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-pull-and-consume-first/"/>
     <id>http://www.yunai.store/RocketMQ/message-pull-and-consume-first/</id>
     <published>2017-05-03T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:36.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1005-RocketMQ源码解析：Message拉取&amp;消费（上）.md" target="_blank" rel="external">RocketMQ源码解析：Message拉取&amp;消费（上）</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -2361,7 +2361,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-store/"/>
     <id>http://www.yunai.store/RocketMQ/message-store/</id>
     <published>2017-04-22T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:31.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1004-RocketMQ源码解析：Message存储.md" target="_blank" rel="external">RocketMQ源码解析：Message存储</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -2773,7 +2773,7 @@
     <link href="http://www.yunai.store/RocketMQ/message-send-and-receive/"/>
     <id>http://www.yunai.store/RocketMQ/message-send-and-receive/</id>
     <published>2017-04-17T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:23.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ源码解析：Message发送&amp;接收.md" target="_blank" rel="external">RocketMQ源码解析：Message发送&amp;接收</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -2922,7 +2922,7 @@
     <link href="http://www.yunai.store/RocketMQ/message/"/>
     <id>http://www.yunai.store/RocketMQ/message/</id>
     <published>2017-04-07T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:19.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <summary type="html">
     
@@ -2938,7 +2938,7 @@
     <link href="http://www.yunai.store/RocketMQ/topic/"/>
     <id>http://www.yunai.store/RocketMQ/topic/</id>
     <published>2017-04-06T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:17.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <summary type="html">
     
@@ -2954,7 +2954,7 @@
     <link href="http://www.yunai.store/RocketMQ/namesrv-intro/"/>
     <id>http://www.yunai.store/RocketMQ/namesrv-intro/</id>
     <published>2017-04-04T16:00:00.000Z</published>
-    <updated>2017-06-07T18:27:13.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<h2 id="Namesrv组件"><a href="#Namesrv组件" class="headerlink" title="Namesrv组件"></a>Namesrv组件</h2><ul>
 <li>KVConfigManager：KV配置管理<ul>
@@ -2987,7 +2987,7 @@
     <link href="http://www.yunai.store/RocketMQ/why-read-RocketMQ-source-code/"/>
     <id>http://www.yunai.store/RocketMQ/why-read-RocketMQ-source-code/</id>
     <published>2017-03-22T16:00:00.000Z</published>
-    <updated>2017-06-07T18:25:53.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<h2 id="为什么阅读RocketMQ源码？"><a href="#为什么阅读RocketMQ源码？" class="headerlink" title="为什么阅读RocketMQ源码？"></a>为什么阅读RocketMQ源码？</h2><ul>
 <li>深入了解 MQ ，知其然知其所以然，如何实现高性能、高可用</li>
@@ -3051,7 +3051,7 @@
     <link href="http://www.yunai.store/Architecture/talk-about-java-unit-test/"/>
     <id>http://www.yunai.store/Architecture/talk-about-java-unit-test/</id>
     <published>2017-03-18T16:00:00.000Z</published>
-    <updated>2017-06-07T18:26:44.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Architecture/0002-%E6%89%AF%E6%89%AF%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.md" target="_blank" rel="external">谈谈单元测试</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
@@ -3159,7 +3159,7 @@ public IObjectFactory getObjectFactory() {
     <link href="http://www.yunai.store/Architecture/talk-about-global-id/"/>
     <id>http://www.yunai.store/Architecture/talk-about-global-id/</id>
     <published>2017-03-03T16:00:00.000Z</published>
-    <updated>2017-06-07T18:26:41.000Z</updated>
+    <updated>2017-06-07T18:42:52.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/Architecture/0001-%E8%B0%88%E8%B0%88ID.md" target="_blank" rel="external">谈谈ID</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>

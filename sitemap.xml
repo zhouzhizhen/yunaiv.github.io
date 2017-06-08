@@ -2,156 +2,156 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.yunai.store/RocketMQ/message-transaction/</loc>
-    
-    <lastmod>2017-06-07T18:28:15.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/filtersrv/</loc>
-    
-    <lastmod>2017-06-07T18:28:12.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-schedule-and-retry/</loc>
-    
-    <lastmod>2017-06-07T18:28:09.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/high-availability/</loc>
-    
-    <lastmod>2017-06-07T18:28:04.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/</loc>
-    
-    <lastmod>2017-06-07T18:28:00.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/store-init-and-shutdown/</loc>
-    
-    <lastmod>2017-06-07T18:27:58.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-pull-and-consume-second/</loc>
-    
-    <lastmod>2017-06-07T18:27:41.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-pull-and-consume-first/</loc>
-    
-    <lastmod>2017-06-07T18:27:36.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-store/</loc>
-    
-    <lastmod>2017-06-07T18:27:31.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/message-send-and-receive/</loc>
-    
-    <lastmod>2017-06-07T18:27:23.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.store/RocketMQ/message/</loc>
     
-    <lastmod>2017-06-07T18:27:19.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/topic/</loc>
-    
-    <lastmod>2017-06-07T18:27:17.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/RocketMQ/namesrv-intro/</loc>
-    
-    <lastmod>2017-06-07T18:27:13.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Nginx/nginx-dynamic-upstream/</loc>
-    
-    <lastmod>2017-06-07T18:27:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Mycat/single-db-single-table-insert/</loc>
-    
-    <lastmod>2017-06-07T18:27:02.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Mycat/single-db-single-table-insert/</loc>
-    
-    <lastmod>2017-06-07T18:26:57.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Mycat/build-debugging-environment/</loc>
-    
-    <lastmod>2017-06-07T18:26:54.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Docker/docker-network-flannel/</loc>
-    
-    <lastmod>2017-06-07T18:26:48.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.store/Architecture/talk-about-java-unit-test/</loc>
-    
-    <lastmod>2017-06-07T18:26:44.000Z</lastmod>
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://www.yunai.store/Architecture/talk-about-global-id/</loc>
     
-    <lastmod>2017-06-07T18:26:41.000Z</lastmod>
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Docker/docker-network-flannel/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://www.yunai.store/RocketMQ/why-read-MyCAT-source-code/</loc>
     
-    <lastmod>2017-06-07T18:26:22.000Z</lastmod>
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Mycat/build-debugging-environment/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Mycat/single-db-single-table-insert/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Nginx/nginx-dynamic-upstream/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/topic/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Mycat/single-db-single-table-insert/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/namesrv-intro/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://www.yunai.store/RocketMQ/why-read-RocketMQ-source-code/</loc>
     
-    <lastmod>2017-06-07T18:25:53.000Z</lastmod>
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/Architecture/talk-about-java-unit-test/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/store-init-and-shutdown/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-send-and-receive/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-store/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/high-availability/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/filtersrv/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-schedule-and-retry/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-transaction/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-pull-and-consume-first/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.store/RocketMQ/message-pull-and-consume-second/</loc>
+    
+    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
   </url>
   
