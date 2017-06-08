@@ -34,7 +34,7 @@ permalink: RocketMQ/message-send-and-receive
 # 1、概述
 
 1. `Producer` 发送消息。主要是**同步**发送消息源码，涉及到 异步/Oneway发送消息，事务消息会跳过。
-2. `Broker` 接收消息。(*存储消息在[《RocketMQ源码解析：Message存储》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1004-RocketMQ源码解析：Message存储.md)解析*)
+2. `Broker` 接收消息。(*存储消息在[《RocketMQ 源码分析 —— Message 存储》](http://www.yunai.me/RocketMQ/message-store/)解析*)
 
 > ![Producer发送消息全局顺序图](http://www.yunai.me/images/RocketMQ/2017_04_18/01.png)
 
@@ -229,7 +229,7 @@ permalink: RocketMQ/message-send-and-receive
 * 说明 ：获得 Topic发布信息。优先从缓存`topicPublishInfoTable`，其次从`Namesrv`中获得。
 * 第 3 行 ：从缓存`topicPublishInfoTable`中获得 Topic发布信息。
 * 第 5 至 9 行 ：从 `Namesrv` 中获得 Topic发布信息。
-* 第 13 至 17 行 ：当从 `Namesrv` 无法获取时，使用 `{@link DefaultMQProducer#createTopicKey}` 对应的 Topic发布信息。目的是当 `Broker` 开启自动创建 Topic开关时，`Broker` 接收到消息后自动创建Topic，详细解析见[《RocketMQ源码解析：Topic》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1001-RocketMQ源码解析：Topic.md)。
+* 第 13 至 17 行 ：当从 `Namesrv` 无法获取时，使用 `{@link DefaultMQProducer#createTopicKey}` 对应的 Topic发布信息。目的是当 `Broker` 开启自动创建 Topic开关时，`Broker` 接收到消息后自动创建Topic，详细解析见[《RocketMQ 源码分析 —— Topic》](http://www.yunai.me/RocketMQ/topic/)。
 
 ### MQFaultStrategy
 
@@ -718,7 +718,7 @@ permalink: RocketMQ/message-send-and-receive
 153: }
 ```
 * 说明 ：发送消息核心方法。该方法真正发起网络请求，发送消息给 `Broker`。
-* 第 21 行 ：生产消息编号，详细解析见[《RocketMQ源码解析：Message基础》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1002-RocketMQ源码解析：Message基础.md)。
+* 第 21 行 ：生产消息编号，详细解析见[《RocketMQ 源码分析 —— Message 基础》](http://www.yunai.me/RocketMQ/message/)。
 * 第 64 至 121 行 ：构建发送消息请求`SendMessageRequestHeader`。
 * 第 107 至 117 行 ：执行 `MQClientInstance#sendMessage(...)` 发起网络请求。
 
@@ -967,7 +967,7 @@ permalink: RocketMQ/message-send-and-receive
 * `#sendMessage()` 说明 ：发送消息，并返回发送消息结果。
 * 第 51 至 55 行 ：消息配置(Topic配置）校验，详细解析见：[AbstractSendMessageProcessor#msgCheck()](#abstractsendmessageprocessormsgcheck)。
 * 第 60 至 64 行 ：消息队列编号小于0时，`Broker` 可以设置随机选择一个消息队列。
-* 第 72 至 103 行 ：对RETRY类型的消息处理。如果超过最大消费次数，则topic修改成"%DLQ%" + 分组名， 即加  死信队 (Dead Letter Queue)，详细解析见：[《RocketMQ源码解析：Topic》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1001-RocketMQ源码解析：Topic.md)。
+* 第 72 至 103 行 ：对RETRY类型的消息处理。如果超过最大消费次数，则topic修改成"%DLQ%" + 分组名， 即加  死信队 (Dead Letter Queue)，详细解析见：[《RocketMQ 源码分析 —— Topic》](http://www.yunai.me/RocketMQ/topic/)。
 * 第 105 至 118 行 ：创建`MessageExtBrokerInner`。
 * 第 132 ：存储消息，详细解析见：[DefaultMessageStore#putMessage()](defaultmessagestoreputmessage)。
 * 第 133 至 183 行 ：处理消息发送结果，设置响应结果和提示。
@@ -1045,7 +1045,7 @@ permalink: RocketMQ/message-send-and-receive
 ```
 * 说明：校验消息是否正确，主要是Topic配置方面，例如：`Broker` 是否有写入权限，topic配置是否存在，队列编号是否正确。
 * 第 11 至 18 行 ：检查Topic是否可以被发送。目前是 `{@link MixAll.DEFAULT_TOPIC}` 不被允许发送。
-* 第 20 至 51 行 ：当找不到Topic配置，则进行创建。当然，创建会存在不成功的情况，例如说：`defaultTopic` 的Topic配置不存在，又或者是 存在但是不允许继承，详细解析见[《RocketMQ源码解析：Topic》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1001-RocketMQ源码解析：Topic.md)。
+* 第 20 至 51 行 ：当找不到Topic配置，则进行创建。当然，创建会存在不成功的情况，例如说：`defaultTopic` 的Topic配置不存在，又或者是 存在但是不允许继承，详细解析见[《RocketMQ 源码分析 —— Topic》](http://www.yunai.me/RocketMQ/topic/)。
 
 ## DefaultMessageStore#putMessage
 
@@ -1114,7 +1114,7 @@ permalink: RocketMQ/message-send-and-receive
 * 说明：存储消息封装，最终存储需要 `CommitLog` 实现。
 * 第 7 至 27 行 ：校验 `Broker` 是否可以写入。
 * 第 29 至 39 行 ：消息格式与大小校验。
-* 第 47 行 ：调用 `CommitLong` 进行存储，详细逻辑见：[《RocketMQ源码解析：Message存储》](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1004-RocketMQ源码解析：Message存储.md)
+* 第 47 行 ：调用 `CommitLong` 进行存储，详细逻辑见：[《RocketMQ 源码分析 —— Message 存储》](http://www.yunai.me/RocketMQ/message-store/)
 
 # 4、某种结尾
 
