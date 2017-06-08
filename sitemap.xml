@@ -2,14 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
     
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    <lastmod>2017-06-08T09:36:29.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     
@@ -93,7 +93,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
+    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
     
     <lastmod>2017-06-07T18:42:52.000Z</lastmod>
     

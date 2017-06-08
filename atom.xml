@@ -2773,10 +2773,10 @@
     <link href="http://www.yunai.me/RocketMQ/message-send-and-receive/"/>
     <id>http://www.yunai.me/RocketMQ/message-send-and-receive/</id>
     <published>2017-04-17T16:00:00.000Z</published>
-    <updated>2017-06-07T18:42:52.000Z</updated>
+    <updated>2017-06-08T09:36:29.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
-<p> 原文地址：<a href="https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ源码解析：Message发送&amp;接收.md" target="_blank" rel="external">RocketMQ源码解析：Message发送&amp;接收</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：<a href="https://github.com/YunaiV/Blog。" target="_blank" rel="external">https://github.com/YunaiV/Blog。</a></strong>  </p>
+<p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-send-and-receive/">http://www.yunai.me/RocketMQ/message-send-and-receive/</a><br><code>RocketMQ</code> <strong>带注释</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号：<img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"> </strong>  </p>
 </blockquote>
 <hr>
 <ul>
@@ -2908,7 +2908,7 @@
     <summary type="html">
     
       &lt;blockquote&gt;
-&lt;p&gt; 原文地址：&lt;a href=&quot;https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ源码解析：Message发送&amp;amp;接收.md&quot; target=&quot;_blank&quot; re
+&lt;p&gt; 原文地址：&lt;a href=&quot;http://www.yunai.me/RocketMQ/message-send-and-receive/&quot;&gt;http://www.yunai.me/RocketMQ/message-send-and-receive
     
     </summary>
     
