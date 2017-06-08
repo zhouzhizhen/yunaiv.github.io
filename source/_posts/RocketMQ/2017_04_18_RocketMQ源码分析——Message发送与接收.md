@@ -6,9 +6,9 @@ permalink: RocketMQ/message-send-and-receive
 
 -------
 
->  原文地址：[RocketMQ源码解析：Message发送&接收](https://github.com/YunaiV/Blog/blob/master/RocketMQ/1003-RocketMQ源码解析：Message发送&接收.md)  
-> `RocketMQ` **带注释**地址 ：[YunaiV/incubator-rocketmq](https://github.com/YunaiV/incubator-rocketmq)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 GitHub：https://github.com/YunaiV/Blog。**  
+>  原文地址：http://www.yunai.me/RocketMQ/message-send-and-receive/
+> `RocketMQ` **带注释**地址 ：https://github.com/YunaiV/incubator-rocketmq
+> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号：![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg) **  
 
 -------
 

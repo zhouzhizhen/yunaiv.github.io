@@ -4,9 +4,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://www.yunai.store/"/>
+  <link href="http://www.yunai.me/"/>
   <updated>2017-06-07T18:42:52.000Z</updated>
-  <id>http://www.yunai.store/</id>
+  <id>http://www.yunai.me/</id>
   
   <author>
     <name>王文斌</name>
@@ -17,8 +17,8 @@
   
   <entry>
     <title>MyCAT 源码分析 —— 【单库单表】查询</title>
-    <link href="http://www.yunai.store/Mycat/single-db-single-table-insert/"/>
-    <id>http://www.yunai.store/Mycat/single-db-single-table-insert/</id>
+    <link href="http://www.yunai.me/Mycat/single-db-single-table-insert/"/>
+    <id>http://www.yunai.me/Mycat/single-db-single-table-insert/</id>
     <published>2017-05-29T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -86,15 +86,15 @@
     
     </summary>
     
-      <category term="MyCAT" scheme="http://www.yunai.store/categories/MyCAT/"/>
+      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
     
     
   </entry>
   
   <entry>
     <title>MyCAT 源码分析 —— 【单库单表】插入</title>
-    <link href="http://www.yunai.store/Mycat/single-db-single-table-insert/"/>
-    <id>http://www.yunai.store/Mycat/single-db-single-table-insert/</id>
+    <link href="http://www.yunai.me/Mycat/single-db-single-table-insert/"/>
+    <id>http://www.yunai.me/Mycat/single-db-single-table-insert/</id>
     <published>2017-05-28T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -171,15 +171,15 @@
     
     </summary>
     
-      <category term="MyCAT" scheme="http://www.yunai.store/categories/MyCAT/"/>
+      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
     
     
   </entry>
   
   <entry>
     <title>MyCAT 源码分析 —— 调试环境搭建</title>
-    <link href="http://www.yunai.store/Mycat/build-debugging-environment/"/>
-    <id>http://www.yunai.store/Mycat/build-debugging-environment/</id>
+    <link href="http://www.yunai.me/Mycat/build-debugging-environment/"/>
+    <id>http://www.yunai.me/Mycat/build-debugging-environment/</id>
     <published>2017-05-22T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -241,15 +241,15 @@
     
     </summary>
     
-      <category term="MyCAT" scheme="http://www.yunai.store/categories/MyCAT/"/>
+      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
     
     
   </entry>
   
   <entry>
     <title>为什么阅读 RocketMQ 源码？</title>
-    <link href="http://www.yunai.store/RocketMQ/why-read-MyCAT-source-code/"/>
-    <id>http://www.yunai.store/RocketMQ/why-read-MyCAT-source-code/</id>
+    <link href="http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/"/>
+    <id>http://www.yunai.me/RocketMQ/why-read-MyCAT-source-code/</id>
     <published>2017-05-21T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -297,15 +297,15 @@
     
     </summary>
     
-      <category term="MyCAT" scheme="http://www.yunai.store/categories/MyCAT/"/>
+      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— 事务消息</title>
-    <link href="http://www.yunai.store/RocketMQ/message-transaction/"/>
-    <id>http://www.yunai.store/RocketMQ/message-transaction/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-transaction/"/>
+    <id>http://www.yunai.me/RocketMQ/message-transaction/</id>
     <published>2017-05-20T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -538,15 +538,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Filtersrv</title>
-    <link href="http://www.yunai.store/RocketMQ/filtersrv/"/>
-    <id>http://www.yunai.store/RocketMQ/filtersrv/</id>
+    <link href="http://www.yunai.me/RocketMQ/filtersrv/"/>
+    <id>http://www.yunai.me/RocketMQ/filtersrv/</id>
     <published>2017-05-16T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -738,15 +738,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— 定时消息与消息重试</title>
-    <link href="http://www.yunai.store/RocketMQ/message-schedule-and-retry/"/>
-    <id>http://www.yunai.store/RocketMQ/message-schedule-and-retry/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-schedule-and-retry/"/>
+    <id>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</id>
     <published>2017-05-14T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -917,15 +917,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— 高可用</title>
-    <link href="http://www.yunai.store/RocketMQ/high-availability/"/>
-    <id>http://www.yunai.store/RocketMQ/high-availability/</id>
+    <link href="http://www.yunai.me/RocketMQ/high-availability/"/>
+    <id>http://www.yunai.me/RocketMQ/high-availability/</id>
     <published>2017-05-13T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -1222,15 +1222,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message 顺序发送与消费</title>
-    <link href="http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/"/>
-    <id>http://www.yunai.store/RocketMQ/message-send-and-consume-orderly/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/"/>
+    <id>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</id>
     <published>2017-05-12T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -1355,15 +1355,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Store 初始化与关闭</title>
-    <link href="http://www.yunai.store/RocketMQ/store-init-and-shutdown/"/>
-    <id>http://www.yunai.store/RocketMQ/store-init-and-shutdown/</id>
+    <link href="http://www.yunai.me/RocketMQ/store-init-and-shutdown/"/>
+    <id>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</id>
     <published>2017-05-11T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -1371,15 +1371,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
-    <link href="http://www.yunai.store/RocketMQ/message-pull-and-consume-second/"/>
-    <id>http://www.yunai.store/RocketMQ/message-pull-and-consume-second/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-pull-and-consume-second/"/>
+    <id>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</id>
     <published>2017-05-10T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -1960,15 +1960,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
-    <link href="http://www.yunai.store/RocketMQ/message-pull-and-consume-first/"/>
-    <id>http://www.yunai.store/RocketMQ/message-pull-and-consume-first/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-pull-and-consume-first/"/>
+    <id>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</id>
     <published>2017-05-03T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2351,15 +2351,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message 存储</title>
-    <link href="http://www.yunai.store/RocketMQ/message-store/"/>
-    <id>http://www.yunai.store/RocketMQ/message-store/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-store/"/>
+    <id>http://www.yunai.me/RocketMQ/message-store/</id>
     <published>2017-04-22T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2763,15 +2763,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message 发送与接收</title>
-    <link href="http://www.yunai.store/RocketMQ/message-send-and-receive/"/>
-    <id>http://www.yunai.store/RocketMQ/message-send-and-receive/</id>
+    <link href="http://www.yunai.me/RocketMQ/message-send-and-receive/"/>
+    <id>http://www.yunai.me/RocketMQ/message-send-and-receive/</id>
     <published>2017-04-17T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2912,15 +2912,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Message</title>
-    <link href="http://www.yunai.store/RocketMQ/message/"/>
-    <id>http://www.yunai.store/RocketMQ/message/</id>
+    <link href="http://www.yunai.me/RocketMQ/message/"/>
+    <id>http://www.yunai.me/RocketMQ/message/</id>
     <published>2017-04-07T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2928,15 +2928,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 源码分析 —— Topic</title>
-    <link href="http://www.yunai.store/RocketMQ/topic/"/>
-    <id>http://www.yunai.store/RocketMQ/topic/</id>
+    <link href="http://www.yunai.me/RocketMQ/topic/"/>
+    <id>http://www.yunai.me/RocketMQ/topic/</id>
     <published>2017-04-06T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2944,15 +2944,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>RocketMQ 之 Namesrv 小结</title>
-    <link href="http://www.yunai.store/RocketMQ/namesrv-intro/"/>
-    <id>http://www.yunai.store/RocketMQ/namesrv-intro/</id>
+    <link href="http://www.yunai.me/RocketMQ/namesrv-intro/"/>
+    <id>http://www.yunai.me/RocketMQ/namesrv-intro/</id>
     <published>2017-04-04T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -2977,15 +2977,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>为什么阅读 RocketMQ 源码？</title>
-    <link href="http://www.yunai.store/RocketMQ/why-read-RocketMQ-source-code/"/>
-    <id>http://www.yunai.store/RocketMQ/why-read-RocketMQ-source-code/</id>
+    <link href="http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/"/>
+    <id>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</id>
     <published>2017-03-22T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -3041,15 +3041,15 @@
     
     </summary>
     
-      <category term="RocketMQ" scheme="http://www.yunai.store/categories/RocketMQ/"/>
+      <category term="RocketMQ" scheme="http://www.yunai.me/categories/RocketMQ/"/>
     
     
   </entry>
   
   <entry>
     <title>谈谈单元测试</title>
-    <link href="http://www.yunai.store/Architecture/talk-about-java-unit-test/"/>
-    <id>http://www.yunai.store/Architecture/talk-about-java-unit-test/</id>
+    <link href="http://www.yunai.me/Architecture/talk-about-java-unit-test/"/>
+    <id>http://www.yunai.me/Architecture/talk-about-java-unit-test/</id>
     <published>2017-03-18T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -3149,15 +3149,15 @@ public IObjectFactory getObjectFactory() {
     
     </summary>
     
-      <category term="技术杂文" scheme="http://www.yunai.store/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+      <category term="技术杂文" scheme="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
     
     
   </entry>
   
   <entry>
     <title>谈谈 ID</title>
-    <link href="http://www.yunai.store/Architecture/talk-about-global-id/"/>
-    <id>http://www.yunai.store/Architecture/talk-about-global-id/</id>
+    <link href="http://www.yunai.me/Architecture/talk-about-global-id/"/>
+    <id>http://www.yunai.me/Architecture/talk-about-global-id/</id>
     <published>2017-03-03T16:00:00.000Z</published>
     <updated>2017-06-07T18:42:52.000Z</updated>
     
@@ -3298,7 +3298,7 @@ public IObjectFactory getObjectFactory() {
     
     </summary>
     
-      <category term="技术杂文" scheme="http://www.yunai.store/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+      <category term="技术杂文" scheme="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
     
     
   </entry>
