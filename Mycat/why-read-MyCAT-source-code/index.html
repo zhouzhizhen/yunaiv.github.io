@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为什么阅读 MyCAT 源码？">
+<meta property="og:url" content="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+<meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta property="og:updated_time" content="2017-06-08T16:20:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="为什么阅读 MyCAT 源码？">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
+<meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>为什么阅读 MyCAT 源码？</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/Mycat/build-debugging-environment/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
+        
+        
+        <li><a class="icon" href="/RocketMQ/message-transaction/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&text=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&is_video=false&description=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=为什么阅读 MyCAT 源码？&body=Check out this article: http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&name=为什么阅读 MyCAT 源码？&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        为什么阅读 MyCAT 源码？
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-05-21T16:00:00.000Z" itemprop="datePublished">2017-05-22</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>原文地址：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a><br>
+<code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br>
+<strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+</blockquote>
+<p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
+<hr>
+<h2>为什么阅读 MyCAT 源码？</h2>
+<ul>
+<li>深入了解<strong>数据库中间件</strong> ，知其然知其所以然。</li>
+<li>NIO 的实现 与 Netty 有什么特殊的地方？</li>
+<li>分布式事务如何实现的？</li>
+<li>内存管理</li>
+<li>SQL 解析</li>
+<li>等等</li>
+</ul>
+<h2>步骤</h2>
+<ul>
+<li>[ ] NIO</li>
+<li>[ ] 分布式事务</li>
+<li>[ ] 分表</li>
+<li>[ ] 分库</li>
+<li>[ ] 自增序列</li>
+<li>[ ] 单库任意 Join</li>
+<li>[ ] 跨库2表 Join</li>
+<li>[ ] 跨库多表 Join</li>
+<li>[ ] SQL 解析</li>
+<li>[ ] 读写分离</li>
+<li>[ ] MySQL 主从</li>
+<li>[ ] 自动故障切换</li>
+<li>[ ] Galera Cluster 集群</li>
+<li>[ ] MHA 集群</li>
+<li>[ ] Percona 集群</li>
+<li>[ ] 服务降级</li>
+<li>[ ] 多租户</li>
+<li>[ ] 路由</li>
+<li>[ ] MyCAT 集群</li>
+<li>[ ] 注解</li>
+<li>[ ] 内存管理</li>
+<li>[ ] 缓存</li>
+<li>[ ] 监控</li>
+<li>[ ] Mongodb</li>
+<li>[ ] 数据汇聚</li>
+<li>[ ] 数据排序</li>
+<li>[ ] PreparedStatement</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&text=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&is_video=false&description=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=为什么阅读 MyCAT 源码？&body=Check out this article: http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&title=为什么阅读 MyCAT 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/&name=为什么阅读 MyCAT 源码？&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$(" #toc-footer").toggle();return="" false;"=""><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$(" #share-footer").toggle();return="" false;"=""><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$(" #nav-footer").toggle();return="" false;"=""><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append('&nbsp;' + (counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('&nbsp;1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append('&nbsp;' + results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
+    });
+</script>

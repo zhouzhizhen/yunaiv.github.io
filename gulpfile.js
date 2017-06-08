@@ -39,5 +39,5 @@ gulp.task("cssmin", function () {
 });
 
 // gulp.task("default", ["htmlmin", "imagemin", "jsmin", "cssmin"]);
-gulp.task("default", ["htmlmin", "imagemin", "jsmin"]);
+gulp.task("default", ["imagemin", "jsmin"]); // TODO htmlmin 报错
 // gulp.task("default", ["htmlmin", "jsmin"]);
