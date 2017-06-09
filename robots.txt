@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /archives/
+Allow: /categories/
+Allow: /RocketMQ/
+Allow: /MyCAT/
+Allow: /Architecture/
+Disallow: /css/
+Disallow: /js/
+Disallow: /lib/
+Sitemap: http://www.yunai.me/sitemap.xml
+Sitemap: http://www.yunai.me/baidusitemap.xml
