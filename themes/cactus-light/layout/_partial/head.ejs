@@ -42,6 +42,12 @@
     <% } %>
     <!-- title -->
     <title><%= page.title ? page.title : config.title %></title>
+    <!-- keywords -->
+    <% if (page.keywords){ %>
+    <meta name="keywords" content="<%= page.keywords %>,<%= config.keywords %>">
+    <% } else if (config.keywords){ %>
+    <meta name="keywords" content="<%= config.keywords %>">
+    <%} %>
     <!-- styles -->
     <%- css('css/style') %>
     <!-- rss -->
