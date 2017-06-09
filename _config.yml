@@ -9,6 +9,7 @@ description: 愿编码半生，好奇如初识！
 author: 王文斌
 language: zh-cn
 timezone:
+keywords: Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
