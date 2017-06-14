@@ -1,4 +1,4 @@
-http://www.yunai.me/MyCAT/sharding-result-aggregation/
+http://www.yunai.me/MyCAT/sharding-result-merge/
 http://www.yunai.me/Mycat/single-db-single-table-select/
 http://www.yunai.me/Mycat/single-db-single-table-insert/
 http://www.yunai.me/Mycat/build-debugging-environment/

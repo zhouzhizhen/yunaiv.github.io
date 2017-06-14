@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-06-14T09:55:52.000Z</updated>
+  <updated>2017-06-14T15:16:51.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -17,10 +17,10 @@
   
   <entry>
     <title>MyCAT 源码解析 —— 分片结果合并</title>
-    <link href="http://www.yunai.me/MyCAT/sharding-result-aggregation/"/>
-    <id>http://www.yunai.me/MyCAT/sharding-result-aggregation/</id>
+    <link href="http://www.yunai.me/MyCAT/sharding-result-merge/"/>
+    <id>http://www.yunai.me/MyCAT/sharding-result-merge/</id>
     <published>2017-06-12T16:00:00.000Z</published>
-    <updated>2017-06-14T09:55:52.000Z</updated>
+    <updated>2017-06-14T15:16:51.000Z</updated>
     
     <content type="html"><![CDATA[<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
 <p>跨分片查询大体流程如下：</p>
@@ -32,7 +32,7 @@
 </ul>
 <p>下面，我们逐条来讲解这两个过程。</p>
 <h1 id="2-多分片执行-SQL"><a href="#2-多分片执行-SQL" class="headerlink" title="2. 多分片执行 SQL"></a>2. 多分片执行 SQL</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
-<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute()</a>】。</p>
+<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute(…)</a>】。</p>
 <p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
 <h1 id="3-合并多分片结果"><a href="#3-合并多分片结果" class="headerlink" title="3. 合并多分片结果"></a>3. 合并多分片结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
 <p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
@@ -40,7 +40,52 @@
 <h2 id="3-1-记录头-header"><a href="#3-1-记录头-header" class="headerlink" title="3.1 记录头(header)"></a>3.1 记录头(header)</h2><p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 实际在处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
 <p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
 <figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure>
-<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2>]]></content>
+<p>核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#fieldEofResponse(…)</a>】</p>
+<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2><h3 id="3-1-AbstractDataNodeMerge"><a href="#3-1-AbstractDataNodeMerge" class="headerlink" title="3.1 AbstractDataNodeMerge"></a>3.1 AbstractDataNodeMerge</h3><p>MyCAT 对分片结果合并通过 <code>AbstractDataNodeMerge</code> 子类来完成。</p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png" alt="merge_service"> </p>
+<p><code>AbstractDataNodeMerge</code> ：</p>
+<ul>
+<li>-packs ：待合并记录行(row)队列。队列尾部插入 <code>END_FLAG_PACK</code> 表示队列已结束。</li>
+<li>-running ：合并逻辑是否正在执行中的标记。</li>
+<li>~onRowMetaData(…) ：根据<strong>记录列信息(ColMeta)</strong>构建对应的排序组件和聚合组件。需要子类进行实现。</li>
+<li>~onNewRecord(…) ：插入记录行(row) 到 <code>packs</code>。</li>
+<li>~outputMergeResult(…) ：插入 <code>END_FLAG_PACK</code> 到 <code>packs</code>。</li>
+<li>~run(…) ：执行<strong>合并</strong>分片结果逻辑，并将合并结果返回给 MySQL Client。需要子类进行实现。</li>
+</ul>
+<p>TODO 简单逻辑图</p>
+<p>详细代码见：TODO</p>
+<h3 id="3-2-DataNodeMergeManager"><a href="#3-2-DataNodeMergeManager" class="headerlink" title="3.2 DataNodeMergeManager"></a>3.2 DataNodeMergeManager</h3><p><code>AbstractDataNodeMerge</code> 有两种子类实现：</p>
+<ul>
+<li><code>DataMergeService</code> ：基于<strong>堆内内存</strong>合并分片结果。</li>
+<li><code>DataNodeMergeManager</code> ：基于<strong>堆外内存</strong>合并分片结果。</li>
+</ul>
+<p>目前官方默认配置使用 <code>DataNodeMergeManager</code>。主要有如下优点：</p>
+<ol>
+<li>可以使用更大的内存空间。当并发量大或者数据量大时，更大的内存空间意味着更好的性能。</li>
+<li>减少 GC 暂停时间。记录行(row)对象小且重用性很低，需要能够进行类似 C / C++ 的自主内存释放。</li>
+<li>更快的内存复制和读取速度，对排序和聚合带来很好的提速。</li>
+</ol>
+<p>如果对<strong>堆外内存</strong>不太了解，推荐阅读如下文章：</p>
+<ol>
+<li><a href="http://www.jianshu.com/p/50be08b54bee" rel="external nofollow noopener noreferrer" target="_blank">《从0到1起步-跟我进入堆外内存的奇妙世界》</a></li>
+<li><a href="http://www.infoq.com/cn/news/2014/12/external-memory-heap-memory" rel="external nofollow noopener noreferrer" target="_blank">《堆内内存还是堆外内存？》</a></li>
+<li><a href="http://www.cnblogs.com/moonandstar08/p/5107648.html" rel="external nofollow noopener noreferrer" target="_blank">《JAVA堆外内存》</a></li>
+<li><a href="https://yq.aliyun.com/articles/2948?spm=5176.100239.blogcont62539.11.a3HdFE" rel="external nofollow noopener noreferrer" target="_blank">《JVM源码分析之堆外内存完全解读》</a></li>
+</ol>
+<p>本文主要分析 <code>DataNodeMergeManager</code> 实现，<code>DataMergeService</code> 可以自己阅读或者等待后续文章（😈<strong>欢迎订阅我的公众号噢</strong>）。</p>
+<p><code>DataNodeMergeManager</code> 有三个组件：</p>
+<ul>
+<li><code>globalSorter</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并并排序</strong>逻辑。</li>
+<li><code>globalMergeResult</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并不排序</strong>逻辑。</li>
+<li><code>unsafeRowGrouper</code> ： <code>UnsafeRowGrouper</code> =&gt; 实现记录行(row)<strong>聚合</strong>逻辑。</li>
+</ul>
+<p><code>DataNodeMergeManager#run(...)</code> 逻辑如下：</p>
+<ol>
+<li>写入记录行(row)到 <code>UnsafeRow</code>。</li>
+<li>根据情况插入到 <code>globalSorter</code>、</li>
+</ol>
+<p>TODO 再考虑下怎么表述</p>
+<h3 id="3-3-UnsafeRow"><a href="#3-3-UnsafeRow" class="headerlink" title="3.3 UnsafeRow"></a>3.3 UnsafeRow</h3><h3 id="3-4-UnsafeExternalRowSorter"><a href="#3-4-UnsafeExternalRowSorter" class="headerlink" title="3.4 UnsafeExternalRowSorter"></a>3.4 UnsafeExternalRowSorter</h3><h3 id="3-5-UnsafeRowGrouper"><a href="#3-5-UnsafeRowGrouper" class="headerlink" title="3.5 UnsafeRowGrouper"></a>3.5 UnsafeRowGrouper</h3>]]></content>
     
     <summary type="html">
     
@@ -58,7 +103,7 @@
     <link href="http://www.yunai.me/Mycat/single-db-single-table-select/"/>
     <id>http://www.yunai.me/Mycat/single-db-single-table-select/</id>
     <published>2017-05-29T16:00:00.000Z</published>
-    <updated>2017-06-08T16:33:07.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/single-db-single-table-select/">http://www.yunai.me/MyCAT/single-db-single-table-select/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -135,7 +180,7 @@
     <link href="http://www.yunai.me/Mycat/single-db-single-table-insert/"/>
     <id>http://www.yunai.me/Mycat/single-db-single-table-insert/</id>
     <published>2017-05-28T16:00:00.000Z</published>
-    <updated>2017-06-08T16:31:48.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/single-db-single-table-insert/">http://www.yunai.me/MyCAT/single-db-single-table-insert/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -221,7 +266,7 @@
     <link href="http://www.yunai.me/Mycat/build-debugging-environment/"/>
     <id>http://www.yunai.me/Mycat/build-debugging-environment/</id>
     <published>2017-05-22T16:00:00.000Z</published>
-    <updated>2017-06-08T16:32:20.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/build-debugging-environment/">http://www.yunai.me/MyCAT/build-debugging-environment/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -292,7 +337,7 @@
     <link href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/"/>
     <id>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</id>
     <published>2017-05-21T16:00:00.000Z</published>
-    <updated>2017-06-08T16:20:14.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -355,7 +400,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-transaction/"/>
     <id>http://www.yunai.me/RocketMQ/message-transaction/</id>
     <published>2017-05-20T16:00:00.000Z</published>
-    <updated>2017-06-08T15:58:02.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-transaction">http://www.yunai.me/RocketMQ/message-transaction</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -597,7 +642,7 @@
     <link href="http://www.yunai.me/RocketMQ/filtersrv/"/>
     <id>http://www.yunai.me/RocketMQ/filtersrv/</id>
     <published>2017-05-16T16:00:00.000Z</published>
-    <updated>2017-06-08T15:56:17.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/filtersrv">http://www.yunai.me/RocketMQ/filtersrv</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -798,7 +843,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-schedule-and-retry/"/>
     <id>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</id>
     <published>2017-05-14T16:00:00.000Z</published>
-    <updated>2017-06-08T15:54:49.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-schedule-and-retry">http://www.yunai.me/RocketMQ/message-schedule-and-retry</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -978,7 +1023,7 @@
     <link href="http://www.yunai.me/RocketMQ/high-availability/"/>
     <id>http://www.yunai.me/RocketMQ/high-availability/</id>
     <published>2017-05-13T16:00:00.000Z</published>
-    <updated>2017-06-08T15:52:05.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/high-availability">http://www.yunai.me/RocketMQ/high-availability</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -1285,7 +1330,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/"/>
     <id>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</id>
     <published>2017-05-12T16:00:00.000Z</published>
-    <updated>2017-06-08T15:49:52.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-send-and-consume-orderly">http://www.yunai.me/RocketMQ/message-send-and-consume-orderly</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -1419,7 +1464,7 @@
     <link href="http://www.yunai.me/RocketMQ/store-init-and-shutdown/"/>
     <id>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</id>
     <published>2017-05-11T16:00:00.000Z</published>
-    <updated>2017-06-07T18:42:52.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <summary type="html">
     
@@ -1435,7 +1480,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-pull-and-consume-second/"/>
     <id>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</id>
     <published>2017-05-10T16:00:00.000Z</published>
-    <updated>2017-06-08T13:26:53.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-pull-and-consume-second/">http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -2025,7 +2070,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-pull-and-consume-first/"/>
     <id>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</id>
     <published>2017-05-03T16:00:00.000Z</published>
-    <updated>2017-06-08T13:26:49.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-pull-and-consume-first/">http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -2417,7 +2462,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-store/"/>
     <id>http://www.yunai.me/RocketMQ/message-store/</id>
     <published>2017-04-22T16:00:00.000Z</published>
-    <updated>2017-06-08T13:26:26.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-store/">http://www.yunai.me/RocketMQ/message-store/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -2830,7 +2875,7 @@
     <link href="http://www.yunai.me/RocketMQ/message-send-and-receive/"/>
     <id>http://www.yunai.me/RocketMQ/message-send-and-receive/</id>
     <published>2017-04-17T16:00:00.000Z</published>
-    <updated>2017-06-08T13:26:37.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/message-send-and-receive/">http://www.yunai.me/RocketMQ/message-send-and-receive/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -2980,7 +3025,7 @@
     <link href="http://www.yunai.me/RocketMQ/message/"/>
     <id>http://www.yunai.me/RocketMQ/message/</id>
     <published>2017-04-07T16:00:00.000Z</published>
-    <updated>2017-06-07T18:42:52.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <summary type="html">
     
@@ -2996,7 +3041,7 @@
     <link href="http://www.yunai.me/RocketMQ/topic/"/>
     <id>http://www.yunai.me/RocketMQ/topic/</id>
     <published>2017-04-06T16:00:00.000Z</published>
-    <updated>2017-06-07T18:42:52.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <summary type="html">
     
@@ -3012,7 +3057,7 @@
     <link href="http://www.yunai.me/RocketMQ/namesrv-intro/"/>
     <id>http://www.yunai.me/RocketMQ/namesrv-intro/</id>
     <published>2017-04-04T16:00:00.000Z</published>
-    <updated>2017-06-08T16:15:39.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/namesrv-intro/">http://www.yunai.me/RocketMQ/namesrv-intro/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -3049,7 +3094,7 @@
     <link href="http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/"/>
     <id>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</id>
     <published>2017-03-22T16:00:00.000Z</published>
-    <updated>2017-06-08T16:15:19.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/">http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</a><br><code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -3118,7 +3163,7 @@
     <link href="http://www.yunai.me/Architecture/talk-about-java-unit-test/"/>
     <id>http://www.yunai.me/Architecture/talk-about-java-unit-test/</id>
     <published>2017-03-18T16:00:00.000Z</published>
-    <updated>2017-06-08T16:16:38.000Z</updated>
+    <updated>2017-06-09T13:09:13.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/Architecture/talk-about-java-unit-test/">http://www.yunai.me/Architecture/talk-about-java-unit-test/</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>

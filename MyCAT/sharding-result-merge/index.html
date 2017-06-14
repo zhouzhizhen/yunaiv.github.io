@@ -15,13 +15,14 @@
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MyCAT 源码解析 —— 分片结果合并">
-<meta property="og:url" content="http://www.yunai.me/MyCAT/sharding-result-aggregation/index.html">
+<meta property="og:url" content="http://www.yunai.me/MyCAT/sharding-result-merge/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
 <meta property="og:description" content="1. 概述相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现分片结果合并。 跨分片查询大体流程如下：  和 《【单库单表】查询》 不同的两个过程：  【2】多分片执行 SQL 【4】合并多分片结果  下面，我们逐条来讲解这两个过程。 2. 多分片执行 S">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png">
-<meta property="og:updated_time" content="2017-06-14T09:55:52.000Z">
+<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png">
+<meta property="og:updated_time" content="2017-06-14T15:16:51.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MyCAT 源码解析 —— 分片结果合并">
 <meta name="twitter:description" content="1. 概述相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现分片结果合并。 跨分片查询大体流程如下：  和 《【单库单表】查询》 不同的两个过程：  【2】多分片执行 SQL 【4】合并多分片结果  下面，我们逐条来讲解这两个过程。 2. 多分片执行 S">
@@ -132,21 +133,21 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-aggregation/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-aggregation/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-merge/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-AbstractDataNodeMerge"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DataNodeMergeManager"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-UnsafeRow"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-UnsafeExternalRowSorter"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-UnsafeRowGrouper"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -190,7 +191,7 @@
 </ul>
 <p>下面，我们逐条来讲解这两个过程。</p>
 <h1 id="2-多分片执行-SQL"><a href="#2-多分片执行-SQL" class="headerlink" title="2. 多分片执行 SQL"></a>2. 多分片执行 SQL</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
-<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute()</a>】。</p>
+<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute(…)</a>】。</p>
 <p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
 <h1 id="3-合并多分片结果"><a href="#3-合并多分片结果" class="headerlink" title="3. 合并多分片结果"></a>3. 合并多分片结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
 <p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
@@ -198,7 +199,52 @@
 <h2 id="3-1-记录头-header"><a href="#3-1-记录头-header" class="headerlink" title="3.1 记录头(header)"></a>3.1 记录头(header)</h2><p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 实际在处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
 <p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
 <figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure>
-<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2>
+<p>核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#fieldEofResponse(…)</a>】</p>
+<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2><h3 id="3-1-AbstractDataNodeMerge"><a href="#3-1-AbstractDataNodeMerge" class="headerlink" title="3.1 AbstractDataNodeMerge"></a>3.1 AbstractDataNodeMerge</h3><p>MyCAT 对分片结果合并通过 <code>AbstractDataNodeMerge</code> 子类来完成。</p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png" alt="merge_service"> </p>
+<p><code>AbstractDataNodeMerge</code> ：</p>
+<ul>
+<li>-packs ：待合并记录行(row)队列。队列尾部插入 <code>END_FLAG_PACK</code> 表示队列已结束。</li>
+<li>-running ：合并逻辑是否正在执行中的标记。</li>
+<li>~onRowMetaData(…) ：根据<strong>记录列信息(ColMeta)</strong>构建对应的排序组件和聚合组件。需要子类进行实现。</li>
+<li>~onNewRecord(…) ：插入记录行(row) 到 <code>packs</code>。</li>
+<li>~outputMergeResult(…) ：插入 <code>END_FLAG_PACK</code> 到 <code>packs</code>。</li>
+<li>~run(…) ：执行<strong>合并</strong>分片结果逻辑，并将合并结果返回给 MySQL Client。需要子类进行实现。</li>
+</ul>
+<p>TODO 简单逻辑图</p>
+<p>详细代码见：TODO</p>
+<h3 id="3-2-DataNodeMergeManager"><a href="#3-2-DataNodeMergeManager" class="headerlink" title="3.2 DataNodeMergeManager"></a>3.2 DataNodeMergeManager</h3><p><code>AbstractDataNodeMerge</code> 有两种子类实现：</p>
+<ul>
+<li><code>DataMergeService</code> ：基于<strong>堆内内存</strong>合并分片结果。</li>
+<li><code>DataNodeMergeManager</code> ：基于<strong>堆外内存</strong>合并分片结果。</li>
+</ul>
+<p>目前官方默认配置使用 <code>DataNodeMergeManager</code>。主要有如下优点：</p>
+<ol>
+<li>可以使用更大的内存空间。当并发量大或者数据量大时，更大的内存空间意味着更好的性能。</li>
+<li>减少 GC 暂停时间。记录行(row)对象小且重用性很低，需要能够进行类似 C / C++ 的自主内存释放。</li>
+<li>更快的内存复制和读取速度，对排序和聚合带来很好的提速。</li>
+</ol>
+<p>如果对<strong>堆外内存</strong>不太了解，推荐阅读如下文章：</p>
+<ol>
+<li><a href="http://www.jianshu.com/p/50be08b54bee" rel="external nofollow noopener noreferrer" target="_blank">《从0到1起步-跟我进入堆外内存的奇妙世界》</a></li>
+<li><a href="http://www.infoq.com/cn/news/2014/12/external-memory-heap-memory" rel="external nofollow noopener noreferrer" target="_blank">《堆内内存还是堆外内存？》</a></li>
+<li><a href="http://www.cnblogs.com/moonandstar08/p/5107648.html" rel="external nofollow noopener noreferrer" target="_blank">《JAVA堆外内存》</a></li>
+<li><a href="https://yq.aliyun.com/articles/2948?spm=5176.100239.blogcont62539.11.a3HdFE" rel="external nofollow noopener noreferrer" target="_blank">《JVM源码分析之堆外内存完全解读》</a></li>
+</ol>
+<p>本文主要分析 <code>DataNodeMergeManager</code> 实现，<code>DataMergeService</code> 可以自己阅读或者等待后续文章（😈<strong>欢迎订阅我的公众号噢</strong>）。</p>
+<p><code>DataNodeMergeManager</code> 有三个组件：</p>
+<ul>
+<li><code>globalSorter</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并并排序</strong>逻辑。</li>
+<li><code>globalMergeResult</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并不排序</strong>逻辑。</li>
+<li><code>unsafeRowGrouper</code> ： <code>UnsafeRowGrouper</code> =&gt; 实现记录行(row)<strong>聚合</strong>逻辑。</li>
+</ul>
+<p><code>DataNodeMergeManager#run(...)</code> 逻辑如下：</p>
+<ol>
+<li>写入记录行(row)到 <code>UnsafeRow</code>。</li>
+<li>根据情况插入到 <code>globalSorter</code>、</li>
+</ol>
+<p>TODO 再考虑下怎么表述</p>
+<h3 id="3-3-UnsafeRow"><a href="#3-3-UnsafeRow" class="headerlink" title="3.3 UnsafeRow"></a>3.3 UnsafeRow</h3><h3 id="3-4-UnsafeExternalRowSorter"><a href="#3-4-UnsafeExternalRowSorter" class="headerlink" title="3.4 UnsafeExternalRowSorter"></a>3.4 UnsafeExternalRowSorter</h3><h3 id="3-5-UnsafeRowGrouper"><a href="#3-5-UnsafeRowGrouper" class="headerlink" title="3.5 UnsafeRowGrouper"></a>3.5 UnsafeRowGrouper</h3>
   </div>
 </article>
 
@@ -222,21 +268,21 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-AbstractDataNodeMerge"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DataNodeMergeManager"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-UnsafeRow"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-UnsafeExternalRowSorter"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-UnsafeRowGrouper"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-aggregation/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-aggregation/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-merge/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

@@ -4,8 +4,8 @@
 
     
   <url>
-    <loc>http://www.yunai.me/MyCAT/sharding-result-aggregation/</loc>
-    <lastmod>2017-06-14T09:55:52.000Z</lastmod>
+    <loc>http://www.yunai.me/MyCAT/sharding-result-merge/</loc>
+    <lastmod>2017-06-14T15:16:51.000Z</lastmod>
     <data>
         <display>
         <title>MyCAT 源码解析 —— 分片结果合并</title>
@@ -22,170 +22,8 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
-    <lastmod>2017-06-08T16:35:32.000Z</lastmod>
-    <data>
-        <display>
-        <title>Docker 网络 —— Flannel 配置</title>
-        <pubTime>2017-02-03T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Docker" url="http://www.yunai.me/categories/Docker/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Mycat/single-db-single-table-select/</loc>
-    <lastmod>2017-06-08T16:33:07.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 【单库单表】查询</title>
-        <pubTime>2017-05-29T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
-    <lastmod>2017-06-08T16:32:20.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 调试环境搭建</title>
-        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
-    <lastmod>2017-06-08T16:31:48.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 【单库单表】插入</title>
-        <pubTime>2017-05-28T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
-    <lastmod>2017-06-08T16:20:14.000Z</lastmod>
-    <data>
-        <display>
-        <title>为什么阅读 MyCAT 源码？</title>
-        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
-    <lastmod>2017-06-08T16:17:38.000Z</lastmod>
-    <data>
-        <display>
-        <title>Nginx 动态配置 upstream</title>
-        <pubTime>2017-01-06T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Nginx" url="http://www.yunai.me/categories/Nginx/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
-    <lastmod>2017-06-08T16:16:38.000Z</lastmod>
-    <data>
-        <display>
-        <title>谈谈单元测试</title>
-        <pubTime>2017-03-18T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
-    <lastmod>2017-06-08T16:16:20.000Z</lastmod>
-    <data>
-        <display>
-        <title>谈谈 ID</title>
-        <pubTime>2017-03-03T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/namesrv-intro/</loc>
-    <lastmod>2017-06-08T16:15:39.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 之 Namesrv 小结</title>
-        <pubTime>2017-04-04T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
-    <lastmod>2017-06-08T16:15:19.000Z</lastmod>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
         <title>为什么阅读 RocketMQ 源码？</title>
@@ -202,12 +40,138 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
-    <lastmod>2017-06-08T15:58:02.000Z</lastmod>
+    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— 事务消息</title>
-        <pubTime>2017-05-20T16:00:00.000Z</pubTime>
+        <title>Docker 网络 —— Flannel 配置</title>
+        <pubTime>2017-02-03T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Docker" url="http://www.yunai.me/categories/Docker/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>为什么阅读 MyCAT 源码？</title>
+        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Mycat/build-debugging-environment/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码分析 —— 调试环境搭建</title>
+        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>谈谈 ID</title>
+        <pubTime>2017-03-03T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Mycat/single-db-single-table-select/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码分析 —— 【单库单表】查询</title>
+        <pubTime>2017-05-29T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Mycat/single-db-single-table-insert/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码分析 —— 【单库单表】插入</title>
+        <pubTime>2017-05-28T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>Nginx 动态配置 upstream</title>
+        <pubTime>2017-01-06T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Nginx" url="http://www.yunai.me/categories/Nginx/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/namesrv-intro/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 之 Namesrv 小结</title>
+        <pubTime>2017-04-04T16:00:00.000Z</pubTime>
         
          
            
@@ -220,12 +184,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/filtersrv/</loc>
-    <lastmod>2017-06-08T15:56:17.000Z</lastmod>
+    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Filtersrv</title>
-        <pubTime>2017-05-16T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Topic</title>
+        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
         
          
            
@@ -238,17 +202,17 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</loc>
-    <lastmod>2017-06-08T15:54:49.000Z</lastmod>
+    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— 定时消息与消息重试</title>
-        <pubTime>2017-05-14T16:00:00.000Z</pubTime>
+        <title>谈谈单元测试</title>
+        <pubTime>2017-03-18T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
           
         </display>
     </data>
@@ -256,66 +220,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
-    <lastmod>2017-06-08T15:52:05.000Z</lastmod>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— 高可用</title>
-        <pubTime>2017-05-13T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
-    <lastmod>2017-06-08T15:49:52.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— Message 顺序发送与消费</title>
-        <pubTime>2017-05-12T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
-    <lastmod>2017-06-08T13:26:53.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
-        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
-    <lastmod>2017-06-08T13:26:49.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
-        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message</title>
+        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
         
          
            
@@ -329,7 +239,7 @@
     
   <url>
     <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
-    <lastmod>2017-06-08T13:26:37.000Z</lastmod>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
         <title>RocketMQ 源码分析 —— Message 发送与接收</title>
@@ -347,7 +257,7 @@
     
   <url>
     <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
-    <lastmod>2017-06-08T13:26:26.000Z</lastmod>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
         <title>RocketMQ 源码分析 —— Message 存储</title>
@@ -364,26 +274,8 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/topic/</loc>
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— Topic</title>
-        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
         <title>RocketMQ 源码分析 —— Store 初始化与关闭</title>
@@ -400,12 +292,120 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
-    <lastmod>2017-06-07T18:42:52.000Z</lastmod>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message</title>
-        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 顺序发送与消费</title>
+        <pubTime>2017-05-12T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/filtersrv/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— Filtersrv</title>
+        <pubTime>2017-05-16T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-schedule-and-retry/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— 定时消息与消息重试</title>
+        <pubTime>2017-05-14T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— 高可用</title>
+        <pubTime>2017-05-13T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— 事务消息</title>
+        <pubTime>2017-05-20T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
+        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
+        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
         
          
            
