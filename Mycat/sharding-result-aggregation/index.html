@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+    <meta name="description" content="1. 概述相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现分片结果合并。 跨分片查询大体流程如下：  和 《【单库单表】查询》 不同的两个过程：  【2】多分片执行 SQL 【4】合并多分片结果  下面，我们逐条来讲解这两个过程。 2. 多分片执行 S">
+<meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyCAT 源码解析 —— 分片结果合并">
+<meta property="og:url" content="http://www.yunai.me/MyCAT/sharding-result-aggregation/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="1. 概述相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现分片结果合并。 跨分片查询大体流程如下：  和 《【单库单表】查询》 不同的两个过程：  【2】多分片执行 SQL 【4】合并多分片结果  下面，我们逐条来讲解这两个过程。 2. 多分片执行 S">
+<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png">
+<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png">
+<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png">
+<meta property="og:updated_time" content="2017-06-14T09:55:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MyCAT 源码解析 —— 分片结果合并">
+<meta name="twitter:description" content="1. 概述相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现分片结果合并。 跨分片查询大体流程如下：  和 《【单库单表】查询》 不同的两个过程：  【2】多分片执行 SQL 【4】合并多分片结果  下面，我们逐条来讲解这两个过程。 2. 多分片执行 S">
+<meta name="twitter:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>MyCAT 源码解析 —— 分片结果合并</title>
+    <!-- keywords -->
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+    <!-- 百度统计 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/Mycat/single-db-single-table-select/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-aggregation/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-aggregation/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        MyCAT 源码解析 —— 分片结果合并
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-06-12T16:00:00.000Z" itemprop="datePublished">2017-06-13</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
+<p>跨分片查询大体流程如下：</p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png" alt="flow"></p>
+<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同的两个过程：</p>
+<ul>
+<li>【2】多分片执行 SQL</li>
+<li>【4】合并多分片结果</li>
+</ul>
+<p>下面，我们逐条来讲解这两个过程。</p>
+<h1 id="2-多分片执行-SQL"><a href="#2-多分片执行-SQL" class="headerlink" title="2. 多分片执行 SQL"></a>2. 多分片执行 SQL</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
+<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute()</a>】。</p>
+<p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
+<h1 id="3-合并多分片结果"><a href="#3-合并多分片结果" class="headerlink" title="3. 合并多分片结果"></a>3. 合并多分片结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
+<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">FROM       // [1] 选择表</div><div class="line">WHERE      // [2] 过滤表</div><div class="line">GROUP BY   // [3] 分组</div><div class="line"><span class="keyword">SELECT</span>     // [<span class="number">4</span>] 普通字段，<span class="keyword">max</span> / <span class="keyword">min</span> / <span class="keyword">avg</span> / <span class="keyword">sum</span> / <span class="keyword">count</span> 等函数，<span class="keyword">distinct</span></div><div class="line"><span class="keyword">HAVING</span>     // [<span class="number">5</span>] 再过滤表</div><div class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>   // [<span class="number">6</span>] 排序</div><div class="line"><span class="keyword">LIMIT</span>      // [<span class="number">7</span>] 分页</div></pre></td></tr></table></figure>
+<h2 id="3-1-记录头-header"><a href="#3-1-记录头-header" class="headerlink" title="3.1 记录头(header)"></a>3.1 记录头(header)</h2><p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 实际在处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
+<p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure>
+<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2>
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-aggregation/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&text=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-aggregation/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&title=MyCAT 源码解析 —— 分片结果合并" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-aggregation/&name=MyCAT 源码解析 —— 分片结果合并&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$(" #toc-footer").toggle();return="" false;"=""><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$(" #share-footer").toggle();return="" false;"=""><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$(" #nav-footer").toggle();return="" false;"=""><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append('&nbsp;' + (counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('&nbsp;1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append('&nbsp;' + results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
+    });
+</script>

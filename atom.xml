@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-06-08T16:33:07.000Z</updated>
+  <updated>2017-06-14T09:55:52.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -14,6 +14,44 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>MyCAT 源码解析 —— 分片结果合并</title>
+    <link href="http://www.yunai.me/MyCAT/sharding-result-aggregation/"/>
+    <id>http://www.yunai.me/MyCAT/sharding-result-aggregation/</id>
+    <published>2017-06-12T16:00:00.000Z</published>
+    <updated>2017-06-14T09:55:52.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
+<p>跨分片查询大体流程如下：</p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png" alt="flow"></p>
+<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同的两个过程：</p>
+<ul>
+<li>【2】多分片执行 SQL</li>
+<li>【4】合并多分片结果</li>
+</ul>
+<p>下面，我们逐条来讲解这两个过程。</p>
+<h1 id="2-多分片执行-SQL"><a href="#2-多分片执行-SQL" class="headerlink" title="2. 多分片执行 SQL"></a>2. 多分片执行 SQL</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
+<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。核心代码：【<a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute()</a>】。</p>
+<p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
+<h1 id="3-合并多分片结果"><a href="#3-合并多分片结果" class="headerlink" title="3. 合并多分片结果"></a>3. 合并多分片结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
+<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">FROM       // [1] 选择表</div><div class="line">WHERE      // [2] 过滤表</div><div class="line">GROUP BY   // [3] 分组</div><div class="line"><span class="keyword">SELECT</span>     // [<span class="number">4</span>] 普通字段，<span class="keyword">max</span> / <span class="keyword">min</span> / <span class="keyword">avg</span> / <span class="keyword">sum</span> / <span class="keyword">count</span> 等函数，<span class="keyword">distinct</span></div><div class="line"><span class="keyword">HAVING</span>     // [<span class="number">5</span>] 再过滤表</div><div class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>   // [<span class="number">6</span>] 排序</div><div class="line"><span class="keyword">LIMIT</span>      // [<span class="number">7</span>] 分页</div></pre></td></tr></table></figure>
+<h2 id="3-1-记录头-header"><a href="#3-1-记录头-header" class="headerlink" title="3.1 记录头(header)"></a>3.1 记录头(header)</h2><p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 实际在处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
+<p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure>
+<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h1&gt;&lt;p&gt;相信很多同学都看过 MySQL 各种优化的文章，里面 99% 都会提到：单表数据量大了，需要进行分片。拆分之后，业务上必
+    
+    </summary>
+    
+      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>MyCAT 源码分析 —— 【单库单表】查询</title>
@@ -3176,156 +3214,6 @@ public IObjectFactory getObjectFactory() {
     
       &lt;blockquote&gt;
 &lt;p&gt; 原文地址：&lt;a href=&quot;http://www.yunai.me/Architecture/talk-about-java-unit-test/&quot;&gt;http://www.yunai.me/Architecture/talk-about-java
-    
-    </summary>
-    
-      <category term="技术杂文" scheme="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>谈谈 ID</title>
-    <link href="http://www.yunai.me/Architecture/talk-about-global-id/"/>
-    <id>http://www.yunai.me/Architecture/talk-about-global-id/</id>
-    <published>2017-03-03T16:00:00.000Z</published>
-    <updated>2017-06-08T16:16:20.000Z</updated>
-    
-    <content type="html"><![CDATA[<blockquote>
-<p> 原文地址：<a href="http://www.yunai.me/Architecture/talk-about-global-id/">http://www.yunai.me/Architecture/talk-about-global-id/</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
-</blockquote>
-<p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
-<hr>
-<ul>
-<li><a href="#">1. 数据库自增</a></li>
-<li><a href="#">2. 类UUID算法</a></li>
-<li><a href="#">3. SnowFlake</a><ul>
-<li><a href="#">3.1 Twitter-Snowflake</a></li>
-<li><a href="#">3.2 Instagram SnowFlake</a></li>
-<li><a href="#">3.3 Simpleflake</a></li>
-<li><a href="#">3.4 Boundary flake</a></li>
-<li><a href="#">3.5 自己的想法</a></li>
-</ul>
-</li>
-<li><a href="#">4. 参考文章</a></li>
-<li><a href="#">草稿</a></li>
-</ul>
-<p>在日常开发中，数据库的id是不可少的。在各个场景下会有不同的选择，本文对互联网上常见的ID算法进行归纳，希望对工程师们有一点点帮助。</p>
-<h1 id="1-数据库自增"><a href="#1-数据库自增" class="headerlink" title="1. 数据库自增"></a>1. 数据库自增</h1><ol>
-<li>MySQL、Oracle、PGSQL等关系数据库的id主键自增</li>
-<li>Redis、Memcached等K/V数据库的incr操作自增<ul>
-<li>需要考虑持久化的问题</li>
-</ul>
-</li>
-<li>MongoDB自己维护一个id自增集合<ul>
-<li>MongoDB的Update操作支持incr操作，因此可以这么做。</li>
-<li>该方式适用于支持该操作的其他数据库。</li>
-</ul>
-</li>
-</ol>
-<h1 id="2-类UUID算法"><a href="#2-类UUID算法" class="headerlink" title="2. 类UUID算法"></a>2. 类UUID算法</h1><ol>
-<li>UUID</li>
-<li>MongoDB的ObjectId</li>
-</ol>
-<h1 id="3-SnowFlake"><a href="#3-SnowFlake" class="headerlink" title="3. SnowFlake"></a>3. SnowFlake</h1><h2 id="3-1-Twitter-Snowflake"><a href="#3-1-Twitter-Snowflake" class="headerlink" title="3.1 Twitter-Snowflake"></a>3.1 Twitter-Snowflake</h2><blockquote>
-<p> Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p>
-</blockquote>
-<p>64bits从左往右依次是</p>
-<ul>
-<li>1bit 保留</li>
-<li>41bits 时间戳<ul>
-<li>支持69.7年需要的id。2 ^41 /365/24/60/60/1000=69.7</li>
-</ul>
-</li>
-<li>10bits work-id<ul>
-<li>支持1024个work</li>
-</ul>
-</li>
-<li>12bits sequence-id<ul>
-<li>支持每work每毫秒4096个id</li>
-<li>支持每work每秒4096000个id</li>
-<li>若当前毫秒超过4096，则sleep1毫秒，获取下一毫秒的自增</li>
-</ul>
-</li>
-</ul>
-<p><strong> snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景 </strong></p>
-<h2 id="3-2-Instagram-SnowFlake"><a href="#3-2-Instagram-SnowFlake" class="headerlink" title="3.2 Instagram SnowFlake"></a>3.2 Instagram SnowFlake</h2><p>去中性化，基于PGSQL实现</p>
-<p>64bits从左至右依次是</p>
-<ul>
-<li>41bits 时间戳</li>
-<li>13bits logic-shard-id</li>
-<li>10bits sequence-id</li>
-</ul>
-<p>实现方式</p>
-<ul>
-<li>根据<code>share-key</code>获取对应的PGSQL实例-库</li>
-<li>id使用PGSQL的存储过程</li>
-<li>13bits = <code>share-key对应值%logic-share-id</code> </li>
-<li>10bits = <code>该Table的auto_increment_id%(2 ^10)</code></li>
-</ul>
-<p>好处</p>
-<ul>
-<li>去中性化</li>
-<li>根据id可以获得对应PGSQL实例-库</li>
-</ul>
-<h2 id="3-3-Simpleflake"><a href="#3-3-Simpleflake" class="headerlink" title="3.3 Simpleflake"></a>3.3 Simpleflake</h2><p>64bits</p>
-<ul>
-<li>去中性化</li>
-<li>将work-id的12bits给sequence-id。完全随机，每毫秒有1/(2^22 )出现冲突的情况。数据量大时需要注意。</li>
-<li>未来可以平滑迁移到Twitter SnowFlake</li>
-</ul>
-<h2 id="3-4-Boundary-flake"><a href="#3-4-Boundary-flake" class="headerlink" title="3.4 Boundary flake"></a>3.4 Boundary flake</h2><p>去中性化，基于erlang实现<br>128bits从左到右依次是</p>
-<ul>
-<li>64bits 时间戳<ul>
-<li>和毫秒时间戳等长</li>
-</ul>
-</li>
-<li>48bits work-id<ul>
-<li>和mac地址等长，使用时要避免相同mac多个进程</li>
-</ul>
-</li>
-<li>14bits sequence-id</li>
-</ul>
-<h2 id="3-5-自己的想法"><a href="#3-5-自己的想法" class="headerlink" title="3.5 自己的想法"></a>3.5 自己的想法</h2><p><strong><em>参考Instagram SnowFlake的做法</em></strong></p>
-<p>去中心化，基于redis实现<br>64bits从左到右依次是</p>
-<ul>
-<li>1bit 保留</li>
-<li>41bits 时间戳</li>
-<li>12bits 基于logic-shard-id</li>
-<li>10bits 基于时间戳+logic-shard-id在redis里自增</li>
-</ul>
-<h1 id="4-参考文章"><a href="#4-参考文章" class="headerlink" title="4. 参考文章"></a>4. 参考文章</h1><ol>
-<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" rel="external nofollow noopener noreferrer" target="_blank">互联网分布式id生成方法|msup微课干货</a></li>
-<li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" rel="external nofollow noopener noreferrer" target="_blank">服务化框架－分布式Unique ID的生成方法一览</a></li>
-<li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" rel="external nofollow noopener noreferrer" target="_blank">分布式系统中 Unique ID 的生成方法</a></li>
-</ol>
-<h1 id="草稿"><a href="#草稿" class="headerlink" title="草稿"></a>草稿</h1><ol>
-<li>2实例、4分表</li>
-</ol>
-<ul>
-<li>a：0<em>2</em>4*6</li>
-<li>b：1<em>3</em>5*7</li>
-</ul>
-<ol>
-<li>4实例、4分表</li>
-</ol>
-<ul>
-<li>a：0<em>4</em>8*12</li>
-<li>b：1<em>5</em>9*13</li>
-<li>c：2<em>6</em>10*14</li>
-<li>d：3<em>7</em>11*15</li>
-</ul>
-<p>扩展方式：</p>
-<ul>
-<li>a与c双主〈a c〉</li>
-<li>b与d双主〈b d〉</li>
-</ul>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;blockquote&gt;
-&lt;p&gt; 原文地址：&lt;a href=&quot;http://www.yunai.me/Architecture/talk-about-global-id/&quot;&gt;http://www.yunai.me/Architecture/talk-about-global-id
     
     </summary>
     
