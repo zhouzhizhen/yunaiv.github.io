@@ -14,7 +14,7 @@
     <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MyCAT 源码解析 —— 分片结果合并（一）">
+<meta property="og:title" content="Mx">
 <meta property="og:url" content="http://www.yunai.me/MyCAT/sharding-result-merge-first/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
 <meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
@@ -26,12 +26,12 @@
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/AbstractDataNodeMerge_run.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png">
-<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object_2.png">
+<meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/sorter_write.jpeg">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-06-15T09:35:38.000Z">
+<meta property="og:updated_time" content="2017-06-15T11:16:56.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MyCAT 源码解析 —— 分片结果合并（一）">
+<meta name="twitter:title" content="Mx">
 <meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
@@ -53,7 +53,7 @@
         
     
     <!-- title -->
-    <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
+    <title>Mx</title>
     <!-- keywords -->
     
     <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
@@ -141,15 +141,15 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-merge-first/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&text=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并（一）&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge-first/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&name=MyCAT 源码解析 —— 分片结果合并（一）&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&text=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&is_video=false&description=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Mx&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge-first/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&name=Mx&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -166,7 +166,7 @@
   <header>
     
     <h1 class="posttitle" itemprop="name headline">
-        MyCAT 源码解析 —— 分片结果合并（一）
+        Mx
     </h1>
 
 
@@ -327,7 +327,7 @@
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png" alt="unsafe_row"></p>
 <p>记录行(row)写到 <code>UnsafeRow</code> 的 <code>baseObject</code> 属性，结构如下：</p>
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png" alt="unsafe_row_object">
-<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object_2.png" alt="unsafe_row_2.png"></p>
+<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png" alt="unsafe_row_2.png"></p>
 <ul>
 <li>拆分成三个区域，<strong>每个区域按照格子记录信息，每个格子 64bits(8 Bytes)</strong>。</li>
 <li>记录行(row)按照字段顺序位置记录到 <code>baseObject</code>。</li>
@@ -420,15 +420,15 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/sharding-result-merge-first/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&text=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&is_video=false&description=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码解析 —— 分片结果合并（一）&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge-first/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=MyCAT 源码解析 —— 分片结果合并（一）" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&name=MyCAT 源码解析 —— 分片结果合并（一）&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&text=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&is_video=false&description=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Mx&body=Check out this article: http://www.yunai.me/MyCAT/sharding-result-merge-first/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&title=Mx" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/sharding-result-merge-first/&name=Mx&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

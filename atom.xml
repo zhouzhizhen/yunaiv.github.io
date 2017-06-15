@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-06-15T09:35:38.000Z</updated>
+  <updated>2017-06-15T11:16:56.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,11 +16,11 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
+    <title>Mx</title>
     <link href="http://www.yunai.me/MyCAT/sharding-result-merge-first/"/>
     <id>http://www.yunai.me/MyCAT/sharding-result-merge-first/</id>
     <published>2017-06-12T16:00:00.000Z</published>
-    <updated>2017-06-15T09:35:38.000Z</updated>
+    <updated>2017-06-15T11:16:56.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p>原文地址：<a href="http://www.yunai.me/MyCAT/sharding-result-merge-first/">http://www.yunai.me/MyCAT/sharding-result-merge-first/</a><br>
@@ -161,7 +161,7 @@
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png" alt="unsafe_row"></p>
 <p>记录行(row)写到 <code>UnsafeRow</code> 的 <code>baseObject</code> 属性，结构如下：</p>
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png" alt="unsafe_row_object">
-<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object_2.png" alt="unsafe_row_2.png"></p>
+<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png" alt="unsafe_row_2.png"></p>
 <ul>
 <li>拆分成三个区域，<strong>每个区域按照格子记录信息，每个格子 64bits(8 Bytes)</strong>。</li>
 <li>记录行(row)按照字段顺序位置记录到 <code>baseObject</code>。</li>
