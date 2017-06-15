@@ -412,8 +412,8 @@
         return uuid;
     }
 
+    // TODO 待优化：此处性能较差，可能
     function countVisitLog() {
-        // TODO 待优化：此处性能较差，可能
         var Log = AV.Object.extend("VisitLog");
         var query = new AV.Query(Log);
         query.count({
