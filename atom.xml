@@ -222,10 +222,10 @@
   
   <entry>
     <title>MyCAT 源码分析 —— 【单库单表】查询</title>
-    <link href="http://www.yunai.me/Mycat/single-db-single-table-select/"/>
-    <id>http://www.yunai.me/Mycat/single-db-single-table-select/</id>
+    <link href="http://www.yunai.me/MyCAT/single-db-single-table-select/"/>
+    <id>http://www.yunai.me/MyCAT/single-db-single-table-select/</id>
     <published>2017-05-29T16:00:00.000Z</published>
-    <updated>2017-06-09T13:09:13.000Z</updated>
+    <updated>2017-07-11T09:45:59.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/single-db-single-table-select/">http://www.yunai.me/MyCAT/single-db-single-table-select/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -299,10 +299,10 @@
   
   <entry>
     <title>MyCAT 源码分析 —— 【单库单表】插入</title>
-    <link href="http://www.yunai.me/Mycat/single-db-single-table-insert/"/>
-    <id>http://www.yunai.me/Mycat/single-db-single-table-insert/</id>
+    <link href="http://www.yunai.me/MyCAT/single-db-single-table-insert/"/>
+    <id>http://www.yunai.me/MyCAT/single-db-single-table-insert/</id>
     <published>2017-05-28T16:00:00.000Z</published>
-    <updated>2017-06-09T13:09:13.000Z</updated>
+    <updated>2017-07-11T09:45:51.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/single-db-single-table-insert/">http://www.yunai.me/MyCAT/single-db-single-table-insert/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -459,7 +459,7 @@
     <link href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/"/>
     <id>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</id>
     <published>2017-05-21T16:00:00.000Z</published>
-    <updated>2017-06-14T15:32:07.000Z</updated>
+    <updated>2017-06-15T18:51:59.000Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p> 原文地址：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
@@ -478,10 +478,10 @@
 <li>[ ] NIO</li>
 <li>[ ] 分布式事务</li>
 <li>[ ] 分表</li>
-<li>[ ] 分库</li>
-<li>[ ] 自增序列</li>
-<li>[ ] 单库任意 Join</li>
-<li>[ ] 跨库2表 Join</li>
+<li>[ ] 分库 50%</li>
+<li>[ ] 自增序列 30%</li>
+<li>[ ] 单库任意 Join Doing</li>
+<li>[ ] 跨库2表 Join Doing</li>
 <li>[ ] 跨库多表 Join</li>
 <li>[ ] SQL 解析</li>
 <li>[ ] 读写分离</li>
@@ -495,12 +495,12 @@
 <li>[ ] 路由</li>
 <li>[ ] MyCAT 集群</li>
 <li>[ ] 注解</li>
-<li>[ ] 内存管理</li>
+<li>[ ] 内存管理 20%</li>
 <li>[ ] 缓存</li>
 <li>[ ] 监控</li>
 <li>[ ] Mongodb</li>
-<li>[ ] 数据汇聚</li>
-<li>[ ] 数据排序</li>
+<li>[ ] 数据聚合 30% </li>
+<li>[ ] 数据排序 25%</li>
 <li>[ ] PreparedStatement</li>
 </ul>
 ]]></content>

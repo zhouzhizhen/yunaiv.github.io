@@ -15,7 +15,7 @@
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MyCAT 源码分析 —— 【单库单表】查询">
-<meta property="og:url" content="http://www.yunai.me/Mycat/single-db-single-table-select/index.html">
+<meta property="og:url" content="http://www.yunai.me/MyCAT/single-db-single-table-select/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
 <meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/single-db-single-table-select/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 概述 2. 接收请求，解析 SQL 3. 获得路由结果 4. 获得 My">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
@@ -24,7 +24,7 @@
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_05_30/03.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_05_29/03.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_05_30/04.png">
-<meta property="og:updated_time" content="2017-06-09T13:09:13.000Z">
+<meta property="og:updated_time" content="2017-07-11T09:45:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MyCAT 源码分析 —— 【单库单表】查询">
 <meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/single-db-single-table-select/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 概述 2. 接收请求，解析 SQL 3. 获得路由结果 4. 获得 My">
@@ -124,7 +124,7 @@
         <li><a class="icon" href="/MyCAT/sharding-result-merge-first/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
         
         
-        <li><a class="icon" href="/Mycat/single-db-single-table-insert/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="/MyCAT/single-db-single-table-insert/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
         
         <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
         <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
@@ -137,16 +137,16 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Mycat/single-db-single-table-select/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Mycat/single-db-single-table-select/&text=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Mycat/single-db-single-table-select/&is_video=false&description=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码分析 —— 【单库单表】查询&body=Check out this article: http://www.yunai.me/Mycat/single-db-single-table-select/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Mycat/single-db-single-table-select/&name=MyCAT 源码分析 —— 【单库单表】查询&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/single-db-single-table-select/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&text=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&is_video=false&description=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码分析 —— 【单库单表】查询&body=Check out this article: http://www.yunai.me/MyCAT/single-db-single-table-select/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&name=MyCAT 源码分析 —— 【单库单表】查询&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -270,16 +270,16 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Mycat/single-db-single-table-select/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Mycat/single-db-single-table-select/&text=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Mycat/single-db-single-table-select/&is_video=false&description=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=MyCAT 源码分析 —— 【单库单表】查询&body=Check out this article: http://www.yunai.me/Mycat/single-db-single-table-select/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Mycat/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Mycat/single-db-single-table-select/&name=MyCAT 源码分析 —— 【单库单表】查询&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/MyCAT/single-db-single-table-select/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&text=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&is_video=false&description=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MyCAT 源码分析 —— 【单库单表】查询&body=Check out this article: http://www.yunai.me/MyCAT/single-db-single-table-select/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&title=MyCAT 源码分析 —— 【单库单表】查询" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/MyCAT/single-db-single-table-select/&name=MyCAT 源码分析 —— 【单库单表】查询&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
