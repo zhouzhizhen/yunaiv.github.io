@@ -1,4 +1,4 @@
-title: MyCAT 源码解析 —— 分片结果合并（一）
+title: MyCAT源码分析——跨库两表Join
 date: 2017-07-12
 tags:
 categories: MyCAT
@@ -15,7 +15,15 @@ permalink: MyCAT/sharding-two-table-join
 
 -------
 
-
+- [1. 概述](#)
+- [2. 主流程](#)
+- [3. ShareJoin](#)
+	- [3.1 JoinParser](#)
+	- [3.2 ShareJoin.processSQL(...)](#)
+	- [3.3 BatchSQLJob](#)
+	- [3.4 ShareDBJoinHandler](#)
+	- [3.5 ShareRowOutPutDataHandler](#)
+- [4. 彩蛋](#)
 
 -------
 
@@ -36,11 +44,11 @@ OK，Let's Go。
 
 当执行跨库两表 Join SQL 时，经历的大体流程如下：
 
-![](../../../images/MyCAT/2017_07_12/01.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/01.png)
 
-SQL 上，需要添加注解 `/*!mycat:catlet=io.mycat.catlets.ShareJoin */ ${SQL}` 。`RouteService#route(...)` 解析注解 `mycat:catlet` 后，路由给 `HintCatletHandler` 进一步处理。
+SQL 上，需要添加注解 `/*!mycat:catlet=io.mycat.catlets.ShareJoin */ ${SQL}` 。`RouteService#route(...)` 解析注解 `mycat:catlet` 后，路由给 `HintCatletHandler` 作进一步处理。
 
-`HintCatletHandler` 获取注解对应的 `Catlet` 实现类，`io.mycat.catlets.ShareJoin`就是其中一种实现（目前也只有一种实现），提供了跨库两表 Join 的功能。从类命名上看，`ShareJoin` 很大可能性后续会提供跨库更多表的 Join 功能。
+`HintCatletHandler` 获取注解对应的 `Catlet` 实现类，`io.mycat.catlets.ShareJoin` 就是其中一种实现（目前也只有这一种实现），提供了跨库两表 Join 的功能。从类命名上看，`ShareJoin` 很大可能性后续会提供**完整**的跨库多表的 Join 功能。
 
 核心代码如下：
 
@@ -50,7 +58,6 @@ public RouteResultset route(SystemConfig sysConfig, SchemaConfig schema,
                            int sqlType, String realSQL, String charset, ServerConnection sc,
                            LayerCachePool cachePool, String hintSQLValue, int hintSqlType, Map hintMap)
        throws SQLNonTransientException {
-   // sc.setEngineCtx ctx
    String cateletClass = hintSQLValue;
    if (LOGGER.isDebugEnabled()) {
        LOGGER.debug("load catelet class:" + hintSQLValue + " to run sql " + realSQL);
@@ -76,10 +83,10 @@ public RouteResultset route(SystemConfig sysConfig, SchemaConfig schema,
 ```Java
 // SELECT u.id, o.id FROM t_order o 
 // INNER JOIN t_user u ON o.uid = u.id
-// 查询左表
+// 【顺序】查询左表
 String leftSQL = "SELECT o.id, u.id FROM t_order o";
 List leftList = dn[0].select(leftSQL) + dn[1].select(leftSQL) + ... + dn[n].select(leftsql);
-// 查询右表
+// 【并行】查询右表
 String rightSQL = "SELECT u.id FROM t_user u WHERE u.id IN (${leftList.uid})";
 for (dn : dns) { // 此处是并行执行，使用回调逻辑
     for (rightRecord : dn.select(rightSQL)) { // 查询右表
@@ -93,17 +100,17 @@ for (dn : dns) { // 此处是并行执行，使用回调逻辑
 } 
 ```
 
-实际情况会更加复杂，我们来一点点看下去。
+实际情况会更加复杂，我们接下来一点点往下看。
 
 ## 3.1 JoinParser
 
 `JoinParser` 负责对 SQL 进行解析。整体流程如下：
 
-![](../../../images/MyCAT/2017_07_12/02.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/02.png)
  
 举个例子，`/*!mycat:catlet=io.mycat.catlets.ShareJoin */ SELECT o.id, u.username from t_order o join t_user u on o.uid = u.id;` 解析后，`TableFilter` 结果如下：
 
-![](../../../images/MyCAT/2017_07_12/03.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/03.png)
 
 * tName ：表名
 * tAlia ：表自定义命名
@@ -184,7 +191,7 @@ public String getSQL() {
 
 当 SQL 解析完后，生成**左边的表**执行的 SQL，发送给对应的数据节点查询数据。大体流程如下：
 
-![](../../../images/MyCAT/2017_07_12/04.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/04.png)
 
 当 SQL 为 `/*!mycat:catlet=io.mycat.catlets.ShareJoin */ SELECT o.id, u.username from t_order o join t_user u on o.uid = u.id;` 时，
 `sql = getSql()` 的返回结果为 `select id, uid from t_order`。
@@ -193,7 +200,7 @@ public String getSQL() {
 
 ## 3.3 BatchSQLJob
 
-![](../../../images/MyCAT/2017_07_12/05.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/05.png)
 
 `EngineCtx` 对 `BatchSQLJob` 封装，提供上层两个方法：
 
@@ -277,13 +284,13 @@ public boolean jobFinished(SQLJob sqlJob) {
 
 在 `ShareJoin` 里，`SQLJobHandler` 有两个实现：`ShareDBJoinHandler`、`ShareRowOutPutDataHandler`。前者，**左边的表**执行的 SQL 回调；后者，**右边的表**执行的 SQL 回调。
 
-![](../../../images/MyCAT/2017_07_12/06.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/06.png)
 
 ## 3.4 ShareDBJoinHandler
 
 `ShareDBJoinHandler`，**左边的表**执行的 SQL 回调。流程如下：
 
-![](../../../images/MyCAT/2017_07_12/07.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/07.png)
 
 * `#fieldEofResponse(...)` ：接收数据节点返回的 fields，放入内存。
 * `#rowResponse(...)` ：接收数据节点返回的 row，放入内存。
@@ -336,7 +343,7 @@ private void createQryJob(int batchSize) {
 
 `ShareRowOutPutDataHandler`，**右边的表**执行的 SQL 回调。流程如下：
 
-![](../../../images/MyCAT/2017_07_12/08.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/08.png)
 
 * `#fieldEofResponse(...)` ：接收数据节点返回的 fields，返回 header 给 MySQL Client。
 * `#rowResponse(...)` ：接收数据节点返回的 row，匹配左表的记录，返回合并后返回的 row 给 MySQL Client。
@@ -388,5 +395,14 @@ public boolean onRowData(String dataNode, byte[] rowData) {
 
 如下是本文涉及到的核心类，有兴趣的同学可以翻一翻。
 
-![](../../../images/MyCAT/2017_07_12/09.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_12/09.png)
+
+`ShareJoin` 另外不支持的功能：
+
+1. 只支持 inner join，不支持 left join、right join 等等连接。
+2. 不支持 order by。
+3. 不支持 group by 以及 相关聚合函数。
+4. 即使 join 左表的字段未声明为返回 fields 也会返回。
+
+恩，**MyCAT 弱XA** 源码继续走起！
 
