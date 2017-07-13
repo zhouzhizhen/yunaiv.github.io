@@ -1,4 +1,4 @@
-http://www.yunai.me/MyCAT/sharding-two-table-join/
+http://www.yunai.me/MyCAT/two-table-share-join/
 http://www.yunai.me/MyCAT/sharding-result-merge-first/
 http://www.yunai.me/MyCAT/single-db-single-table-select/
 http://www.yunai.me/MyCAT/single-db-single-table-insert/

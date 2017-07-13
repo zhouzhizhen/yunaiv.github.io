@@ -1,12 +1,12 @@
-title: MyCAT源码分析——跨库两表Join
+title: MyCAT源码分析  —— 跨库两表Join
 date: 2017-07-12
 tags:
 categories: MyCAT
-permalink: MyCAT/sharding-two-table-join
+permalink: MyCAT/two-table-share-join
 
 ---
 
->  原文地址：[http://www.yunai.me/MyCAT/sharding-two-table-join/](http://www.yunai.me/MyCAT/sharding-two-table-join/)  
+>  原文地址：[http://www.yunai.me/MyCAT/two-table-share-join/](http://www.yunai.me/MyCAT/two-table-share-join/)  
 > `MyCat-Server` **带注释代码**地址 ：[https://github.com/YunaiV/Mycat-Server](https://github.com/YunaiV/Mycat-Server)  
 > **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号**  
 > QQ ：7685413
