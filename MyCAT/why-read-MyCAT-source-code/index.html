@@ -19,7 +19,7 @@
 <meta property="og:site_name" content="芋艿V的博客">
 <meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-07-13T02:34:18.000Z">
+<meta property="og:updated_time" content="2017-07-15T14:00:58.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么阅读 MyCAT 源码？">
 <meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    为什么阅读 MyCAT 源码？  深入了解数据库中间件 ，知其然知其所以然。 NIO 的">
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -196,12 +196,12 @@
 <li>SQL 解析</li>
 <li>等等</li>
 </ul>
-<h2>步骤</h2>
+<h2>功能点</h2>
 <ul>
 <li>[ ] NIO</li>
-<li>[ ] 分布式事务</li>
-<li>[ ] 分表</li>
-<li>[ ] 分库 50%</li>
+<li>[x] 分布式事务</li>
+<li>[ ] MyCAT 主从</li>
+<li>[ ] 支持prepare预编译指令</li>
 <li>[ ] 自增序列 30%</li>
 <li>[ ] 单库任意 Join Doing</li>
 <li>[x] 跨库2表 Join</li>
@@ -218,13 +218,21 @@
 <li>[ ] 路由</li>
 <li>[ ] MyCAT 集群</li>
 <li>[ ] 注解</li>
-<li>[ ] 内存管理 20%</li>
 <li>[ ] 缓存</li>
 <li>[ ] 监控</li>
 <li>[ ] Mongodb</li>
+<li>[ ] 内存管理 20%</li>
 <li>[ ] 数据聚合 30%</li>
 <li>[ ] 数据排序 25%</li>
-<li>[ ] PreparedStatement</li>
+<li>[ ] 分表</li>
+<li>[ ] 分库 50%</li>
+<li>[ ] 全局表</li>
+<li>[ ] E/R关系</li>
+<li>[ ] 服务降级</li>
+<li>[ ] SQL 注入攻击拦截</li>
+<li>[ ] MySQL 协议</li>
+<li>[ ] PostgreSQL 协议</li>
+<li>[ ] 存储过程</li>
 </ul>
 
   </div>
@@ -250,7 +258,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
