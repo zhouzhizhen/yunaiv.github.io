@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+    <meta name="description" content="原文地址：http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 Sharding-JDBC 源码？ 看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sha">
+<meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为什么阅读 Sharding-JDBC 源码？">
+<meta property="og:url" content="http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 Sharding-JDBC 源码？ 看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sha">
+<meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta property="og:updated_time" content="2017-07-15T18:42:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="为什么阅读 Sharding-JDBC 源码？">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      为什么阅读 Sharding-JDBC 源码？ 看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sha">
+<meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>为什么阅读 Sharding-JDBC 源码？</title>
+    <!-- keywords -->
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+    <!-- 百度统计 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/MyCAT/xa-distributed-transaction/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&text=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&is_video=false&description=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=为什么阅读 Sharding-JDBC 源码？&body=Check out this article: http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&name=为什么阅读 Sharding-JDBC 源码？&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Sharding-JDBC-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        为什么阅读 Sharding-JDBC 源码？
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-07-15T16:00:00.000Z" itemprop="datePublished">2017-07-16</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p> 原文地址：<a href="http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/">http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
+</blockquote>
+<p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
+<hr>
+<h2 id="为什么阅读-Sharding-JDBC-源码？"><a href="#为什么阅读-Sharding-JDBC-源码？" class="headerlink" title="为什么阅读 Sharding-JDBC 源码？"></a>为什么阅读 Sharding-JDBC 源码？</h2><ol>
+<li>看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sharding-JDBC 是 Client 端级别，MyCAT 是 Server 级别。</li>
+<li>Sharding-JDBC 经历过当当本身业务的考验，从可靠性上来说会更让人有信赖感。</li>
+<li>文档更加完善，开发体系更加健全。</li>
+<li>Sharding-JDBC 1.5.0.M3 发布。</li>
+<li><strong>最大努力送达型</strong>事务支持，想要进一步了解分布式事务的解决方案。Last But Very Importment。</li>
+</ol>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ul>
+<li><p>FROM MyCAT</p>
+<p>  <strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
+</li>
+<li><p>[ ] NIO</p>
+</li>
+<li>[ ] <del>分布式事务</del></li>
+<li>[ ] <del>MyCAT 主从</del></li>
+<li>[ ] <del>支持prepare预编译指令</del></li>
+<li>[ ] 自增序列</li>
+<li>[ ] 单库任意 Join</li>
+<li>[ ] 跨库2表 Join</li>
+<li>[ ] 跨库多表 Join</li>
+<li>[ ] SQL 解析</li>
+<li>[ ] 读写分离</li>
+<li>[ ] MySQL 主从</li>
+<li>[ ] <del>自动故障切换</del></li>
+<li>[ ] <del>Galera Cluster 集群</del></li>
+<li>[ ] <del>MHA 集群</del></li>
+<li>[ ] <del>Percona 集群</del></li>
+<li>[ ] <del>服务降级</del></li>
+<li>[ ] <del>多租户</del></li>
+<li>[ ] 路由</li>
+<li>[ ] <del>MyCAT 集群</del></li>
+<li>[ ] 注解</li>
+<li>[ ] 缓存</li>
+<li>[ ] 监控</li>
+<li>[ ] <del>Mongodb</del></li>
+<li>[ ] 内存管理</li>
+<li>[ ] 数据聚合</li>
+<li>[ ] 数据排序</li>
+<li>[ ] 分表</li>
+<li>[ ] 分库</li>
+<li>[ ] 全局表</li>
+<li>[ ] E/R关系</li>
+<li>[ ] 服务降级</li>
+<li>[ ] SQL 注入攻击拦截</li>
+<li>[ ] <del>MySQL 协议</del></li>
+<li>[ ] <del>PostgreSQL 协议</del></li>
+<li><p>[ ] 存储过程</p>
+</li>
+<li><p>FROM Sharding-JDBC</p>
+<p>  <strong>从 官网 介绍获取。</strong></p>
+</li>
+<li><p>[ ] 分布式事务 ：最大努力送达型事务</p>
+</li>
+<li>[ ] 分布式事务 ：TCC型事务(TBD)</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Sharding-JDBC-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&text=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&is_video=false&description=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=为什么阅读 Sharding-JDBC 源码？&body=Check out this article: http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&title=为什么阅读 Sharding-JDBC 源码？" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/&name=为什么阅读 Sharding-JDBC 源码？&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$(" #toc-footer").toggle();return="" false;"=""><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$(" #share-footer").toggle();return="" false;"=""><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$(" #nav-footer").toggle();return="" false;"=""><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append('&nbsp;' + (counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('&nbsp;1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append('&nbsp;' + results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
+    });
+</script>
