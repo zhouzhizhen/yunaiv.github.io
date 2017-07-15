@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/MyCAT/xa-distributed-transaction/</loc>
+    
+    <lastmod>2017-07-15T12:21:54.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
+    
+    <lastmod>2017-07-13T02:34:18.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/MyCAT/two-table-share-join/</loc>
     
     <lastmod>2017-07-13T01:43:59.000Z</lastmod>
@@ -19,13 +33,6 @@
     <loc>http://www.yunai.me/MyCAT/single-db-single-table-insert/</loc>
     
     <lastmod>2017-07-11T09:45:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
-    
-    <lastmod>2017-06-15T18:51:59.000Z</lastmod>
     
   </url>
   
@@ -51,7 +58,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
     
     <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     
@@ -65,21 +72,14 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
-    
-    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
-    
-    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/RocketMQ/namesrv-intro/</loc>
+    
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Docker/docker-network-flannel/</loc>
     
     <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     
@@ -100,6 +100,13 @@
   </url>
   
   <url>
+    <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
+    
+    <lastmod>2017-06-09T13:09:13.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
     
     <lastmod>2017-06-09T13:09:13.000Z</lastmod>
@@ -114,7 +121,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
+    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
     
     <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     
@@ -128,7 +135,7 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message-store/</loc>
     
     <lastmod>2017-06-09T13:09:13.000Z</lastmod>
     

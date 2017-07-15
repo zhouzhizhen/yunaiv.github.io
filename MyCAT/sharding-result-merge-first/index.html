@@ -11,13 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      1. 概述相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
+    <meta name="description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MyCAT 源码解析 —— 分片结果合并（一）">
 <meta property="og:url" content="http://www.yunai.me/MyCAT/sharding-result-merge-first/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      1. 概述相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
+<meta property="og:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png">
 <meta property="og:image" content="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png">
@@ -32,7 +32,7 @@
 <meta property="og:updated_time" content="2017-06-15T11:20:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MyCAT 源码解析 —— 分片结果合并（一）">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      1. 概述相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/MyCAT/sharding-result-merge-first/ MyCat-Server 带注释代码地址 ：https://github.com/YunaiV/Mycat-Server 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    1. 概述 相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -156,7 +156,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-AbstractDataNodeMerge"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DataNodeMergeManager"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-UnsafeRow"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-UnsafeExternalRowSorter"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-UnsafeRowGrouper"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-救护中心"><span class="toc-number">4.</span> <span class="toc-text">4. 救护中心</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 救护中心</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -191,11 +191,14 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p> 原文地址：<a href="http://www.yunai.me/MyCAT/sharding-result-merge-first/">http://www.yunai.me/MyCAT/sharding-result-merge-first/</a><br><code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br><strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
+<p>原文地址：<a href="http://www.yunai.me/MyCAT/sharding-result-merge-first/">http://www.yunai.me/MyCAT/sharding-result-merge-first/</a><br>
+<code>MyCat-Server</code> <strong>带注释代码</strong>地址 ：<a href="https://github.com/YunaiV/Mycat-Server" target="_blank" rel="external">https://github.com/YunaiV/Mycat-Server</a><br>
+<strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数据量大了，需要进行分片（水平拆分 or 垂直拆分）。分片之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
+<h1>1. 概述</h1>
+<p>相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数据量大了，需要进行分片（水平拆分 or 垂直拆分）。分片之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
 <p>跨分片查询大体流程如下：</p>
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png" alt="flow"></p>
 <p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同的两个过程：</p>
@@ -204,42 +207,48 @@
 <li>【4】合并多分片结果</li>
 </ul>
 <p>下面，我们来逐条讲解这两个过程。</p>
-<h1 id="2-多分片执行-SQL"><a href="#2-多分片执行-SQL" class="headerlink" title="2. 多分片执行 SQL"></a>2. 多分片执行 SQL</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
+<h1>2. 多分片执行 SQL</h1>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
 <p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。</p>
 <p><strong>核心代码</strong>：</p>
 <ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute(…)</a></li>
+<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#execute(...)</a></li>
 </ul>
 <p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
-<h1 id="3-合并多分片结果"><a href="#3-合并多分片结果" class="headerlink" title="3. 合并多分片结果"></a>3. 合并多分片结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
+<h1>3. 合并多分片结果</h1>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
 <p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">FROM       // [1] 选择表</div><div class="line">WHERE      // [2] 过滤表</div><div class="line">GROUP BY   // [3] 分组</div><div class="line"><span class="keyword">SELECT</span>     // [<span class="number">4</span>] 普通字段，<span class="keyword">max</span> / <span class="keyword">min</span> / <span class="keyword">avg</span> / <span class="keyword">sum</span> / <span class="keyword">count</span> 等函数，<span class="keyword">distinct</span></div><div class="line"><span class="keyword">HAVING</span>     // [<span class="number">5</span>] 再过滤表</div><div class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>   // [<span class="number">6</span>] 排序</div><div class="line"><span class="keyword">LIMIT</span>      // [<span class="number">7</span>] 分页</div></pre></td></tr></table></figure>
-<h2 id="3-1-记录头-header"><a href="#3-1-记录头-header" class="headerlink" title="3.1 记录头(header)"></a>3.1 记录头(header)</h2><p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 在实际处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
+<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">FROM       // [1] 选择表</div><div class="line">WHERE      // [2] 过滤表</div><div class="line">GROUP BY   // [3] 分组</div><div class="line"><span class="keyword">SELECT</span>     // [<span class="number">4</span>] 普通字段，<span class="keyword">max</span> / <span class="keyword">min</span> / <span class="keyword">avg</span> / <span class="keyword">sum</span> / <span class="keyword">count</span> 等函数，<span class="keyword">distinct</span></div><div class="line"><span class="keyword">HAVING</span>     // [<span class="number">5</span>] 再过滤表</div><div class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>   // [<span class="number">6</span>] 排序</div><div class="line"><span class="keyword">LIMIT</span>      // [<span class="number">7</span>] 分页</div></pre></td></tr></table></figure></p>
+<h2>3.1 记录头(header)</h2>
+<p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 在实际处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
 <p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
-<figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure>
+<p><figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure></p>
 <p><strong>核心代码</strong>：</p>
 <ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#fieldEofResponse(…)</a>。</li>
+<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" target="_blank" rel="external">MultiNodeQueryHandler.java#fieldEofResponse(...)</a>。</li>
 </ul>
-<h2 id="3-2-记录行-row"><a href="#3-2-记录行-row" class="headerlink" title="3.2 记录行(row)"></a>3.2 记录行(row)</h2><h3 id="3-1-AbstractDataNodeMerge"><a href="#3-1-AbstractDataNodeMerge" class="headerlink" title="3.1 AbstractDataNodeMerge"></a>3.1 AbstractDataNodeMerge</h3><p>MyCAT 对分片结果合并通过 <code>AbstractDataNodeMerge</code> 子类来完成。</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png" alt="merge_service"> </p>
+<h2>3.2 记录行(row)</h2>
+<h3>3.1 AbstractDataNodeMerge</h3>
+<p>MyCAT 对分片结果合并通过 <code>AbstractDataNodeMerge</code> 子类来完成。</p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png" alt="merge_service"></p>
 <p><code>AbstractDataNodeMerge</code> ：</p>
 <ul>
 <li>-packs ：待合并记录行(row)队列。队列尾部插入 <code>END_FLAG_PACK</code> 表示队列已结束。</li>
 <li>-running ：合并逻辑是否正在执行中的标记。</li>
-<li>~onRowMetaData(…) ：根据<strong>记录列信息(ColMeta)</strong>构建对应的排序组件和聚合组件。需要子类进行实现。</li>
-<li>~onNewRecord(…) ：插入记录行(row) 到 <code>packs</code>。</li>
-<li>~outputMergeResult(…) ：插入 <code>END_FLAG_PACK</code> 到 <code>packs</code>。</li>
-<li>~run(…) ：执行<strong>合并</strong>分片结果逻辑，并将合并结果返回给 MySQL Client。需要子类进行实现。</li>
+<li>~onRowMetaData(...) ：根据**记录列信息(ColMeta)**构建对应的排序组件和聚合组件。需要子类进行实现。</li>
+<li>~onNewRecord(...) ：插入记录行(row) 到 <code>packs</code>。</li>
+<li>~outputMergeResult(...) ：插入 <code>END_FLAG_PACK</code> 到 <code>packs</code>。</li>
+<li>~run(...) ：执行<strong>合并</strong>分片结果逻辑，并将合并结果返回给 MySQL Client。需要子类进行实现。</li>
 </ul>
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/AbstractDataNodeMerge_run.png" alt="AbstractDataNodeMerge_run.png"></p>
-<p><strong>通过 <code>running</code> 标记保证同一条 SQL 同时只有一个线程正在执行，并且不需要等到每个分片结果都返回就可以执行<em>聚合</em>逻辑。当然，<em>排序</em>逻辑需要等到所有分片结果都返回才可以执行。</strong></p>
+<p><em><em>通过 <code>running</code> 标记保证同一条 SQL 同时只有一个线程正在执行，并且不需要等到每个分片结果都返回就可以执行</em>聚合</em>逻辑。当然，<em>排序</em>逻辑需要等到所有分片结果都返回才可以执行。**</p>
 <p><strong>核心代码</strong>：</p>
 <ul>
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/AbstractDataNodeMerge.java" target="_blank" rel="external">AbstractDataNodeMerge.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/DataNodeMergeManager.java" target="_blank" rel="external">DataNodeMergeManager.java#run(…)</a></li>
+<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/DataNodeMergeManager.java" target="_blank" rel="external">DataNodeMergeManager.java#run(...)</a></li>
 </ul>
-<h3 id="3-2-DataNodeMergeManager"><a href="#3-2-DataNodeMergeManager" class="headerlink" title="3.2 DataNodeMergeManager"></a>3.2 DataNodeMergeManager</h3><p><code>AbstractDataNodeMerge</code> 有两种子类实现：</p>
+<h3>3.2 DataNodeMergeManager</h3>
+<p><code>AbstractDataNodeMerge</code> 有两种子类实现：</p>
 <ul>
 <li><code>DataMergeService</code> ：基于<strong>堆内内存</strong>合并分片结果。</li>
 <li><code>DataNodeMergeManager</code> ：基于<strong>堆外内存</strong>合并分片结果。</li>
@@ -298,14 +307,14 @@
 <tr>
 <td>否</td>
 <td>是</td>
-<td><code>unsafeRowGrouper</code> + <code>globalSorter</code></td>
+<td><code>unsafeRowGrouper</code> + <code>globalSorter</code></td>
 <td>插入 <code>unsafeRowGrouper</code> 进行聚合</td>
 <td>使用 <code>globalSorter</code> 合并并排序</td>
 </tr>
 <tr>
 <td>是</td>
 <td>是</td>
-<td><code>unsafeRowGrouper</code> + <code>globalMergeResult</code></td>
+<td><code>unsafeRowGrouper</code> + <code>globalMergeResult</code></td>
 <td>插入 <code>unsafeRowGrouper</code> 进行聚合</td>
 <td>使用 <code>globalMergeResult</code> 合并不排序</td>
 </tr>
@@ -316,29 +325,34 @@
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/DataNodeMergeManager.java" target="_blank" rel="external">DataNodeMergeManager.java</a>。</li>
 </ul>
 <p>🙃看到这里，可能很多同学都有点懵逼，问题不大，我们继续往下瞅。</p>
-<h3 id="3-3-UnsafeRow"><a href="#3-3-UnsafeRow" class="headerlink" title="3.3 UnsafeRow"></a>3.3 UnsafeRow</h3><p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png" alt="unsafe_row"></p>
+<h3>3.3 UnsafeRow</h3>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png" alt="unsafe_row"></p>
 <p>记录行(row)写到 <code>UnsafeRow</code> 的 <code>baseObject</code> 属性，结构如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png" alt="unsafe_row_object"><br><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png" alt="unsafe_row_2.png"></p>
+<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png" alt="unsafe_row_object">
+<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png" alt="unsafe_row_2.png"></p>
 <ul>
 <li>拆分成三个区域，<strong>每个区域按照格子记录信息，每个格子 64bits(8 Bytes)</strong>。</li>
 <li>记录行(row)按照字段顺序位置记录到 <code>baseObject</code>。</li>
-<li>[1] 空标记位区域 ：标记字段对应的值是否为 NULL。<ul>
+<li>[1] 空标记位区域 ：标记字段对应的值是否为 NULL。
+<ul>
 <li>当字段对应的值为 NULL 时，其对应的字段顺序对应的 bit 设置为 1。举个例子，第 0 个位置字段为 NULL，则第一个格子对应的 64 bits 从右边第一个 bit 设置为 1。</li>
 <li>因为每个格子是 64 bits，每 64 个字段占用一个格子，不满一个格子，按照一个格子计算。因此，该区域的长度(<code>bitSetWidthInBytes</code>) = 字段占用的格子数 * 64 bits。</li>
 </ul>
 </li>
-<li>[2] 位置长度区域 ：记录字段对应的值在<code>[3]区域</code>所在的位置和长度。<ul>
+<li>[2] 位置长度区域 ：记录字段对应的值在<code>[3]区域</code>所在的位置和长度。
+<ul>
 <li>每个字段记录<code>[2]区域</code>的位置 = <code>baseOffset</code> + <code>bitSetWidthInBytes</code> + 8 Bytes * 字段顺序。</li>
 <li>占用一个格子，前 32 bits 为<code>[3]区域</code>的位置，后 32 bits 为字段对应的值长度。</li>
 </ul>
 </li>
-<li>[3] 值区域 ：记录字段对应的值。<ul>
+<li>[3] 值区域 ：记录字段对应的值。
+<ul>
 <li>每个字段对应的值占用格子数 = 字段对应的值长度 / 8 Byte，如果无法整除再 + 1。</li>
 <li>因为字段对应的值可能无法刚好占满每个格子，未使用的 bit 用 0 占位。</li>
 </ul>
 </li>
 </ul>
-<p><strong>写入 <code>UnsafeRow</code>，MyCAT 可以顺序访问每个字段，而不需要在记录行(row)进行遍历。</strong>  </p>
+<p><strong>写入 <code>UnsafeRow</code>，MyCAT 可以顺序访问每个字段，而不需要在记录行(row)进行遍历。</strong></p>
 <p>🙃日常开发使用位操作的机会比较少，可能较为难理解，需要反复理解下，相信会获得很大启发。恩，该部分代码引用自开源运算框架 <code>Spark</code>，是不是更加有动力列😈。</p>
 <p><strong>核心代码</strong>：</p>
 <ul>
@@ -346,14 +360,16 @@
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/row/BufferHolder.java" target="_blank" rel="external">BufferHolder.java</a></li>
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/row/UnsafeRowWriter.java" target="_blank" rel="external">UnsafeRowWriter.java</a></li>
 </ul>
-<h3 id="3-4-UnsafeExternalRowSorter"><a href="#3-4-UnsafeExternalRowSorter" class="headerlink" title="3.4 UnsafeExternalRowSorter"></a>3.4 UnsafeExternalRowSorter</h3><p>如果使用 Java 实现 <code>SELECT * FROM student ORDER BY age desc, nickname asc</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Collections.sort(students, <span class="keyword">new</span> Comparator&lt;Comparable&gt;() &#123;</div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Student o1, Student o2)</span> </span>&#123;</div><div class="line">           <span class="keyword">int</span> cmp = compare(o2.age, o1.age);</div><div class="line">           <span class="keyword">return</span> cmp != <span class="number">0</span> ? cmp : compare(o1.nickname, o2.nickname);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h3>3.4 UnsafeExternalRowSorter</h3>
+<p>如果使用 Java 实现 <code>SELECT * FROM student ORDER BY age desc, nickname asc</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Collections.sort(students, <span class="keyword">new</span> Comparator&lt;Comparable&gt;() &#123;</div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Student o1, Student o2)</span> </span>&#123;</div><div class="line">           <span class="keyword">int</span> cmp = compare(o2.age, o1.age);</div><div class="line">           <span class="keyword">return</span> cmp != <span class="number">0</span> ? cmp : compare(o1.nickname, o2.nickname);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
 <p>从功能上，<code>UnsafeExternalRowSorter</code> 是这么实现排序逻辑。当然肯定的是，不是这么“简单”的实现。</p>
 <p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/sorter_write.jpeg" alt="sorter_write"></p>
 <p><code>UnsafeRow</code> 会写入到两个地方：</p>
 <ol>
 <li><code>List&lt;MemoryBlock&gt;</code> ：内存块数组。当前 <code>MemoryBlock</code> 无法容纳写入的 <code>UnsafeRow</code> 时，生成新的 <code>MemoryBlock</code> 提供写入。每条 <code>UnsafeRow</code> 存储在 <code>MemoryBlock</code> 由 长度 + 字节内容 组成。</li>
-<li><code>LongArray</code> ：每条 <code>UnsafeRow</code> 存储在 <code>LongArray</code> 由两部分组成：address + prefix。<ul>
+<li><code>LongArray</code> ：每条 <code>UnsafeRow</code> 存储在 <code>LongArray</code> 由两部分组成：address + prefix。
+<ul>
 <li><code>address</code> ：<code>UnsafeRow</code> 存储在 <code>List&lt;MemoryBlock&gt;</code> 的位置。前 13 bits 记录所在 <code>MemoryBlock</code> 的 index，后 51 bit 记录在 <code>MemoryBlock</code> 的 offset。</li>
 <li><code>prefix</code> ：<code>UnsafeRow</code> 第一个排序字段<strong>值</strong>前 64 bits 计算的值。</li>
 </ul>
@@ -367,11 +383,13 @@
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/utils/sort/UnsafeExternalRowSorter.java" target="_blank" rel="external">UnsafeExternalRowSorter.java</a></li>
 <li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/utils/sort/TimSort.java" target="_blank" rel="external">TimSort.java</a></li>
 </ul>
-<h3 id="3-5-UnsafeRowGrouper"><a href="#3-5-UnsafeRowGrouper" class="headerlink" title="3.5 UnsafeRowGrouper"></a>3.5 UnsafeRowGrouper</h3><p>如果使用 Java 实现 <code>SELECT nickname, COUNT(*) FROM student group by nickname</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Map&lt;String, List&lt;Object&gt;&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"><span class="comment">// 聚合</span></div><div class="line"><span class="keyword">for</span> (student : students) &#123;</div><div class="line">    <span class="keyword">if</span> (map.contains(student.nickname)) &#123;</div><div class="line">        map.put(student.nickname, map.get(student.nickname).get(<span class="number">1</span>) + <span class="number">1</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        List&lt;Object&gt; value = <span class="keyword">new</span> Array&lt;&gt;();</div><div class="line">        value.add(nickname);</div><div class="line">        value.add(<span class="number">1</span>);</div><div class="line">        map.put(student.nickname, value);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">// 输出</span></div><div class="line"><span class="keyword">for</span> (value : map.values) &#123;</div><div class="line">    System.out.println(value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3>3.5 UnsafeRowGrouper</h3>
+<p>如果使用 Java 实现 <code>SELECT nickname, COUNT(*) FROM student group by nickname</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Map&lt;String, List&lt;Object&gt;&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"><span class="comment">// 聚合</span></div><div class="line"><span class="keyword">for</span> (student : students) &#123;</div><div class="line">    <span class="keyword">if</span> (map.contains(student.nickname)) &#123;</div><div class="line">        map.put(student.nickname, map.get(student.nickname).get(<span class="number">1</span>) + <span class="number">1</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        List&lt;Object&gt; value = <span class="keyword">new</span> Array&lt;&gt;();</div><div class="line">        value.add(nickname);</div><div class="line">        value.add(<span class="number">1</span>);</div><div class="line">        map.put(student.nickname, value);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">// 输出</span></div><div class="line"><span class="keyword">for</span> (value : map.values) &#123;</div><div class="line">    System.out.println(value);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p>从功能上，<code>UnsafeRowGrouper</code> 是这么实现排序逻辑。当然肯定的是，也不是这么“简单”的实现。</p>
 <p>😈具体怎么实现的呢？我们在《MyCAT 源码解析 —— 分片结果合并（二）》继续分析。</p>
-<h1 id="4-救护中心"><a href="#4-救护中心" class="headerlink" title="4. 救护中心"></a>4. 救护中心</h1><p>看到此处的应该是真爱吧？！如果内容上有什么错误或者难懂的地方，可以关注我的微信公众号给我留言，我会很认真的逐条解答的。“万一”觉得本文还可以，希望转发到朋友圈让更多的人看到。</p>
+<h1>4. 救护中心</h1>
+<p>看到此处的应该是真爱吧？！如果内容上有什么错误或者难懂的地方，可以关注我的微信公众号给我留言，我会很认真的逐条解答的。“万一”觉得本文还可以，希望转发到朋友圈让更多的人看到。</p>
 <p>最后的最后，感谢耐心阅读本文的同学。</p>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 
@@ -398,7 +416,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-多分片执行-SQL"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-合并多分片结果"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-记录头-header"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-记录行-row"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-AbstractDataNodeMerge"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DataNodeMergeManager"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-UnsafeRow"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-UnsafeExternalRowSorter"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-UnsafeRowGrouper"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-救护中心"><span class="toc-number">4.</span> <span class="toc-text">4. 救护中心</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 多分片执行 SQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. 合并多分片结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 记录头(header)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 记录行(row)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.1 AbstractDataNodeMerge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2 DataNodeMergeManager</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3 UnsafeRow</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.4 UnsafeExternalRowSorter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.5.</span> <span class="toc-text">3.5 UnsafeRowGrouper</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 救护中心</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我">
+    <meta name="description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nginx 动态配置 upstream">
 <meta property="og:url" content="http://www.yunai.me/Nginx/nginx-dynamic-upstream/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-06-09T13:09:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Nginx 动态配置 upstream">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号      随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Nginx/nginx-dynamic-upstream/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -144,7 +144,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#基于tengine安装"><span class="toc-number">1.</span> <span class="toc-text">基于tengine安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于nginx安装"><span class="toc-number">2.</span> <span class="toc-text">基于nginx安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于docker安装"><span class="toc-number">3.</span> <span class="toc-text">基于docker安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#原理"><span class="toc-number">4.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章"><span class="toc-number">5.</span> <span class="toc-text">参考文章</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">基于tengine安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">基于nginx安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">基于docker安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">参考文章</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -179,49 +179,59 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p> 原文地址：<a href="http://www.yunai.me/Nginx/nginx-dynamic-upstream/">http://www.yunai.me/Nginx/nginx-dynamic-upstream/</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
+<p>原文地址：<a href="http://www.yunai.me/Nginx/nginx-dynamic-upstream/">http://www.yunai.me/Nginx/nginx-dynamic-upstream/</a><br>
+<strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
-<p>随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该怎么做呢？<br>参考类似服务发现的方案，我们选择了微博开源的nginx插件：<a href="https://github.com/weibocom/nginx-upsync-module" target="_blank" rel="external">https://github.com/weibocom/nginx-upsync-module</a> 。</p>
-<h2 id="基于tengine安装"><a href="#基于tengine安装" class="headerlink" title="基于tengine安装"></a>基于tengine安装</h2><ul>
+<p>随着SOA、微服务越来越流行，注册发现服务已经成为架构里的标配。无论是在选择Dubbo、Dubbox、Spring Cloud都提供了对应的方案，我们不需要每次新增一个节点，就去修改对应配置。那么在使用Nginx的时候我们该怎么做呢？
+参考类似服务发现的方案，我们选择了微博开源的nginx插件：https://github.com/weibocom/nginx-upsync-module 。</p>
+<h2>基于tengine安装</h2>
+<ul>
 <li>tengine：2.2.0（基于nginx1.8.1+）</li>
 <li>nginx-upsync-module：v1.0.0（基于nginx1.8.1+）</li>
 <li>注册发现服务：etcd 3.0.15</li>
 </ul>
 <p>问题：</p>
 <ul>
-<li><p>nginx的error.log不断报错<code>recv() failed (104: Connection reset by peer)</code> 。</p>
-<p>  原因：该问题使用etcd会存在。作者在commit#89bf40fb60268062aaeac3780ad8d56f0834c400已经修复。由于该修复的提交是基于nginx 1.9.1+，我们无法直接在tegine2.2.0上使用。等待作者回复如何解决中。<br>  补充说明：即使报该错误，实际不影响插件的功能。</p>
+<li>
+<p>nginx的error.log不断报错<code>recv() failed (104: Connection reset by peer)</code> 。</p>
+<p>原因：该问题使用etcd会存在。作者在commit#89bf40fb60268062aaeac3780ad8d56f0834c400已经修复。由于该修复的提交是基于nginx 1.9.1+，我们无法直接在tegine2.2.0上使用。等待作者回复如何解决中。
+补充说明：即使报该错误，实际不影响插件的功能。</p>
 </li>
 </ul>
-<h2 id="基于nginx安装"><a href="#基于nginx安装" class="headerlink" title="基于nginx安装"></a>基于nginx安装</h2><p><em>由于基于tegine2.2.0会报错，因此我们尝试使用nginx官方版本安装</em></p>
+<h2>基于nginx安装</h2>
+<p><em>由于基于tegine2.2.0会报错，因此我们尝试使用nginx官方版本安装</em></p>
 <ul>
 <li>nginx：1.10.1</li>
 <li>nginx-upsync-module：commit#6e1a9fe9117361539837efc81ac45303d7494dbe（基于nginx1.9.1+）</li>
-<li>注册发现服务：etcd 3.0.15   </li>
+<li>注册发现服务：etcd 3.0.15</li>
 </ul>
 <p>问题：</p>
 <ul>
-<li><p>如果我们需要使用<code>nginx_upstream_check_module</code> 插件，需要使用<a href="https://github.com/yaoweibin/nginx_upstream_check_module" target="_blank" rel="external">https://github.com/yaoweibin/nginx_upstream_check_module</a> 下的，不然<code>make</code>时会报错。另外在<code>patch -p1 &lt; check.patch</code>时，请cd nginx的目录下，输入<code>patch -p1 &lt; /path/to/nginx_http_upstream_check_module/check.patch</code>。这点README.md也说了，当时太着急，没去看，卡了半小时。</p>
-<blockquote>
-<pre><code>$ wget &apos;http://nginx.org/download/nginx-1.0.14.tar.gz&apos;
-$ tar -xzvf nginx-1.0.14.tar.gz
-$ cd nginx-1.0.14/
-$ patch -p1 &lt; /path/to/nginx_http_upstream_check_module/check.patch
-$ ./configure --add-module=/path/to/nginx_http_upstream_check_module
-$ make
-$ make install
-</code></pre></blockquote>
+<li>
+<p>如果我们需要使用<code>nginx_upstream_check_module</code> 插件，需要使用https://github.com/yaoweibin/nginx_upstream_check_module 下的，不然<code>make</code>时会报错。另外在<code>patch -p1 &lt; check.patch</code>时，请cd nginx的目录下，输入<code>patch -p1 &lt; /path/to/nginx_http_upstream_check_module/check.patch</code>。这点README.md也说了，当时太着急，没去看，卡了半小时。</p>
+<blockquote></blockquote>
+<pre><code>  $ wget 'http://nginx.org/download/nginx-1.0.14.tar.gz'
+  $ tar -xzvf nginx-1.0.14.tar.gz
+  $ cd nginx-1.0.14/
+  $ patch -p1 &lt; /path/to/nginx_http_upstream_check_module/check.patch
+  $ ./configure --add-module=/path/to/nginx_http_upstream_check_module
+  $ make
+  $ make install
+</code></pre>
 </li>
 </ul>
-<h2 id="基于docker安装"><a href="#基于docker安装" class="headerlink" title="基于docker安装"></a>基于docker安装</h2><p>TODO</p>
-<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><ol>
+<h2>基于docker安装</h2>
+<p>TODO</p>
+<h2>原理</h2>
+<ol>
 <li>实时性：upstream更新依赖注册中心提供的查询的http接口。这点和Dubbo、Spring Cloud的注册发现的实时性有些不同。如果对实时性要求特别高，可以调整<code>upsync_interval</code>参数。</li>
 <li>Zookeeper的支持：目前官方暂时未提供相应的支持。考虑到很多团队是使用Zookeeper作为服务发现，另外维护一个etcd、consul集群是有相应学习成本和运维成本的。那么怎么办？我们可以封装Zookeeper提供http接口给<code>nginx-upsync-module</code>使用，当然接口形式得满足consual或者etcd提供的http接口。</li>
 </ol>
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ol>
-<li>nginx动态配置及服务发现那些事：<a href="http://xiaorui.cc/2016/10/16/nginx动态配置及服务发现那些事/" rel="external nofollow noopener noreferrer" target="_blank">http://xiaorui.cc/2016/10/16/nginx动态配置及服务发现那些事/</a></li>
+<h2>参考文章</h2>
+<ol>
+<li>nginx动态配置及服务发现那些事：http://xiaorui.cc/2016/10/16/nginx动态配置及服务发现那些事/</li>
 </ol>
 
   </div>
@@ -247,7 +257,7 @@ $ make install
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#基于tengine安装"><span class="toc-number">1.</span> <span class="toc-text">基于tengine安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于nginx安装"><span class="toc-number">2.</span> <span class="toc-text">基于nginx安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于docker安装"><span class="toc-number">3.</span> <span class="toc-text">基于docker安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#原理"><span class="toc-number">4.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文章"><span class="toc-number">5.</span> <span class="toc-text">参考文章</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">基于tengine安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">基于nginx安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">基于docker安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">参考文章</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

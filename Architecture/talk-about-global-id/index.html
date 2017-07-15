@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bound">
+    <meta name="description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="谈谈 ID">
 <meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-global-id/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bound">
+<meta property="og:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-06-09T13:09:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谈谈 ID">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号       1. 数据库自增 2. 类UUID算法 3. SnowFlake 3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bound">
+<meta name="twitter:description" content="原文地址：http://www.yunai.me/Architecture/talk-about-global-id/ 😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号     1. 数据库自增 2. 类UUID算法 3. SnowFlake  3.1 Twitter-Snowflake 3.2 Instagram SnowFlake 3.3 Simpleflake 3.4 Bounda">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -181,14 +181,16 @@
 
   <div class="content" itemprop="articleBody">
     <blockquote>
-<p> 原文地址：<a href="http://www.yunai.me/Architecture/talk-about-global-id/">http://www.yunai.me/Architecture/talk-about-global-id/</a><br><strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong>  </p>
+<p>原文地址：<a href="http://www.yunai.me/Architecture/talk-about-global-id/">http://www.yunai.me/Architecture/talk-about-global-id/</a><br>
+<strong>😈每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
 </blockquote>
 <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
 <ul>
 <li><a href="#">1. 数据库自增</a></li>
 <li><a href="#">2. 类UUID算法</a></li>
-<li><a href="#">3. SnowFlake</a><ul>
+<li><a href="#">3. SnowFlake</a>
+<ul>
 <li><a href="#">3.1 Twitter-Snowflake</a></li>
 <li><a href="#">3.2 Instagram SnowFlake</a></li>
 <li><a href="#">3.3 Simpleflake</a></li>
@@ -200,45 +202,55 @@
 <li><a href="#">草稿</a></li>
 </ul>
 <p>在日常开发中，数据库的id是不可少的。在各个场景下会有不同的选择，本文对互联网上常见的ID算法进行归纳，希望对工程师们有一点点帮助。</p>
-<h1 id="1-数据库自增"><a href="#1-数据库自增" class="headerlink" title="1. 数据库自增"></a>1. 数据库自增</h1><ol>
+<h1>1. 数据库自增</h1>
+<ol>
 <li>MySQL、Oracle、PGSQL等关系数据库的id主键自增</li>
-<li>Redis、Memcached等K/V数据库的incr操作自增<ul>
+<li>Redis、Memcached等K/V数据库的incr操作自增
+<ul>
 <li>需要考虑持久化的问题</li>
 </ul>
 </li>
-<li>MongoDB自己维护一个id自增集合<ul>
+<li>MongoDB自己维护一个id自增集合
+<ul>
 <li>MongoDB的Update操作支持incr操作，因此可以这么做。</li>
 <li>该方式适用于支持该操作的其他数据库。</li>
 </ul>
 </li>
 </ol>
-<h1 id="2-类UUID算法"><a href="#2-类UUID算法" class="headerlink" title="2. 类UUID算法"></a>2. 类UUID算法</h1><ol>
+<h1>2. 类UUID算法</h1>
+<ol>
 <li>UUID</li>
 <li>MongoDB的ObjectId</li>
 </ol>
-<h1 id="3-SnowFlake"><a href="#3-SnowFlake" class="headerlink" title="3. SnowFlake"></a>3. SnowFlake</h1><h2 id="3-1-Twitter-Snowflake"><a href="#3-1-Twitter-Snowflake" class="headerlink" title="3.1 Twitter-Snowflake"></a>3.1 Twitter-Snowflake</h2><blockquote>
-<p> Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p>
+<h1>3. SnowFlake</h1>
+<h2>3.1 Twitter-Snowflake</h2>
+<blockquote>
+<p>Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p>
 </blockquote>
 <p>64bits从左往右依次是</p>
 <ul>
 <li>1bit 保留</li>
-<li>41bits 时间戳<ul>
+<li>41bits 时间戳
+<ul>
 <li>支持69.7年需要的id。2 ^41 /365/24/60/60/1000=69.7</li>
 </ul>
 </li>
-<li>10bits work-id<ul>
+<li>10bits work-id
+<ul>
 <li>支持1024个work</li>
 </ul>
 </li>
-<li>12bits sequence-id<ul>
+<li>12bits sequence-id
+<ul>
 <li>支持每work每毫秒4096个id</li>
 <li>支持每work每秒4096000个id</li>
 <li>若当前毫秒超过4096，则sleep1毫秒，获取下一毫秒的自增</li>
 </ul>
 </li>
 </ul>
-<p><strong> snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景 </strong></p>
-<h2 id="3-2-Instagram-SnowFlake"><a href="#3-2-Instagram-SnowFlake" class="headerlink" title="3.2 Instagram SnowFlake"></a>3.2 Instagram SnowFlake</h2><p>去中性化，基于PGSQL实现</p>
+<p>** snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景 **</p>
+<h2>3.2 Instagram SnowFlake</h2>
+<p>去中性化，基于PGSQL实现</p>
 <p>64bits从左至右依次是</p>
 <ul>
 <li>41bits 时间戳</li>
@@ -249,7 +261,7 @@
 <ul>
 <li>根据<code>share-key</code>获取对应的PGSQL实例-库</li>
 <li>id使用PGSQL的存储过程</li>
-<li>13bits = <code>share-key对应值%logic-share-id</code> </li>
+<li>13bits = <code>share-key对应值%logic-share-id</code></li>
 <li>10bits = <code>该Table的auto_increment_id%(2 ^10)</code></li>
 </ul>
 <p>好处</p>
@@ -257,45 +269,54 @@
 <li>去中性化</li>
 <li>根据id可以获得对应PGSQL实例-库</li>
 </ul>
-<h2 id="3-3-Simpleflake"><a href="#3-3-Simpleflake" class="headerlink" title="3.3 Simpleflake"></a>3.3 Simpleflake</h2><p>64bits</p>
+<h2>3.3 Simpleflake</h2>
+<p>64bits</p>
 <ul>
 <li>去中性化</li>
 <li>将work-id的12bits给sequence-id。完全随机，每毫秒有1/(2^22 )出现冲突的情况。数据量大时需要注意。</li>
 <li>未来可以平滑迁移到Twitter SnowFlake</li>
 </ul>
-<h2 id="3-4-Boundary-flake"><a href="#3-4-Boundary-flake" class="headerlink" title="3.4 Boundary flake"></a>3.4 Boundary flake</h2><p>去中性化，基于erlang实现<br>128bits从左到右依次是</p>
+<h2>3.4 Boundary flake</h2>
+<p>去中性化，基于erlang实现
+128bits从左到右依次是</p>
 <ul>
-<li>64bits 时间戳<ul>
+<li>64bits 时间戳
+<ul>
 <li>和毫秒时间戳等长</li>
 </ul>
 </li>
-<li>48bits work-id<ul>
+<li>48bits work-id
+<ul>
 <li>和mac地址等长，使用时要避免相同mac多个进程</li>
 </ul>
 </li>
 <li>14bits sequence-id</li>
 </ul>
-<h2 id="3-5-自己的想法"><a href="#3-5-自己的想法" class="headerlink" title="3.5 自己的想法"></a>3.5 自己的想法</h2><p><strong><em>参考Instagram SnowFlake的做法</em></strong></p>
-<p>去中心化，基于redis实现<br>64bits从左到右依次是</p>
+<h2>3.5 自己的想法</h2>
+<p><strong><em>参考Instagram SnowFlake的做法</em></strong></p>
+<p>去中心化，基于redis实现
+64bits从左到右依次是</p>
 <ul>
 <li>1bit 保留</li>
 <li>41bits 时间戳</li>
 <li>12bits 基于logic-shard-id</li>
 <li>10bits 基于时间戳+logic-shard-id在redis里自增</li>
 </ul>
-<h1 id="4-参考文章"><a href="#4-参考文章" class="headerlink" title="4. 参考文章"></a>4. 参考文章</h1><ol>
+<h1>4. 参考文章</h1>
+<ol>
 <li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" rel="external nofollow noopener noreferrer" target="_blank">互联网分布式id生成方法|msup微课干货</a></li>
 <li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" rel="external nofollow noopener noreferrer" target="_blank">服务化框架－分布式Unique ID的生成方法一览</a></li>
 <li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" rel="external nofollow noopener noreferrer" target="_blank">分布式系统中 Unique ID 的生成方法</a></li>
 </ol>
-<h1 id="草稿"><a href="#草稿" class="headerlink" title="草稿"></a>草稿</h1><ol>
+<h1>草稿</h1>
+<ol>
 <li>2实例、4分表</li>
 </ol>
 <ul>
 <li>a：0<em>2</em>4*6</li>
 <li>b：1<em>3</em>5*7</li>
 </ul>
-<ol>
+<ol start="2">
 <li>4实例、4分表</li>
 </ol>
 <ul>
@@ -333,7 +354,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

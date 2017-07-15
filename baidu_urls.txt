@@ -1,3 +1,4 @@
+http://www.yunai.me/MyCAT/xa-distributed-transaction/
 http://www.yunai.me/MyCAT/two-table-share-join/
 http://www.yunai.me/MyCAT/sharding-result-merge-first/
 http://www.yunai.me/MyCAT/single-db-single-table-select/
