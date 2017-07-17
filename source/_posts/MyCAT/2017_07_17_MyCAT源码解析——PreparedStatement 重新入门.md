@@ -143,7 +143,7 @@ pStmt = (PreparedStatement) clientPrepareStatement(nativeSql, resultSetType, res
 
 该操作对应 Client `conn.prepareStatement(....)`。
 
-![](../../../images/MyCAT/2017_07_17/01.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_17/01.png)
 
 MyCAT 接收到请求后，创建 `PreparedStatement`，并返回 `statementId` 等信息。Client 发起 SQL 执行时，需要将 `statementId` 带给 MyCAT。核心代码如下：
 
@@ -213,7 +213,7 @@ public static void response(PreparedStatement pstmt, FrontendConnection c) {
 
 该操作对应 Client `conn.execute(....)`。
 
-![](../../../images/MyCAT/2017_07_17/02.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_17/02.png)
 
 MyCAT 接收到请求后，将 PreparedStatement 使用请求的参数格式化成可执行的 SQL 进行执行。伪代码如下：
 
