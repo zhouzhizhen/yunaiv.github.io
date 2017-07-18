@@ -15,11 +15,17 @@ permalink: MyCAT/connect-mongodb
 
 -------
 
+- [1. 概述](#)
+- [2. 主流程](#)
+- [3. 查询操作](#)
+- [4. 插入操作](#)
+- [5. 彩蛋](#)
+
 -------
 
 # 1. 概述
 
-可能你在看到这个标题会小小吃惊，MyCAT 能使用 MongoDB 做数据节点。是的，没错，确实可以。  
+可能你在看到这个标题会小小的吃惊，MyCAT 能使用 MongoDB 做数据节点。是的，没错，确实可以。  
 吼吼吼，让我们开启这段神奇的“旅途”。
 
 本文主要分成四部分：
@@ -29,14 +35,14 @@ permalink: MyCAT/connect-mongodb
 3. 插入操作
 4. 彩蛋，😈彩蛋，🙂彩蛋
 
-建议你看过之前的两篇文章（非必须）：
+建议你看过这两篇文章（_非必须_）：
 
 1. [《MyCAT 源码分析 —— 【单库单表】插入》](http://www.yunai.me/MyCAT/single-db-single-table-insert/?self)
 2. [《MyCAT 源码分析 —— 【单库单表】查询》](http://www.yunai.me/MyCAT/single-db-single-table-select/?self)
 
 # 2. 主流程
 
-![](../../../images/MyCAT/2017_07_19/01.png)   
+![](http://www.yunai.me/images/MyCAT/2017_07_19/01.png)   
 
 1. `MyCAT Server` 接收 `MySQL Client` 基于 **MySQL协议** 的请求，翻译 **SQL** 成 **MongoDB操作** 发送给 `MongoDB Server`。
 2. `MyCAT Server` 接收 `MongoDB Server` 返回的 **MongoDB数据**，翻译成 `MySQL数据结果` 返回给 `MySQL Client`。
@@ -45,23 +51,23 @@ permalink: MyCAT/connect-mongodb
 
 -------
 
-![](../../../images/MyCAT/2017_07_19/02.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_19/02.png)
 
 > Java数据库连接，（Java Database Connectivity，简称JDBC）是Java语言中用来规范客户端程序如何来访问数据库的应用程序接口，提供了诸如查询和更新数据库中数据的方法。JDBC也是Sun Microsystems的商标。JDBC是面向关系型数据库的。
 
-MyCAT 使用 JDBC 规范，抽象了对 MongoDB 的访问。通过这样的方式，MyCAT 也抽象了 SequoiaDB 的访问。可能这样说比较抽象，看个类图压压惊。
+MyCAT 使用 JDBC 规范，抽象了对 MongoDB 的访问。通过这样的方式，MyCAT 也抽象了 SequoiaDB 的访问。可能这样说法有些抽象，看个类图压压惊。
 
-![](../../../images/MyCAT/2017_07_19/03.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_19/03.png)
 
-是不是熟悉的味道。**不得不说 JDBC 规范的精巧。**
+是不是熟悉的味道。**不得不说 JDBC 规范的精妙。**
 
 # 3. 查询操作
 
 ```SQL
-SELECT id, name FROM user WHERE name != null ORDER BY _id DESC;
+SELECT id, name FROM user WHERE name > '' ORDER BY _id DESC;
 ```
 
-![](../../../images/MyCAT/2017_07_19/04.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_19/04.png)
 
 看顺序图已经很方便的理解整体逻辑，我就不多废话啦。我们来看几个核心的代码逻辑。
 
@@ -376,7 +382,7 @@ mysql> select * from user order by _id asc;
 
 # 4. 插入操作
 
-![](../../../images/MyCAT/2017_07_19/05.png)
+![](http://www.yunai.me/images/MyCAT/2017_07_19/05.png)
 
 ```Java
 // MongoSQLParser.java
@@ -427,15 +433,15 @@ private int InsertData(SQLInsertStatement state) {
 
 **1、支持多 MongoDB ，并使用 MyCAT 进行分片。**
 
-MyCAT 配置：https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/multi_mongodb
+MyCAT 配置：[multi_mongodb](https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/multi_mongodb)
 
 **2、支持 MongoDB + MySQL 作为同一个 MyCAT Table 的数据节点。查询时，可以合并数据结果。**
 
 查询时，返回 MySQL 数据记录字段要比 MongoDB 数据记录字段全，否则，合并结果时会报错。
 
-MyCAT 配置：https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/single_mongodb_mysql
+MyCAT 配置：[single_mongodb_mysql](https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/single_mongodb_mysql)
 
 **3、MongoDB 作为数据节点时，可以使用 MyCAT 提供的数据库主键字段功能。**
 
-MyCAT 配置：https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/single_mongodb
+MyCAT 配置：[single_mongodb](https://github.com/YunaiV/Mycat-Server/tree/1.6/src/test/resources/single_mongodb)
 
