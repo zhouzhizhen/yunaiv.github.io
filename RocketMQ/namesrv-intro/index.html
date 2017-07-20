@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    Name">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 之 Namesrv 小结">
 <meta property="og:url" content="http://www.yunai.me/RocketMQ/namesrv-intro/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    Name">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-06-09T13:09:13.000Z">
+<meta property="og:updated_time" content="2017-07-20T01:39:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 之 Namesrv 小结">
-<meta name="twitter:description" content="原文地址：http://www.yunai.me/RocketMQ/namesrv-intro/ RocketMQ 带注释源码地址 ：https://github.com/YunaiV/incubator-rocketmq 😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号    Namesrv组件  KVConfigManager：KV配置管理  key-value配置管理，增删改">
+<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    Name">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -180,12 +180,16 @@
   
 
   <div class="content" itemprop="articleBody">
-    <blockquote>
-<p>原文地址：<a href="http://www.yunai.me/RocketMQ/namesrv-intro/">http://www.yunai.me/RocketMQ/namesrv-intro/</a><br>
-<code>RocketMQ</code> <strong>带注释源码</strong>地址 ：<a href="https://github.com/YunaiV/incubator-rocketmq" target="_blank" rel="external">https://github.com/YunaiV/incubator-rocketmq</a><br>
-<strong>😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号</strong></p>
+    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+</ol>
 </blockquote>
-<p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="wechat_mp"></p>
 <hr>
 <h2>Namesrv组件</h2>
 <ul>

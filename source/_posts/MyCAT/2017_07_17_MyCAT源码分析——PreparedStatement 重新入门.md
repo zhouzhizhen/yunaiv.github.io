@@ -1,4 +1,4 @@
-title: MyCAT源码分析  —— PreparedStatement 重新入门
+title: MyCAT 源码分析  —— PreparedStatement 重新入门
 date: 2017-07-17
 tags:
 categories: MyCAT
@@ -6,12 +6,13 @@ permalink: MyCAT/what-is-PreparedStatement
 
 ---
 
->  原文地址：[http://www.yunai.me/MyCAT/what-is-PreparedStatement/](http://www.yunai.me/MyCAT/what-is-PreparedStatement/)  
-> `MyCat-Server` **带注释代码**地址 ：[https://github.com/YunaiV/Mycat-Server](https://github.com/YunaiV/Mycat-Server)  
-> **😈本系列每 1-2 周更新一篇，欢迎订阅、关注、收藏 公众号**  
-> QQ ：7685413
+![](http://www.yunai.me/images/common/wechat_mp.jpeg)
 
-![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
+> 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
 
 -------
 
