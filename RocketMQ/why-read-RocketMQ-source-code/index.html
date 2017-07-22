@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+    <meta name="description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么阅读 RocketMQ 源码？">
 <meta property="og:url" content="http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+<meta property="og:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-07-20T01:39:44.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么阅读 RocketMQ 源码？">
-<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+<meta name="twitter:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读RocketMQ源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读RocketMQ源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读RocketMQ源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -180,63 +180,59 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+    <p><a class="magnific-img" href="http://www.yunai.me/images/common/wechat_mp.jpeg"><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="" class="ui centered image"></a></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<p>&#x1F642;&#x1F642;&#x1F642;&#x5173;&#x6CE8;<strong>&#x5FAE;&#x4FE1;&#x516C;&#x4F17;&#x53F7;&#xFF1A;&#x3010;&#x828B;&#x827F;&#x7684;&#x540E;&#x7AEF;&#x5C0F;&#x5C4B;&#x3011;</strong>&#x6709;&#x798F;&#x5229;&#xFF1A;  </p>
+<ol class="ui list">
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x6240;&#x6709;</strong>&#x6E90;&#x7801;&#x5206;&#x6790;&#x6587;&#x7AE0;&#x5217;&#x8868;  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x4E2D;&#x6587;&#x6CE8;&#x91CA;&#x6E90;&#x7801; GitHub &#x5730;&#x5740;</strong>  </li>
+<li>&#x60A8;&#x5BF9;&#x4E8E;&#x6E90;&#x7801;&#x7684;&#x7591;&#x95EE;&#x6BCF;&#x6761;&#x7559;&#x8A00;<strong>&#x90FD;</strong>&#x5C06;&#x5F97;&#x5230;<strong>&#x8BA4;&#x771F;</strong>&#x56DE;&#x590D;&#x3002;<strong>&#x751A;&#x81F3;&#x4E0D;&#x77E5;&#x9053;&#x5982;&#x4F55;&#x8BFB;&#x6E90;&#x7801;&#x4E5F;&#x53EF;&#x4EE5;&#x8BF7;&#x6559;&#x5662;</strong>&#x3002;  </li>
+<li><strong>&#x65B0;&#x7684;</strong>&#x6E90;&#x7801;&#x89E3;&#x6790;&#x6587;&#x7AE0;<strong>&#x5B9E;&#x65F6;</strong>&#x6536;&#x5230;&#x901A;&#x77E5;&#x3002;<strong>&#x6BCF;&#x5468;&#x66F4;&#x65B0;&#x4E00;&#x7BC7;&#x5DE6;&#x53F3;</strong>&#x3002;</li>
 </ol>
 </blockquote>
 <hr>
-<h2>为什么阅读RocketMQ源码？</h2>
-<ul>
-<li>深入了解 MQ ，知其然知其所以然，如何实现高性能、高可用</li>
-<li>最终一致行，是如何通过 MQ 进行实现</li>
-<li>了解 Netty 在分布式中间件如何实现网络通信以及各种异常场景的处理</li>
-<li>了解 MQ 消息存储，特别是磁盘 IO 部分</li>
-<li><strong>最重要的</strong>，希望通过阅读源码，在技术上的认知和能力上，有新的突破</li>
+<h2 id="&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;RocketMQ&#x6E90;&#x7801;&#xFF1F;"><a href="#&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;RocketMQ&#x6E90;&#x7801;&#xFF1F;" class="headerlink" title="&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;RocketMQ&#x6E90;&#x7801;&#xFF1F;"></a>&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;RocketMQ&#x6E90;&#x7801;&#xFF1F;</h2><ul class="ui list">
+<li>&#x6DF1;&#x5165;&#x4E86;&#x89E3; MQ &#xFF0C;&#x77E5;&#x5176;&#x7136;&#x77E5;&#x5176;&#x6240;&#x4EE5;&#x7136;&#xFF0C;&#x5982;&#x4F55;&#x5B9E;&#x73B0;&#x9AD8;&#x6027;&#x80FD;&#x3001;&#x9AD8;&#x53EF;&#x7528;</li>
+<li>&#x6700;&#x7EC8;&#x4E00;&#x81F4;&#x884C;&#xFF0C;&#x662F;&#x5982;&#x4F55;&#x901A;&#x8FC7; MQ &#x8FDB;&#x884C;&#x5B9E;&#x73B0;</li>
+<li>&#x4E86;&#x89E3; Netty &#x5728;&#x5206;&#x5E03;&#x5F0F;&#x4E2D;&#x95F4;&#x4EF6;&#x5982;&#x4F55;&#x5B9E;&#x73B0;&#x7F51;&#x7EDC;&#x901A;&#x4FE1;&#x4EE5;&#x53CA;&#x5404;&#x79CD;&#x5F02;&#x5E38;&#x573A;&#x666F;&#x7684;&#x5904;&#x7406;</li>
+<li>&#x4E86;&#x89E3; MQ &#x6D88;&#x606F;&#x5B58;&#x50A8;&#xFF0C;&#x7279;&#x522B;&#x662F;&#x78C1;&#x76D8; IO &#x90E8;&#x5206;</li>
+<li><strong>&#x6700;&#x91CD;&#x8981;&#x7684;</strong>&#xFF0C;&#x5E0C;&#x671B;&#x901A;&#x8FC7;&#x9605;&#x8BFB;&#x6E90;&#x7801;&#xFF0C;&#x5728;&#x6280;&#x672F;&#x4E0A;&#x7684;&#x8BA4;&#x77E5;&#x548C;&#x80FD;&#x529B;&#x4E0A;&#xFF0C;&#x6709;&#x65B0;&#x7684;&#x7A81;&#x7834;</li>
 </ul>
-<h2>步骤</h2>
-<ul>
-<li>[ ] namesrv 启动</li>
-<li>[ ] broker 启动</li>
-<li>[ ] producer 启动</li>
-<li>[ ] consumer 启动</li>
-<li>[ ] 消息模型
-<ul>
-<li>[ ] 消息唯一编号</li>
+<h2 id="&#x6B65;&#x9AA4;"><a href="#&#x6B65;&#x9AA4;" class="headerlink" title="&#x6B65;&#x9AA4;"></a>&#x6B65;&#x9AA4;</h2><ul class="ui list">
+<li>[ ] namesrv &#x542F;&#x52A8;</li>
+<li>[ ] broker &#x542F;&#x52A8;</li>
+<li>[ ] producer &#x542F;&#x52A8;</li>
+<li>[ ] consumer &#x542F;&#x52A8;</li>
+<li>[ ] &#x6D88;&#x606F;&#x6A21;&#x578B;<ul>
+<li>[ ] &#x6D88;&#x606F;&#x552F;&#x4E00;&#x7F16;&#x53F7;</li>
 </ul>
 </li>
-<li>[x] producer 发消息</li>
-<li>[x] broker 收消息</li>
-<li>[x] broker 发消息</li>
-<li>[x] consumer 收消息
-<ul>
-<li>[x] 多消费者</li>
-<li>[x] 重试消息</li>
+<li>[x] producer &#x53D1;&#x6D88;&#x606F;</li>
+<li>[x] broker &#x6536;&#x6D88;&#x606F;</li>
+<li>[x] broker &#x53D1;&#x6D88;&#x606F;</li>
+<li>[x] consumer &#x6536;&#x6D88;&#x606F;<ul>
+<li>[x] &#x591A;&#x6D88;&#x8D39;&#x8005;</li>
+<li>[x] &#x91CD;&#x8BD5;&#x6D88;&#x606F;</li>
 </ul>
 </li>
-<li>[x] consumer 消息确认</li>
-<li>[x] consumer 负载均衡</li>
-<li>[x] broker 队列模型</li>
-<li>[x] broker store 消息存储</li>
-<li>[x] 顺序消息</li>
-<li>[ ] 事务消息</li>
-<li>[x] 定时(延迟)消息</li>
-<li>[x] pub/sub模型</li>
-<li>[x] namesrv 集群</li>
-<li>[x] broker 主从</li>
-<li>[x] filtersrv 过滤消息</li>
-<li>[ ] remoting 调用（server、client）</li>
-<li>[ ] 跨机房</li>
-<li>[ ] Hook 机制</li>
+<li>[x] consumer &#x6D88;&#x606F;&#x786E;&#x8BA4;</li>
+<li>[x] consumer &#x8D1F;&#x8F7D;&#x5747;&#x8861;</li>
+<li>[x] broker &#x961F;&#x5217;&#x6A21;&#x578B;</li>
+<li>[x] broker store &#x6D88;&#x606F;&#x5B58;&#x50A8;</li>
+<li>[x] &#x987A;&#x5E8F;&#x6D88;&#x606F;</li>
+<li>[ ] &#x4E8B;&#x52A1;&#x6D88;&#x606F;</li>
+<li>[x] &#x5B9A;&#x65F6;(&#x5EF6;&#x8FDF;)&#x6D88;&#x606F;</li>
+<li>[x] pub/sub&#x6A21;&#x578B;</li>
+<li>[x] namesrv &#x96C6;&#x7FA4;</li>
+<li>[x] broker &#x4E3B;&#x4ECE; </li>
+<li>[x] filtersrv &#x8FC7;&#x6EE4;&#x6D88;&#x606F;</li>
+<li>[ ] remoting &#x8C03;&#x7528;&#xFF08;server&#x3001;client&#xFF09;</li>
+<li>[ ] &#x8DE8;&#x673A;&#x623F;</li>
+<li>[ ] Hook &#x673A;&#x5236;</li>
 <li>[ ] Tool-Admin</li>
 <li>[ ] Tool-Command</li>
 <li>[ ] Tool-Monitor</li>
-<li>[ ] broker 主备切换</li>
+<li>[ ] broker &#x4E3B;&#x5907;&#x5207;&#x6362;</li>
 </ul>
 
   </div>
@@ -262,7 +258,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读RocketMQ源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读RocketMQ源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读RocketMQ源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

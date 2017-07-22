@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+    <meta name="description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么阅读 Sharding-JDBC 源码？">
 <meta property="og:url" content="http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+<meta property="og:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-07-20T01:40:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么阅读 Sharding-JDBC 源码？">
-<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。    为什么阅">
+<meta name="twitter:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Sharding-JDBC-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -180,146 +180,71 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+    <p><a class="magnific-img" href="http://www.yunai.me/images/common/wechat_mp.jpeg"><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="" class="ui centered image"></a></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<p>&#x1F642;&#x1F642;&#x1F642;&#x5173;&#x6CE8;<strong>&#x5FAE;&#x4FE1;&#x516C;&#x4F17;&#x53F7;&#xFF1A;&#x3010;&#x828B;&#x827F;&#x7684;&#x540E;&#x7AEF;&#x5C0F;&#x5C4B;&#x3011;</strong>&#x6709;&#x798F;&#x5229;&#xFF1A;  </p>
+<ol class="ui list">
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x6240;&#x6709;</strong>&#x6E90;&#x7801;&#x5206;&#x6790;&#x6587;&#x7AE0;&#x5217;&#x8868;  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x4E2D;&#x6587;&#x6CE8;&#x91CA;&#x6E90;&#x7801; GitHub &#x5730;&#x5740;</strong>  </li>
+<li>&#x60A8;&#x5BF9;&#x4E8E;&#x6E90;&#x7801;&#x7684;&#x7591;&#x95EE;&#x6BCF;&#x6761;&#x7559;&#x8A00;<strong>&#x90FD;</strong>&#x5C06;&#x5F97;&#x5230;<strong>&#x8BA4;&#x771F;</strong>&#x56DE;&#x590D;&#x3002;<strong>&#x751A;&#x81F3;&#x4E0D;&#x77E5;&#x9053;&#x5982;&#x4F55;&#x8BFB;&#x6E90;&#x7801;&#x4E5F;&#x53EF;&#x4EE5;&#x8BF7;&#x6559;&#x5662;</strong>&#x3002;  </li>
+<li><strong>&#x65B0;&#x7684;</strong>&#x6E90;&#x7801;&#x89E3;&#x6790;&#x6587;&#x7AE0;<strong>&#x5B9E;&#x65F6;</strong>&#x6536;&#x5230;&#x901A;&#x77E5;&#x3002;<strong>&#x6BCF;&#x5468;&#x66F4;&#x65B0;&#x4E00;&#x7BC7;&#x5DE6;&#x53F3;</strong>&#x3002;</li>
 </ol>
 </blockquote>
 <hr>
-<h2>为什么阅读 Sharding-JDBC 源码？</h2>
-<ol>
-<li>看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sharding-JDBC 是 Client 端级别，MyCAT 是 Server 级别。</li>
-<li>Sharding-JDBC 经历过当当本身业务的考验，从可靠性上来说会更让人有信赖感。</li>
-<li>文档更加完善，开发体系更加健全。</li>
-<li>Sharding-JDBC 1.5.0.M3 发布。</li>
-<li><strong>最大努力送达型</strong>事务支持，想要进一步了解分布式事务的解决方案。Last But Very Importment。</li>
+<h2 id="&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;-Sharding-JDBC-&#x6E90;&#x7801;&#xFF1F;"><a href="#&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB;-Sharding-JDBC-&#x6E90;&#x7801;&#xFF1F;" class="headerlink" title="&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB; Sharding-JDBC &#x6E90;&#x7801;&#xFF1F;"></a>&#x4E3A;&#x4EC0;&#x4E48;&#x9605;&#x8BFB; Sharding-JDBC &#x6E90;&#x7801;&#xFF1F;</h2><ol class="ui list">
+<li>&#x770B;&#x5B8C;&#x5927;&#x90E8;&#x5206;&#x7684; MyCAT &#x6E90;&#x7801;&#xFF0C;&#x6709;&#x60CA;&#x559C;&#x7684;&#x5730;&#x65B9;&#xFF0C;&#x4E5F;&#x6709;&#x5931;&#x671B;&#x7684;&#x5730;&#x65B9;&#xFF0C;&#x56E0;&#x800C;&#x60F3;&#x770B;&#x770B; Sharding-JDBC &#x8FDB;&#x884C;&#x4E0B;&#x5BF9;&#x6BD4;&#x3002;&#x5C3D;&#x7BA1;&#xFF0C;Sharding-JDBC &#x662F; Client &#x7AEF;&#x7EA7;&#x522B;&#xFF0C;MyCAT &#x662F; Server &#x7EA7;&#x522B;&#x3002;</li>
+<li>Sharding-JDBC &#x7ECF;&#x5386;&#x8FC7;&#x5F53;&#x5F53;&#x672C;&#x8EAB;&#x4E1A;&#x52A1;&#x7684;&#x8003;&#x9A8C;&#xFF0C;&#x4ECE;&#x53EF;&#x9760;&#x6027;&#x4E0A;&#x6765;&#x8BF4;&#x4F1A;&#x66F4;&#x8BA9;&#x4EBA;&#x6709;&#x4FE1;&#x8D56;&#x611F;&#x3002;</li>
+<li>&#x6587;&#x6863;&#x66F4;&#x52A0;&#x5B8C;&#x5584;&#xFF0C;&#x5F00;&#x53D1;&#x4F53;&#x7CFB;&#x66F4;&#x52A0;&#x5065;&#x5168;&#x3002;</li>
+<li>Sharding-JDBC 1.5.0.M3 &#x53D1;&#x5E03;&#x3002;</li>
+<li><strong>&#x6700;&#x5927;&#x52AA;&#x529B;&#x9001;&#x8FBE;&#x578B;</strong>&#x4E8B;&#x52A1;&#x652F;&#x6301;&#xFF0C;&#x60F3;&#x8981;&#x8FDB;&#x4E00;&#x6B65;&#x4E86;&#x89E3;&#x5206;&#x5E03;&#x5F0F;&#x4E8B;&#x52A1;&#x7684;&#x89E3;&#x51B3;&#x65B9;&#x6848;&#x3002;Last But Very Importment&#x3002;</li>
 </ol>
-<h2>步骤</h2>
-<ul>
-<li>
-<p>FROM MyCAT</p>
-<p><strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
+<h2 id="&#x6B65;&#x9AA4;"><a href="#&#x6B65;&#x9AA4;" class="headerlink" title="&#x6B65;&#x9AA4;"></a>&#x6B65;&#x9AA4;</h2><ul class="ui list">
+<li><p>FROM MyCAT</p>
+<p>  <strong>&#x4ECE; MyCAT &#x9605;&#x8BFB;&#x8BA1;&#x5212;&#x590D;&#x5236;&#xFF0C;&#x7528;&#x4E8E;&#x5BF9;&#x6BD4;&#x3002;</strong></p>
 </li>
-<li>
-<p>[ ] NIO</p>
+<li><p>[ ] NIO</p>
 </li>
-<li>
-<p>[ ] <s>分布式事务</s></p>
+<li>[ ] <del>&#x5206;&#x5E03;&#x5F0F;&#x4E8B;&#x52A1;</del></li>
+<li>[ ] <del>MyCAT &#x4E3B;&#x4ECE;</del></li>
+<li>[ ] <del>&#x652F;&#x6301;prepare&#x9884;&#x7F16;&#x8BD1;&#x6307;&#x4EE4;</del></li>
+<li>[ ] &#x81EA;&#x589E;&#x5E8F;&#x5217;</li>
+<li>[ ] &#x5355;&#x5E93;&#x4EFB;&#x610F; Join</li>
+<li>[ ] &#x8DE8;&#x5E93;2&#x8868; Join</li>
+<li>[ ] &#x8DE8;&#x5E93;&#x591A;&#x8868; Join</li>
+<li>[ ] SQL &#x89E3;&#x6790;</li>
+<li>[ ] &#x8BFB;&#x5199;&#x5206;&#x79BB;</li>
+<li>[ ] MySQL &#x4E3B;&#x4ECE;</li>
+<li>[ ] <del>&#x81EA;&#x52A8;&#x6545;&#x969C;&#x5207;&#x6362;</del></li>
+<li>[ ] <del>Galera Cluster &#x96C6;&#x7FA4;</del></li>
+<li>[ ] <del>MHA &#x96C6;&#x7FA4;</del></li>
+<li>[ ] <del>Percona &#x96C6;&#x7FA4;</del></li>
+<li>[ ] <del>&#x670D;&#x52A1;&#x964D;&#x7EA7;</del></li>
+<li>[ ] <del>&#x591A;&#x79DF;&#x6237;</del></li>
+<li>[ ] &#x8DEF;&#x7531;</li>
+<li>[ ] <del>MyCAT &#x96C6;&#x7FA4;</del></li>
+<li>[ ] &#x6CE8;&#x89E3;</li>
+<li>[ ] &#x7F13;&#x5B58;</li>
+<li>[ ] &#x76D1;&#x63A7;</li>
+<li>[ ] <del>Mongodb</del></li>
+<li>[ ] &#x5185;&#x5B58;&#x7BA1;&#x7406;</li>
+<li>[ ] &#x6570;&#x636E;&#x805A;&#x5408;</li>
+<li>[ ] &#x6570;&#x636E;&#x6392;&#x5E8F;</li>
+<li>[ ] &#x5206;&#x8868;</li>
+<li>[ ] &#x5206;&#x5E93;</li>
+<li>[ ] &#x5168;&#x5C40;&#x8868;</li>
+<li>[ ] E/R&#x5173;&#x7CFB;</li>
+<li>[ ] &#x670D;&#x52A1;&#x964D;&#x7EA7;</li>
+<li>[ ] SQL &#x6CE8;&#x5165;&#x653B;&#x51FB;&#x62E6;&#x622A;</li>
+<li>[ ] <del>MySQL &#x534F;&#x8BAE;</del></li>
+<li>[ ] <del>PostgreSQL &#x534F;&#x8BAE;</del></li>
+<li><p>[ ] &#x5B58;&#x50A8;&#x8FC7;&#x7A0B;</p>
 </li>
-<li>
-<p>[ ] <s>MyCAT 主从</s></p>
+<li><p>FROM Sharding-JDBC</p>
+<p>  <strong>&#x4ECE; &#x5B98;&#x7F51; &#x4ECB;&#x7ECD;&#x83B7;&#x53D6;&#x3002;</strong></p>
 </li>
-<li>
-<p>[ ] <s>支持prepare预编译指令</s></p>
+<li><p>[ ] &#x5206;&#x5E03;&#x5F0F;&#x4E8B;&#x52A1; &#xFF1A;&#x6700;&#x5927;&#x52AA;&#x529B;&#x9001;&#x8FBE;&#x578B;&#x4E8B;&#x52A1;</p>
 </li>
-<li>
-<p>[ ] 自增序列</p>
-</li>
-<li>
-<p>[ ] 单库任意 Join</p>
-</li>
-<li>
-<p>[ ] 跨库2表 Join</p>
-</li>
-<li>
-<p>[ ] 跨库多表 Join</p>
-</li>
-<li>
-<p>[ ] SQL 解析</p>
-</li>
-<li>
-<p>[ ] 读写分离</p>
-</li>
-<li>
-<p>[ ] MySQL 主从</p>
-</li>
-<li>
-<p>[ ] <s>自动故障切换</s></p>
-</li>
-<li>
-<p>[ ] <s>Galera Cluster 集群</s></p>
-</li>
-<li>
-<p>[ ] <s>MHA 集群</s></p>
-</li>
-<li>
-<p>[ ] <s>Percona 集群</s></p>
-</li>
-<li>
-<p>[ ] <s>服务降级</s></p>
-</li>
-<li>
-<p>[ ] <s>多租户</s></p>
-</li>
-<li>
-<p>[ ] 路由</p>
-</li>
-<li>
-<p>[ ] <s>MyCAT 集群</s></p>
-</li>
-<li>
-<p>[ ] 注解</p>
-</li>
-<li>
-<p>[ ] 缓存</p>
-</li>
-<li>
-<p>[ ] 监控</p>
-</li>
-<li>
-<p>[ ] <s>Mongodb</s></p>
-</li>
-<li>
-<p>[ ] 内存管理</p>
-</li>
-<li>
-<p>[ ] 数据聚合</p>
-</li>
-<li>
-<p>[ ] 数据排序</p>
-</li>
-<li>
-<p>[ ] 分表</p>
-</li>
-<li>
-<p>[ ] 分库</p>
-</li>
-<li>
-<p>[ ] 全局表</p>
-</li>
-<li>
-<p>[ ] E/R关系</p>
-</li>
-<li>
-<p>[ ] 服务降级</p>
-</li>
-<li>
-<p>[ ] SQL 注入攻击拦截</p>
-</li>
-<li>
-<p>[ ] <s>MySQL 协议</s></p>
-</li>
-<li>
-<p>[ ] <s>PostgreSQL 协议</s></p>
-</li>
-<li>
-<p>[ ] 存储过程</p>
-</li>
-<li>
-<p>FROM Sharding-JDBC</p>
-<p><strong>从 官网 介绍获取。</strong></p>
-</li>
-<li>
-<p>[ ] 分布式事务 ：最大努力送达型事务</p>
-</li>
-<li>
-<p>[ ] 分布式事务 ：TCC型事务(TBD)</p>
-</li>
+<li>[ ] &#x5206;&#x5E03;&#x5F0F;&#x4E8B;&#x52A1; &#xFF1A;TCC&#x578B;&#x4E8B;&#x52A1;(TBD)</li>
 </ul>
 
   </div>
@@ -345,7 +270,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Sharding-JDBC-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Sharding-JDBC 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤"><span class="toc-number">2.</span> <span class="toc-text">步骤</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

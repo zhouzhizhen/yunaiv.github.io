@@ -70,6 +70,10 @@ pagination_dir: page
 #theme: again
 #theme: apollo
 theme: cactus-light
+#theme: aloha
+#theme: polarbear
+#theme: phase
+#theme: olive
 
 # add post views
 leancloud_visitors:

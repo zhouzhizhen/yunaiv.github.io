@@ -2,16 +2,17 @@
   <% if (config.description) { %>
     <%- markdown(config.description) %>
   <% } %>
-  <p style="display: inline">
-    <% if (theme.customize.social_links) { %>
-      Find me on
-      <ul id="sociallinks">
-        <% for(var i in theme.customize.social_links) { %>
-          &nbsp;<li><a class="icon" target="_blank" href="<%- url_for(theme.customize.social_links[i]) %>" title="<%= i %>"><i class="fa fa-<%= i %>"></i></a></li>
-        <% } %>
-      </ul>.
-    <% } %>
-  </p>
+
+  <img src="http://www.yunai.me/images/common/wechat_mp ori.jpeg" alt="" class="ui centered image">
+
+  <blockquote>
+    <p>🙂🙂🙂 关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+      <ol class="ui list">
+          <li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+          <li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+          <li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+      </ol>
+  </blockquote>
 </section>
 
 <section id="writing">
@@ -48,6 +49,8 @@
     <%- partial('_partial/pagination') %>
   <% } %>
 </section>
+
+
 
 <% if (site.data.projects) { %>
 <section id="projects">

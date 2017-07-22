@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。     1.">
+    <meta name="description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="谈谈 ID">
 <meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-global-id/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。     1.">
+<meta property="og:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
 <meta property="og:updated_time" content="2017-07-20T01:40:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谈谈 ID">
-<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。     1.">
+<meta name="twitter:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -180,160 +180,140 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+    <p><a class="magnific-img" href="http://www.yunai.me/images/common/wechat_mp.jpeg"><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="" class="ui centered image"></a></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<p>&#x1F642;&#x1F642;&#x1F642;&#x5173;&#x6CE8;<strong>&#x5FAE;&#x4FE1;&#x516C;&#x4F17;&#x53F7;&#xFF1A;&#x3010;&#x828B;&#x827F;&#x7684;&#x540E;&#x7AEF;&#x5C0F;&#x5C4B;&#x3011;</strong>&#x6709;&#x798F;&#x5229;&#xFF1A;  </p>
+<ol class="ui list">
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x6240;&#x6709;</strong>&#x6E90;&#x7801;&#x5206;&#x6790;&#x6587;&#x7AE0;&#x5217;&#x8868;  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x4E2D;&#x6587;&#x6CE8;&#x91CA;&#x6E90;&#x7801; GitHub &#x5730;&#x5740;</strong>  </li>
+<li>&#x60A8;&#x5BF9;&#x4E8E;&#x6E90;&#x7801;&#x7684;&#x7591;&#x95EE;&#x6BCF;&#x6761;&#x7559;&#x8A00;<strong>&#x90FD;</strong>&#x5C06;&#x5F97;&#x5230;<strong>&#x8BA4;&#x771F;</strong>&#x56DE;&#x590D;&#x3002;<strong>&#x751A;&#x81F3;&#x4E0D;&#x77E5;&#x9053;&#x5982;&#x4F55;&#x8BFB;&#x6E90;&#x7801;&#x4E5F;&#x53EF;&#x4EE5;&#x8BF7;&#x6559;&#x5662;</strong>&#x3002;  </li>
+<li><strong>&#x65B0;&#x7684;</strong>&#x6E90;&#x7801;&#x89E3;&#x6790;&#x6587;&#x7AE0;<strong>&#x5B9E;&#x65F6;</strong>&#x6536;&#x5230;&#x901A;&#x77E5;&#x3002;<strong>&#x6BCF;&#x5468;&#x66F4;&#x65B0;&#x4E00;&#x7BC7;&#x5DE6;&#x53F3;</strong>&#x3002;</li>
 </ol>
 </blockquote>
 <hr>
-<ul>
-<li><a href="#">1. 数据库自增</a></li>
-<li><a href="#">2. 类UUID算法</a></li>
-<li><a href="#">3. SnowFlake</a>
-<ul>
+<ul class="ui list">
+<li><a href="#">1. &#x6570;&#x636E;&#x5E93;&#x81EA;&#x589E;</a></li>
+<li><a href="#">2. &#x7C7B;UUID&#x7B97;&#x6CD5;</a></li>
+<li><a href="#">3. SnowFlake</a><ul>
 <li><a href="#">3.1 Twitter-Snowflake</a></li>
 <li><a href="#">3.2 Instagram SnowFlake</a></li>
 <li><a href="#">3.3 Simpleflake</a></li>
 <li><a href="#">3.4 Boundary flake</a></li>
-<li><a href="#">3.5 自己的想法</a></li>
+<li><a href="#">3.5 &#x81EA;&#x5DF1;&#x7684;&#x60F3;&#x6CD5;</a></li>
 </ul>
 </li>
-<li><a href="#">4. 参考文章</a></li>
-<li><a href="#">草稿</a></li>
+<li><a href="#">4. &#x53C2;&#x8003;&#x6587;&#x7AE0;</a></li>
+<li><a href="#">&#x8349;&#x7A3F;</a></li>
 </ul>
-<p>在日常开发中，数据库的id是不可少的。在各个场景下会有不同的选择，本文对互联网上常见的ID算法进行归纳，希望对工程师们有一点点帮助。</p>
-<h1>1. 数据库自增</h1>
-<ol>
-<li>MySQL、Oracle、PGSQL等关系数据库的id主键自增</li>
-<li>Redis、Memcached等K/V数据库的incr操作自增
-<ul>
-<li>需要考虑持久化的问题</li>
+<p>&#x5728;&#x65E5;&#x5E38;&#x5F00;&#x53D1;&#x4E2D;&#xFF0C;&#x6570;&#x636E;&#x5E93;&#x7684;id&#x662F;&#x4E0D;&#x53EF;&#x5C11;&#x7684;&#x3002;&#x5728;&#x5404;&#x4E2A;&#x573A;&#x666F;&#x4E0B;&#x4F1A;&#x6709;&#x4E0D;&#x540C;&#x7684;&#x9009;&#x62E9;&#xFF0C;&#x672C;&#x6587;&#x5BF9;&#x4E92;&#x8054;&#x7F51;&#x4E0A;&#x5E38;&#x89C1;&#x7684;ID&#x7B97;&#x6CD5;&#x8FDB;&#x884C;&#x5F52;&#x7EB3;&#xFF0C;&#x5E0C;&#x671B;&#x5BF9;&#x5DE5;&#x7A0B;&#x5E08;&#x4EEC;&#x6709;&#x4E00;&#x70B9;&#x70B9;&#x5E2E;&#x52A9;&#x3002;</p>
+<h1 id="1-&#x6570;&#x636E;&#x5E93;&#x81EA;&#x589E;"><a href="#1-&#x6570;&#x636E;&#x5E93;&#x81EA;&#x589E;" class="headerlink" title="1. &#x6570;&#x636E;&#x5E93;&#x81EA;&#x589E;"></a>1. &#x6570;&#x636E;&#x5E93;&#x81EA;&#x589E;</h1><ol class="ui list">
+<li>MySQL&#x3001;Oracle&#x3001;PGSQL&#x7B49;&#x5173;&#x7CFB;&#x6570;&#x636E;&#x5E93;&#x7684;id&#x4E3B;&#x952E;&#x81EA;&#x589E;</li>
+<li>Redis&#x3001;Memcached&#x7B49;K/V&#x6570;&#x636E;&#x5E93;&#x7684;incr&#x64CD;&#x4F5C;&#x81EA;&#x589E;<ul>
+<li>&#x9700;&#x8981;&#x8003;&#x8651;&#x6301;&#x4E45;&#x5316;&#x7684;&#x95EE;&#x9898;</li>
 </ul>
 </li>
-<li>MongoDB自己维护一个id自增集合
-<ul>
-<li>MongoDB的Update操作支持incr操作，因此可以这么做。</li>
-<li>该方式适用于支持该操作的其他数据库。</li>
+<li>MongoDB&#x81EA;&#x5DF1;&#x7EF4;&#x62A4;&#x4E00;&#x4E2A;id&#x81EA;&#x589E;&#x96C6;&#x5408;<ul>
+<li>MongoDB&#x7684;Update&#x64CD;&#x4F5C;&#x652F;&#x6301;incr&#x64CD;&#x4F5C;&#xFF0C;&#x56E0;&#x6B64;&#x53EF;&#x4EE5;&#x8FD9;&#x4E48;&#x505A;&#x3002;</li>
+<li>&#x8BE5;&#x65B9;&#x5F0F;&#x9002;&#x7528;&#x4E8E;&#x652F;&#x6301;&#x8BE5;&#x64CD;&#x4F5C;&#x7684;&#x5176;&#x4ED6;&#x6570;&#x636E;&#x5E93;&#x3002;</li>
 </ul>
 </li>
 </ol>
-<h1>2. 类UUID算法</h1>
-<ol>
+<h1 id="2-&#x7C7B;UUID&#x7B97;&#x6CD5;"><a href="#2-&#x7C7B;UUID&#x7B97;&#x6CD5;" class="headerlink" title="2. &#x7C7B;UUID&#x7B97;&#x6CD5;"></a>2. &#x7C7B;UUID&#x7B97;&#x6CD5;</h1><ol class="ui list">
 <li>UUID</li>
-<li>MongoDB的ObjectId</li>
+<li>MongoDB&#x7684;ObjectId</li>
 </ol>
-<h1>3. SnowFlake</h1>
-<h2>3.1 Twitter-Snowflake</h2>
-<blockquote>
-<p>Twitter-Snowflake算法产生的背景相当简单，为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。</p>
+<h1 id="3-SnowFlake"><a href="#3-SnowFlake" class="headerlink" title="3. SnowFlake"></a>3. SnowFlake</h1><h2 id="3-1-Twitter-Snowflake"><a href="#3-1-Twitter-Snowflake" class="headerlink" title="3.1 Twitter-Snowflake"></a>3.1 Twitter-Snowflake</h2><blockquote>
+<p> Twitter-Snowflake&#x7B97;&#x6CD5;&#x4EA7;&#x751F;&#x7684;&#x80CC;&#x666F;&#x76F8;&#x5F53;&#x7B80;&#x5355;&#xFF0C;&#x4E3A;&#x4E86;&#x6EE1;&#x8DB3;Twitter&#x6BCF;&#x79D2;&#x4E0A;&#x4E07;&#x6761;&#x6D88;&#x606F;&#x7684;&#x8BF7;&#x6C42;&#xFF0C;&#x6BCF;&#x6761;&#x6D88;&#x606F;&#x90FD;&#x5FC5;&#x987B;&#x5206;&#x914D;&#x4E00;&#x6761;&#x552F;&#x4E00;&#x7684;id&#xFF0C;&#x8FD9;&#x4E9B;id&#x8FD8;&#x9700;&#x8981;&#x4E00;&#x4E9B;&#x5927;&#x81F4;&#x7684;&#x987A;&#x5E8F;&#xFF08;&#x65B9;&#x4FBF;&#x5BA2;&#x6237;&#x7AEF;&#x6392;&#x5E8F;&#xFF09;&#xFF0C;&#x5E76;&#x4E14;&#x5728;&#x5206;&#x5E03;&#x5F0F;&#x7CFB;&#x7EDF;&#x4E2D;&#x4E0D;&#x540C;&#x673A;&#x5668;&#x4EA7;&#x751F;&#x7684;id&#x5FC5;&#x987B;&#x4E0D;&#x540C;&#x3002;</p>
 </blockquote>
-<p>64bits从左往右依次是</p>
-<ul>
-<li>1bit 保留</li>
-<li>41bits 时间戳
-<ul>
-<li>支持69.7年需要的id。2 ^41 /365/24/60/60/1000=69.7</li>
+<p>64bits&#x4ECE;&#x5DE6;&#x5F80;&#x53F3;&#x4F9D;&#x6B21;&#x662F;</p>
+<ul class="ui list">
+<li>1bit &#x4FDD;&#x7559;</li>
+<li>41bits &#x65F6;&#x95F4;&#x6233;<ul>
+<li>&#x652F;&#x6301;69.7&#x5E74;&#x9700;&#x8981;&#x7684;id&#x3002;2 ^41 /365/24/60/60/1000=69.7</li>
 </ul>
 </li>
-<li>10bits work-id
-<ul>
-<li>支持1024个work</li>
+<li>10bits work-id<ul>
+<li>&#x652F;&#x6301;1024&#x4E2A;work</li>
 </ul>
 </li>
-<li>12bits sequence-id
-<ul>
-<li>支持每work每毫秒4096个id</li>
-<li>支持每work每秒4096000个id</li>
-<li>若当前毫秒超过4096，则sleep1毫秒，获取下一毫秒的自增</li>
+<li>12bits sequence-id<ul>
+<li>&#x652F;&#x6301;&#x6BCF;work&#x6BCF;&#x6BEB;&#x79D2;4096&#x4E2A;id</li>
+<li>&#x652F;&#x6301;&#x6BCF;work&#x6BCF;&#x79D2;4096000&#x4E2A;id</li>
+<li>&#x82E5;&#x5F53;&#x524D;&#x6BEB;&#x79D2;&#x8D85;&#x8FC7;4096&#xFF0C;&#x5219;sleep1&#x6BEB;&#x79D2;&#xFF0C;&#x83B7;&#x53D6;&#x4E0B;&#x4E00;&#x6BEB;&#x79D2;&#x7684;&#x81EA;&#x589E;</li>
 </ul>
 </li>
 </ul>
-<p>** snowflake的意义，不仅仅在于提供了解决方式，更多的是一种基于Long长度实现具有时间相关性的id自增序列。因此，很多公司基于它进行二次改造适应自己的场景 **</p>
-<h2>3.2 Instagram SnowFlake</h2>
-<p>去中性化，基于PGSQL实现</p>
-<p>64bits从左至右依次是</p>
-<ul>
-<li>41bits 时间戳</li>
+<p><strong> snowflake&#x7684;&#x610F;&#x4E49;&#xFF0C;&#x4E0D;&#x4EC5;&#x4EC5;&#x5728;&#x4E8E;&#x63D0;&#x4F9B;&#x4E86;&#x89E3;&#x51B3;&#x65B9;&#x5F0F;&#xFF0C;&#x66F4;&#x591A;&#x7684;&#x662F;&#x4E00;&#x79CD;&#x57FA;&#x4E8E;Long&#x957F;&#x5EA6;&#x5B9E;&#x73B0;&#x5177;&#x6709;&#x65F6;&#x95F4;&#x76F8;&#x5173;&#x6027;&#x7684;id&#x81EA;&#x589E;&#x5E8F;&#x5217;&#x3002;&#x56E0;&#x6B64;&#xFF0C;&#x5F88;&#x591A;&#x516C;&#x53F8;&#x57FA;&#x4E8E;&#x5B83;&#x8FDB;&#x884C;&#x4E8C;&#x6B21;&#x6539;&#x9020;&#x9002;&#x5E94;&#x81EA;&#x5DF1;&#x7684;&#x573A;&#x666F; </strong></p>
+<h2 id="3-2-Instagram-SnowFlake"><a href="#3-2-Instagram-SnowFlake" class="headerlink" title="3.2 Instagram SnowFlake"></a>3.2 Instagram SnowFlake</h2><p>&#x53BB;&#x4E2D;&#x6027;&#x5316;&#xFF0C;&#x57FA;&#x4E8E;PGSQL&#x5B9E;&#x73B0;</p>
+<p>64bits&#x4ECE;&#x5DE6;&#x81F3;&#x53F3;&#x4F9D;&#x6B21;&#x662F;</p>
+<ul class="ui list">
+<li>41bits &#x65F6;&#x95F4;&#x6233;</li>
 <li>13bits logic-shard-id</li>
 <li>10bits sequence-id</li>
 </ul>
-<p>实现方式</p>
-<ul>
-<li>根据<code>share-key</code>获取对应的PGSQL实例-库</li>
-<li>id使用PGSQL的存储过程</li>
-<li>13bits = <code>share-key对应值%logic-share-id</code></li>
-<li>10bits = <code>该Table的auto_increment_id%(2 ^10)</code></li>
+<p>&#x5B9E;&#x73B0;&#x65B9;&#x5F0F;</p>
+<ul class="ui list">
+<li>&#x6839;&#x636E;<code>share-key</code>&#x83B7;&#x53D6;&#x5BF9;&#x5E94;&#x7684;PGSQL&#x5B9E;&#x4F8B;-&#x5E93;</li>
+<li>id&#x4F7F;&#x7528;PGSQL&#x7684;&#x5B58;&#x50A8;&#x8FC7;&#x7A0B;</li>
+<li>13bits = <code>share-key&#x5BF9;&#x5E94;&#x503C;%logic-share-id</code> </li>
+<li>10bits = <code>&#x8BE5;Table&#x7684;auto_increment_id%(2 ^10)</code></li>
 </ul>
-<p>好处</p>
-<ul>
-<li>去中性化</li>
-<li>根据id可以获得对应PGSQL实例-库</li>
+<p>&#x597D;&#x5904;</p>
+<ul class="ui list">
+<li>&#x53BB;&#x4E2D;&#x6027;&#x5316;</li>
+<li>&#x6839;&#x636E;id&#x53EF;&#x4EE5;&#x83B7;&#x5F97;&#x5BF9;&#x5E94;PGSQL&#x5B9E;&#x4F8B;-&#x5E93;</li>
 </ul>
-<h2>3.3 Simpleflake</h2>
-<p>64bits</p>
-<ul>
-<li>去中性化</li>
-<li>将work-id的12bits给sequence-id。完全随机，每毫秒有1/(2^22 )出现冲突的情况。数据量大时需要注意。</li>
-<li>未来可以平滑迁移到Twitter SnowFlake</li>
+<h2 id="3-3-Simpleflake"><a href="#3-3-Simpleflake" class="headerlink" title="3.3 Simpleflake"></a>3.3 Simpleflake</h2><p>64bits</p>
+<ul class="ui list">
+<li>&#x53BB;&#x4E2D;&#x6027;&#x5316;</li>
+<li>&#x5C06;work-id&#x7684;12bits&#x7ED9;sequence-id&#x3002;&#x5B8C;&#x5168;&#x968F;&#x673A;&#xFF0C;&#x6BCF;&#x6BEB;&#x79D2;&#x6709;1/(2^22 )&#x51FA;&#x73B0;&#x51B2;&#x7A81;&#x7684;&#x60C5;&#x51B5;&#x3002;&#x6570;&#x636E;&#x91CF;&#x5927;&#x65F6;&#x9700;&#x8981;&#x6CE8;&#x610F;&#x3002;</li>
+<li>&#x672A;&#x6765;&#x53EF;&#x4EE5;&#x5E73;&#x6ED1;&#x8FC1;&#x79FB;&#x5230;Twitter SnowFlake</li>
 </ul>
-<h2>3.4 Boundary flake</h2>
-<p>去中性化，基于erlang实现
-128bits从左到右依次是</p>
-<ul>
-<li>64bits 时间戳
-<ul>
-<li>和毫秒时间戳等长</li>
+<h2 id="3-4-Boundary-flake"><a href="#3-4-Boundary-flake" class="headerlink" title="3.4 Boundary flake"></a>3.4 Boundary flake</h2><p>&#x53BB;&#x4E2D;&#x6027;&#x5316;&#xFF0C;&#x57FA;&#x4E8E;erlang&#x5B9E;&#x73B0;<br>128bits&#x4ECE;&#x5DE6;&#x5230;&#x53F3;&#x4F9D;&#x6B21;&#x662F;</p>
+<ul class="ui list">
+<li>64bits &#x65F6;&#x95F4;&#x6233;<ul>
+<li>&#x548C;&#x6BEB;&#x79D2;&#x65F6;&#x95F4;&#x6233;&#x7B49;&#x957F;</li>
 </ul>
 </li>
-<li>48bits work-id
-<ul>
-<li>和mac地址等长，使用时要避免相同mac多个进程</li>
+<li>48bits work-id<ul>
+<li>&#x548C;mac&#x5730;&#x5740;&#x7B49;&#x957F;&#xFF0C;&#x4F7F;&#x7528;&#x65F6;&#x8981;&#x907F;&#x514D;&#x76F8;&#x540C;mac&#x591A;&#x4E2A;&#x8FDB;&#x7A0B;</li>
 </ul>
 </li>
 <li>14bits sequence-id</li>
 </ul>
-<h2>3.5 自己的想法</h2>
-<p><strong><em>参考Instagram SnowFlake的做法</em></strong></p>
-<p>去中心化，基于redis实现
-64bits从左到右依次是</p>
-<ul>
-<li>1bit 保留</li>
-<li>41bits 时间戳</li>
-<li>12bits 基于logic-shard-id</li>
-<li>10bits 基于时间戳+logic-shard-id在redis里自增</li>
+<h2 id="3-5-&#x81EA;&#x5DF1;&#x7684;&#x60F3;&#x6CD5;"><a href="#3-5-&#x81EA;&#x5DF1;&#x7684;&#x60F3;&#x6CD5;" class="headerlink" title="3.5 &#x81EA;&#x5DF1;&#x7684;&#x60F3;&#x6CD5;"></a>3.5 &#x81EA;&#x5DF1;&#x7684;&#x60F3;&#x6CD5;</h2><p><strong><em>&#x53C2;&#x8003;Instagram SnowFlake&#x7684;&#x505A;&#x6CD5;</em></strong></p>
+<p>&#x53BB;&#x4E2D;&#x5FC3;&#x5316;&#xFF0C;&#x57FA;&#x4E8E;redis&#x5B9E;&#x73B0;<br>64bits&#x4ECE;&#x5DE6;&#x5230;&#x53F3;&#x4F9D;&#x6B21;&#x662F;</p>
+<ul class="ui list">
+<li>1bit &#x4FDD;&#x7559;</li>
+<li>41bits &#x65F6;&#x95F4;&#x6233;</li>
+<li>12bits &#x57FA;&#x4E8E;logic-shard-id</li>
+<li>10bits &#x57FA;&#x4E8E;&#x65F6;&#x95F4;&#x6233;+logic-shard-id&#x5728;redis&#x91CC;&#x81EA;&#x589E;</li>
 </ul>
-<h1>4. 参考文章</h1>
-<ol>
-<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" rel="external nofollow noopener noreferrer" target="_blank">互联网分布式id生成方法|msup微课干货</a></li>
-<li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" rel="external nofollow noopener noreferrer" target="_blank">服务化框架－分布式Unique ID的生成方法一览</a></li>
-<li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" rel="external nofollow noopener noreferrer" target="_blank">分布式系统中 Unique ID 的生成方法</a></li>
+<h1 id="4-&#x53C2;&#x8003;&#x6587;&#x7AE0;"><a href="#4-&#x53C2;&#x8003;&#x6587;&#x7AE0;" class="headerlink" title="4. &#x53C2;&#x8003;&#x6587;&#x7AE0;"></a>4. &#x53C2;&#x8003;&#x6587;&#x7AE0;</h1><ol class="ui list">
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzAwNjE3ODQ4NQ==&amp;mid=2650896366&amp;idx=1&amp;sn=5d5acdf323df2b6d581249b32031ccd7&amp;scene=1&amp;srcid=0618GuDjWjenr7TacVTFj6VU#rd" rel="external nofollow noopener noreferrer" target="_blank">&#x4E92;&#x8054;&#x7F51;&#x5206;&#x5E03;&#x5F0F;id&#x751F;&#x6210;&#x65B9;&#x6CD5;|msup&#x5FAE;&#x8BFE;&#x5E72;&#x8D27;</a></li>
+<li><a href="http://calvin1978.blogcn.com/articles/uuid.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" rel="external nofollow noopener noreferrer" target="_blank">&#x670D;&#x52A1;&#x5316;&#x6846;&#x67B6;&#xFF0D;&#x5206;&#x5E03;&#x5F0F;Unique ID&#x7684;&#x751F;&#x6210;&#x65B9;&#x6CD5;&#x4E00;&#x89C8;</a></li>
+<li><a href="https://www.google.co.jp/search?q=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;oq=%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B8%AD+Unique+ID+%E7%9A%84%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95&amp;aqs=chrome..69i57.291j0j1&amp;sourceid=chrome&amp;ie=UTF-8" rel="external nofollow noopener noreferrer" target="_blank">&#x5206;&#x5E03;&#x5F0F;&#x7CFB;&#x7EDF;&#x4E2D; Unique ID &#x7684;&#x751F;&#x6210;&#x65B9;&#x6CD5;</a></li>
 </ol>
-<h1>草稿</h1>
-<ol>
-<li>2实例、4分表</li>
+<h1 id="&#x8349;&#x7A3F;"><a href="#&#x8349;&#x7A3F;" class="headerlink" title="&#x8349;&#x7A3F;"></a>&#x8349;&#x7A3F;</h1><ol class="ui list">
+<li>2&#x5B9E;&#x4F8B;&#x3001;4&#x5206;&#x8868;</li>
 </ol>
-<ul>
-<li>a：0<em>2</em>4*6</li>
-<li>b：1<em>3</em>5*7</li>
+<ul class="ui list">
+<li>a&#xFF1A;0<em>2</em>4*6</li>
+<li>b&#xFF1A;1<em>3</em>5*7</li>
 </ul>
-<ol start="2">
-<li>4实例、4分表</li>
+<ol class="ui list">
+<li>4&#x5B9E;&#x4F8B;&#x3001;4&#x5206;&#x8868;</li>
 </ol>
-<ul>
-<li>a：0<em>4</em>8*12</li>
-<li>b：1<em>5</em>9*13</li>
-<li>c：2<em>6</em>10*14</li>
-<li>d：3<em>7</em>11*15</li>
+<ul class="ui list">
+<li>a&#xFF1A;0<em>4</em>8*12</li>
+<li>b&#xFF1A;1<em>5</em>9*13</li>
+<li>c&#xFF1A;2<em>6</em>10*14</li>
+<li>d&#xFF1A;3<em>7</em>11*15</li>
 </ul>
-<p>扩展方式：</p>
-<ul>
-<li>a与c双主〈a c〉</li>
-<li>b与d双主〈b d〉</li>
+<p>&#x6269;&#x5C55;&#x65B9;&#x5F0F;&#xFF1A;</p>
+<ul class="ui list">
+<li>a&#x4E0E;c&#x53CC;&#x4E3B;&#x3008;a c&#x3009;</li>
+<li>b&#x4E0E;d&#x53CC;&#x4E3B;&#x3008;b d&#x3009;</li>
 </ul>
 
   </div>
@@ -359,7 +339,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据库自增"><span class="toc-number">1.</span> <span class="toc-text">1. 数据库自增</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-类UUID算法"><span class="toc-number">2.</span> <span class="toc-text">2. 类UUID算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SnowFlake"><span class="toc-number">3.</span> <span class="toc-text">3. SnowFlake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Twitter-Snowflake"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Twitter-Snowflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Instagram-SnowFlake"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Instagram SnowFlake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Simpleflake"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Simpleflake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-Boundary-flake"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Boundary flake</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-自己的想法"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 自己的想法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-参考文章"><span class="toc-number">4.</span> <span class="toc-text">4. 参考文章</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#草稿"><span class="toc-number">5.</span> <span class="toc-text">草稿</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
