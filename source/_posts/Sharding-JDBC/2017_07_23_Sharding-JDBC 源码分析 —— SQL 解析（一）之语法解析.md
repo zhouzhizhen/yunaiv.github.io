@@ -16,6 +16,23 @@ permalink: Sharding-JDBC/sql-parse-1
 
 -------
 
+- [1. 概述](#)
+- [2. Lexer 词法解析器](#)
+- [3. Token 词法标记](#)
+	- [3.1 DefaultKeyword 词法关键词](#)
+	- [3.2 Literals 词法字面量标记](#)
+		- [3.2.1 Literals.IDENTIFIER 词法关键词](#)
+		- [3.2.2 Literals.VARIABLE 变量](#)
+		- [3.2.3 Literals.CHARS 字符串](#)
+		- [3.2.4 Literals.HEX 十六进制](#)
+		- [3.2.5 Literals.INT 整数](#)
+		- [3.2.6 Literals.FLOAT 浮点数](#)
+	- [3.3 Symbol 词法符号标记](#)
+	- [3.4 Assist 词法辅助标记](#)
+- [4. 彩蛋](#)
+
+-------
+
 # 1. 概述
 
 **SQL 解析引擎**，数据库中间件必备的功能和流程。Sharding-JDBC 在 `1.5.0.M1` 正式发布时，将 SQL 解析引擎从 Druid 替换成了自研的。**新引擎仅解析分片上下文，对于 SQL 采用"半理解"理念，进一步提升性能和兼容性，同时降低了代码复杂度**（不理解没关系，我们后续会更新文章解释该优点）。 国内另一款数据库中间件 MyCAT SQL 解析引擎也是 Druid，目前也在开发属于自己的 SQL 解析引擎。
