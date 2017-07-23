@@ -1,3 +1,4 @@
+http://www.yunai.me/Sharding-JDBC/sql-parse-1/
 http://www.yunai.me/MyCAT/connect-mongodb/
 http://www.yunai.me/MyCAT/what-is-PreparedStatement/
 http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/

@@ -4,6 +4,42 @@
 
     
   <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-1/</loc>
+    <lastmod>2017-07-23T08:28:56.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— SQL 解析（一）之语法解析</title>
+        <pubTime>2017-07-22T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
+    <lastmod>2017-07-22T14:32:43.000Z</lastmod>
+    <data>
+        <display>
+        <title>为什么阅读 RocketMQ 源码？</title>
+        <pubTime>2017-03-22T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
     <lastmod>2017-07-20T15:02:55.000Z</lastmod>
     <data>
@@ -298,24 +334,6 @@
         <display>
         <title>RocketMQ 之 Namesrv 小结</title>
         <pubTime>2017-04-04T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</loc>
-    <lastmod>2017-07-20T01:39:44.000Z</lastmod>
-    <data>
-        <display>
-        <title>为什么阅读 RocketMQ 源码？</title>
-        <pubTime>2017-03-22T16:00:00.000Z</pubTime>
         
          
            
