@@ -30,7 +30,7 @@ permalink: Sharding-JDBC/sql-parse-1
 
 -------
 
-![](../../../images/Sharding-JDBC/2017_07_23/01.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_23/01.png)
 
 **SQL 解析引擎**在 `parsing` 包下，如上图所见包含两大组件：
 
@@ -42,7 +42,7 @@ permalink: Sharding-JDBC/sql-parse-1
 ```SQL
 SQL ：SELECT * FROM t_user  
 Lexer ：[SELECT] [ * ] [FROM] [t_user]  
-Parser ：这是一条查询表为 [t_user] ，并且返回 [ * ] 所有字段的SQL。
+Parser ：这是一条 [SELECT] 查询表为 [t_user] ，并且返回 [ * ] 所有字段的 SQL。
 ```
 
 🙂不完全懂？没关系，本文的主角是 Lexer，我们通过源码一点一点理解。一共 1400 行左右代码左右，还包含注释等等，实际更少噢。
@@ -107,7 +107,6 @@ public class Lexer {
         offset = currentToken.getEndPosition();
         // System.out.println("| " + currentToken.getLiterals() + " | " + currentToken.getType() + " | " + currentToken.getEndPosition() + " |");
     }
-    
     /**
      * 跳过忽略的词法标记
      * 1. 空格
@@ -179,7 +178,7 @@ _我们来总结下，`Lexer#nextToken()` 方法里，使用 `#skipIgnoredToken(
 
 由于不同数据库遵守 SQL 规范略有不同，所以不同的数据库对应不同的 Lexer。
 
-![](../../../images/Sharding-JDBC/2017_07_23/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_23/02.png)
 
 子 Lexer 通过重写方法实现自己独有的 SQL 语法。
 
@@ -189,7 +188,7 @@ _我们来总结下，`Lexer#nextToken()` 方法里，使用 `#skipIgnoredToken(
 
 * TokenType type ：词法标记类型
 * String literals ：词法字面量标记
-* endPosition ：`literals` 在 SQL 里的结束位置
+* int endPosition ：`literals` 在 SQL 里的结束位置
 
 TokenType 词法标记类型，一共分成 4 个大类：
 
@@ -198,11 +197,11 @@ TokenType 词法标记类型，一共分成 4 个大类：
 * Symbol ：词法符号标记
 * Assist ：词法辅助标记
 
-![](../../../images/Sharding-JDBC/2017_07_23/03.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_23/03.png)
 
 ## 3.1 DefaultKeyword 词法关键词
 
-![](../../../images/Sharding-JDBC/2017_07_23/04.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_23/04.png)
 
 **不同数据库有自己独有的_词法关键词_，例如 MySQL 熟知的分页 Limit。**
 
