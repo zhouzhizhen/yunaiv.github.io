@@ -12,15 +12,31 @@ permalink: Sharding-JDBC/sql-parse-2
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
 > 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
 > 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
-> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。  
+> 5. **认真的**源码交流微信群。
 
 -------
+
+- [1. 概述](#)
+- [2. SQLParsingEngine](#)
+- [3. SQLParser SQL解析器](#)
+	- [3.1 AbstractParser](#)
+	- [3.2 SQLParser](#)
+		- [3.2.1 #parseExpression() 和 SQLExpression](#)
+		- [3.2.2 #parseAlias()](#)
+		- [3.2.3 #parseSingleTable()](#)
+		- [3.2.4 #skipJoin()](#)
+		- [3.2.5 #parseWhere()](#)
+- [4. StatementParser SQL语句解析器](#)
+	- [4.1 StatementParser](#)
+	- [4.2 Statement](#)
+- [5. 彩蛋](#)
 
 -------
 
 # 1. 概述
 
-上篇文章[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)我们介绍了**词法解析器Lexer**是如何解析 SQL 里的词法。本文分析**SQL解析引擎**是如何解析与理解 SQL的。因为本文建立在[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)之上，你需要阅读它后在开始这段旅程。🙂如果对词法解析不完全理解，请给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。
+上篇文章[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)分享了**词法解析器Lexer**是如何解析 SQL 里的词法。本文分享**SQL解析引擎**是如何解析与理解 SQL的。因为本文建立在[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)之上，你需要阅读它后在开始这段旅程。🙂如果对词法解析不完全理解，请给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。
 
 本文涉及到三个组件：
 
@@ -32,7 +48,7 @@ SQLParsingEngine 调用 StatementParser 解析 SQL。
 StatementParser 调用 SQLParser 解析 SQL 表达式。  
 SQLParser 调用 Lexer 解析 SQL 词法。
 
-![](../../../images/Sharding-JDBC/2017_07_26/01.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/01.png)
 
 😜 是不是觉得 SQLParser 和 StatementParser 看起来很接近？下文为你揭开这个答案。
 
@@ -78,9 +94,9 @@ public SQLStatement parse() {
 
 SQLParser，SQL 解析器。和语法解析器 Lexer 一样，不同数据库有不同的实现。
 
-类图如下（**包含所有属性和方法**）（**[放大图片](../../../images/Sharding-JDBC/2017_07_26/02.png)**）：
+类图如下（**包含所有属性和方法**）（**[放大图片](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/02.png)**）：
 
-![](../../../images/Sharding-JDBC/2017_07_26/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/02.png)
 
 ## 3.1 AbstractParser
 
@@ -89,7 +105,7 @@ AbstractParser，SQLParser 的抽象父类，对 Lexer 简单封装。例如：
 * `#skipIfEqual()`：判断当前词法标记类型是否与其中一个传入值相等
 * `#equalAny()`：判断当前词法标记类型是否与其中一个传入值相等
 
-_**这里有一点我们需要注意，SQLParser 并不是等 Lexer 解析完词法，再根据词法去理解 SQL。而是，在理解 SQL 的过程中，调用 Lexer 进行分词。**_
+_**这里有一点我们需要注意，SQLParser 并不是等 Lexer 解析完词法( Token )，再根据词法去理解 SQL。而是，在理解 SQL 的过程中，调用 Lexer 进行分词。**_
 
 ```Java
 // SQLParsingEngine.java#parse()片段
@@ -107,7 +123,7 @@ public final boolean equalAny(final TokenType... tokenTypes) {
    return false;
 }
 ```
-* ↑↑↑ 判断当前词法( Token ) 是否为 SELECT。实际 AbstractParser 并**不知道**后面还有哪些词法。
+* ↑↑↑ 判断当前**词法**是否为 SELECT。实际 AbstractParser 只知道当前词法，并**不知道**后面还有哪些词法，也**不知道**之前有哪些词法。
 
 我们来看 AbstractParser 里比较复杂的方法 `#skipParentheses()` 帮助大家再理解下。请认真看代码注释噢。
 
@@ -168,7 +184,7 @@ SQLParser 看起来方法特别多，合并下一共 5 种：
 | #skipJoin() | 跳过表关联词法 |
 | #parseWhere() | 解析查询条件 | 
 
-![](../../../images/Sharding-JDBC/2017_07_26/03.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/03.png)
 
 看了这 5 个方法是否有点理解了？SQLParser 不考虑 SQL 是 SELECT / INSERT / UPDATE / DELETE ，它考虑的是，**给我的是 WHERE 处解析查询条件，或是 INSERT INTO 解析单表 等**，提供 SELECT / INSERT / UPDATE / DELETE 需要的 SQL 块公用解析。
 
@@ -185,10 +201,10 @@ SQLExpression，SQL表达式接口。目前 6 种实现：
 | SQLTextExpression | 字符表达式 | Literals.CHARS |
 | SQLIgnoreExpression | 分片中无需关注的SQL表达式 | 无 |
 
-![](../../../images/Sharding-JDBC/2017_07_26/04.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/04.png)
 
 * SQLPropertyExpression 例如：`SELECT * FROM t_order o ORDER BY o.order_id` 中的 `o.order_id`。**SQLPropertyExpression 从 SQLIdentifierExpression 进一步判断解析而来。**
-   ![](../../../images/Sharding-JDBC/2017_07_26/05.png) 
+   ![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/05.png) 
 * SQLIgnoreExpression 例如：`SELECT * FROM t_order o ORDER BY o.order_id % 2` 中的`o.order_id % 2`。**复合表达式都会解析成 SQLIgnoreExpression。**
 
 解析 SQLExpression 核心代码如下：
@@ -458,7 +474,7 @@ private void parseEqualCondition(final SQLStatement sqlStatement, final SQLExpre
 
 StatementParser，SQL语句解析器。每种 SQL，都有相应的 SQL语句解析器实现。不同数据库，继承这些 SQL语句解析器，实现各自 SQL 上的差异。大体结构如下：
 
-![](../../../images/Sharding-JDBC/2017_07_26/06.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/06.png)
 
 SQLParsingEngine 根据不同 SQL 调用对应工厂创建 StatementParser。核心代码如下：
 
@@ -493,14 +509,24 @@ public final class SelectParserFactory {
 
 ## 4.2 Statement
 
-不同 SQL 解析后，返回对应的 SQL 结果。大体结构如下：
+不同 SQL 解析后，返回对应的 SQL 结果,即 Statement。大体结构如下：
 
-![](../../../images/Sharding-JDBC/2017_07_26/07.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/07.png)
+
+## 4.3 预告
+
+
+| Parser | Statement | 分享文章 |
+| --- | --- | --- |
+| SelectStatementParser | SelectStatement + AbstractSQLStatement | [《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
+| InsertStatementParser | InsertStatement | [《插入SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
+| UpdateStatementParser | UpdateStatement | [《更新SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
+| DeleteStatementParser | DeleteStatement | [《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
 
 # 5. 彩蛋
 
 老铁，是不是有丢丢长？  
-如果有地方错误，烦请支出🙂。  
+如果有地方错误，烦请指出🙂。  
 如果有地方不是很理解，可以加我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。  
 如果觉得还凑合，劳驾分享朋友圈或者基佬。
 
