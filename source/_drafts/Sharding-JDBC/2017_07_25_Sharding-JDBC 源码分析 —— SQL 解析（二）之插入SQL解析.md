@@ -375,7 +375,15 @@ SELECT o3.* FROM (SELECT * FROM (SELECT * FROM t_order o) o2) o3 JOIN t_order_it
 SELECT COUNT(*) FROM (SELECT * FROM t_order o WHERE o.id IN (SELECT id FROM t_order WHERE status = ?)) // FROM 官方不支持 SQL 举例
 ```
 
-// TODO TODO TODO
+// TODO 此块内容有点问题
+
+分页及子查询：http://dangdangdotcom.github.io/sharding-jdbc/02-guide/subquery/
+
+## 2.X.3 #parseWhere()
+
+解析 WHERE 查询条件。目前支持 AND 条件，不支持 OR 条件。近期 OR 条件支持的可能性比较低。
+
+## 2.X.4 #
 
 # 3. #parseOrderBy()
 
