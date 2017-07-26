@@ -194,9 +194,9 @@ SQLExpression，SQL表达式接口。目前 6 种实现：
 
 | 类 | 说明 | 对应Token |
 | :--- | :--- | :--- |
-| SQLIdentifierExpression | 标识表达式 | Literals.HEX  |
+| SQLIdentifierExpression | 标识表达式 | Literals.IDENTIFIER |
 | SQLPropertyExpression | 属性表达式 | 无 |
-| SQLNumberExpression | 数字表达式 | Literals.INT |
+| SQLNumberExpression | 数字表达式 | Literals.INT, Literals.HEX |
 | SQLPlaceholderExpression | 占位符表达式 | Symbol.QUESTION |
 | SQLTextExpression | 字符表达式 | Literals.CHARS |
 | SQLIgnoreExpression | 分片中无需关注的SQL表达式 | 无 |
@@ -328,7 +328,43 @@ public Optional<String> parseAlias() {
 
 ### 3.2.3 #parseSingleTable()
 
-// TODO 有疑问
+```Java
+/**
+* 解析单表.
+*
+* @param sqlStatement SQL语句对象
+*/
+public final void parseSingleTable(final SQLStatement sqlStatement) {
+   boolean hasParentheses = false;
+   if (skipIfEqual(Symbol.LEFT_PAREN)) {
+       if (equalAny(DefaultKeyword.SELECT)) { // multiple-update 或者 multiple-delete
+           throw new UnsupportedOperationException("Cannot support subquery");
+       }
+       hasParentheses = true;
+   }
+   Table table;
+   final int beginPosition = getLexer().getCurrentToken().getEndPosition() - getLexer().getCurrentToken().getLiterals().length();
+   String literals = getLexer().getCurrentToken().getLiterals();
+   getLexer().nextToken();
+   if (skipIfEqual(Symbol.DOT)) {
+       getLexer().nextToken();
+       if (hasParentheses) {
+           accept(Symbol.RIGHT_PAREN);
+       }
+       table = new Table(SQLUtil.getExactlyValue(literals), parseAlias());
+   } else {
+       if (hasParentheses) {
+           accept(Symbol.RIGHT_PAREN);
+       }
+       table = new Table(SQLUtil.getExactlyValue(literals), parseAlias());
+   }
+   if (skipJoin()) { // multiple-update 或者 multiple-delete
+       throw new UnsupportedOperationException("Cannot support Multiple-Table.");
+   }
+   sqlStatement.getSqlTokens().add(new TableToken(beginPosition, literals));
+   sqlStatement.getTables().add(table);
+}
+```
 
 ### 3.2.4 #skipJoin()
 
