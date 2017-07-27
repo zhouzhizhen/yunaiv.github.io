@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="谈谈单元测试">
 <meta property="og:url" content="http://www.yunai.me/Architecture/talk-about-java-unit-test/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+<meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-07-20T01:40:58.000Z">
+<meta property="og:updated_time" content="2017-07-27T14:05:50.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谈谈单元测试">
-<meta name="twitter:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+<meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -180,99 +180,100 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><a class="magnific-img" href="http://www.yunai.me/images/common/wechat_mp.jpeg"><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="" class="ui centered image"></a></p>
+    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
 <blockquote>
-<p>&#x1F642;&#x1F642;&#x1F642;&#x5173;&#x6CE8;<strong>&#x5FAE;&#x4FE1;&#x516C;&#x4F17;&#x53F7;&#xFF1A;&#x3010;&#x828B;&#x827F;&#x7684;&#x540E;&#x7AEF;&#x5C0F;&#x5C4B;&#x3011;</strong>&#x6709;&#x798F;&#x5229;&#xFF1A;  </p>
-<ol class="ui list">
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x6240;&#x6709;</strong>&#x6E90;&#x7801;&#x5206;&#x6790;&#x6587;&#x7AE0;&#x5217;&#x8868;  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x4E2D;&#x6587;&#x6CE8;&#x91CA;&#x6E90;&#x7801; GitHub &#x5730;&#x5740;</strong>  </li>
-<li>&#x60A8;&#x5BF9;&#x4E8E;&#x6E90;&#x7801;&#x7684;&#x7591;&#x95EE;&#x6BCF;&#x6761;&#x7559;&#x8A00;<strong>&#x90FD;</strong>&#x5C06;&#x5F97;&#x5230;<strong>&#x8BA4;&#x771F;</strong>&#x56DE;&#x590D;&#x3002;<strong>&#x751A;&#x81F3;&#x4E0D;&#x77E5;&#x9053;&#x5982;&#x4F55;&#x8BFB;&#x6E90;&#x7801;&#x4E5F;&#x53EF;&#x4EE5;&#x8BF7;&#x6559;&#x5662;</strong>&#x3002;  </li>
-<li><strong>&#x65B0;&#x7684;</strong>&#x6E90;&#x7801;&#x89E3;&#x6790;&#x6587;&#x7AE0;<strong>&#x5B9E;&#x65F6;</strong>&#x6536;&#x5230;&#x901A;&#x77E5;&#x3002;<strong>&#x6BCF;&#x5468;&#x66F4;&#x65B0;&#x4E00;&#x7BC7;&#x5DE6;&#x53F3;</strong>&#x3002;</li>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<ul class="ui list">
-<li><a href="#">1. &#x4E3A;&#x4EC0;&#x4E48;&#x505A;&#x5355;&#x5143;&#x6D4B;&#x8BD5;</a></li>
-<li><a href="#">2. &#x9009;&#x578B;</a><ul>
+<ul>
+<li><a href="#">1. 为什么做单元测试</a></li>
+<li><a href="#">2. 选型</a><ul>
 <li><a href="#">2.1 JUnit</a></li>
 <li><a href="#">2.2 Mockito</a></li>
 <li><a href="#">2.3 PowerMock</a></li>
 </ul>
 </li>
-<li><a href="#">3. &#x5B9E;&#x8DF5;</a><ul>
-<li><a href="#">3.1 Service &#x5C42;</a></li>
-<li><a href="#">3.2 Controller &#x5C42;</a></li>
-<li><a href="#">3.3 Dao &#x5C42;</a></li>
+<li><a href="#">3. 实践</a><ul>
+<li><a href="#">3.1 Service 层</a></li>
+<li><a href="#">3.2 Controller 层</a></li>
+<li><a href="#">3.3 Dao 层</a></li>
 </ul>
 </li>
-<li><a href="#">4. &#x5EFA;&#x8BAE;</a></li>
+<li><a href="#">4. 建议</a></li>
 </ul>
-<p><strong>&#x672C;&#x6587;&#x4E3B;&#x8981;&#x9762;&#x5411;Java&#x5DE5;&#x7A0B;&#x5E08;&#xFF0C;&#x89C1;&#x8C05;</strong></p>
-<h1 id="1-&#x4E3A;&#x4EC0;&#x4E48;&#x505A;&#x5355;&#x5143;&#x6D4B;&#x8BD5;"><a href="#1-&#x4E3A;&#x4EC0;&#x4E48;&#x505A;&#x5355;&#x5143;&#x6D4B;&#x8BD5;" class="headerlink" title="1. &#x4E3A;&#x4EC0;&#x4E48;&#x505A;&#x5355;&#x5143;&#x6D4B;&#x8BD5;"></a>1. &#x4E3A;&#x4EC0;&#x4E48;&#x505A;&#x5355;&#x5143;&#x6D4B;&#x8BD5;</h1><ul class="ui list">
-<li>&#x63D0;&#x5347;&#x91CD;&#x590D;&#x6D4B;&#x8BD5;&#x6548;&#x7387;</li>
-<li>&#x63D0;&#x5347;&#x4EE3;&#x7801;&#x8D28;&#x91CF;</li>
-<li>&#x63D0;&#x5347;&#x90E8;&#x7F72;&#x53EF;&#x9760;&#x6027;</li>
+<p><strong>本文主要面向Java工程师，见谅</strong></p>
+<h1 id="1-为什么做单元测试"><a href="#1-为什么做单元测试" class="headerlink" title="1. 为什么做单元测试"></a>1. 为什么做单元测试</h1><ul>
+<li>提升重复测试效率</li>
+<li>提升代码质量</li>
+<li>提升部署可靠性</li>
 </ul>
-<h1 id="2-&#x9009;&#x578B;"><a href="#2-&#x9009;&#x578B;" class="headerlink" title="2. &#x9009;&#x578B;"></a>2. &#x9009;&#x578B;</h1><h2 id="2-1-JUnit"><a href="#2-1-JUnit" class="headerlink" title="2.1 JUnit"></a>2.1 JUnit</h2><blockquote>
-<p>&#x5355;&#x5143;&#x6D4B;&#x8BD5;&#x5957;&#x4EF6;</p>
+<h1 id="2-选型"><a href="#2-选型" class="headerlink" title="2. 选型"></a>2. 选型</h1><h2 id="2-1-JUnit"><a href="#2-1-JUnit" class="headerlink" title="2.1 JUnit"></a>2.1 JUnit</h2><blockquote>
+<p>单元测试套件</p>
 </blockquote>
-<p>&#x4E3A;&#x4EC0;&#x4E48;&#x4E0D;&#x4F7F;&#x7528; TestNG &#xFF1F;&#x5728;&#x6574;&#x5408; TestNG + Mockito + PowerMock + Spring &#x65F6;&#xFF0C;Spring &#x5BB9;&#x5668;&#x521D;&#x59CB;&#x5316;&#x5931;&#x8D25;&#xFF0C; <code>@Autowired</code> &#x7684;&#x5C5E;&#x6027;&#x65E0;&#x6CD5;&#x6CE8;&#x5165;&#xFF0C;&#x67E5;&#x627E;&#x8D44;&#x6599;&#xFF0C;&#x57FA;&#x672C;&#x65E0;&#x89E3;&#xFF0C;&#x53EA;&#x597D;&#x9000;&#x800C;&#x6C42;&#x5176;&#x6B21;&#xFF0C;&#x9009;&#x62E9; JUnit &#x3002;&#x4ECE;&#x529F;&#x80FD;&#x5F3A;&#x5927;&#x7A0B;&#x5EA6;&#xFF0C;&#x6613;&#x7528;&#x6027;&#x4E0A;&#xFF0C;&#x4E2A;&#x4EBA;&#x8F83;&#x4E3A;&#x63A8;&#x8350; TestNG &#x3002;</p>
+<p>为什么不使用 TestNG ？在整合 TestNG + Mockito + PowerMock + Spring 时，Spring 容器初始化失败， <code>@Autowired</code> 的属性无法注入，查找资料，基本无解，只好退而求其次，选择 JUnit 。从功能强大程度，易用性上，个人较为推荐 TestNG 。</p>
 <h2 id="2-2-Mockito"><a href="#2-2-Mockito" class="headerlink" title="2.2 Mockito"></a>2.2 Mockito</h2><blockquote>
-<p>Mock &#x5DE5;&#x5177;</p>
+<p>Mock 工具</p>
 </blockquote>
-<p>&#x4E3A;&#x4EC0;&#x4E48;&#x4E0D;&#x4F7F;&#x7528; JMock &#x3001;EasyMock &#xFF1F;&#x56E0;&#x4E3A; API &#x4E0A;&#x66F4;&#x52A0;&#x8F7B;&#x91CF;&#x7EA7;&#xFF0C;&#x7528;&#x8D77;&#x6765;&#x723D;&#x723D;&#x7684;&#x3002;</p>
+<p>为什么不使用 JMock 、EasyMock ？因为 API 上更加轻量级，用起来爽爽的。</p>
 <h2 id="2-3-PowerMock"><a href="#2-3-PowerMock" class="headerlink" title="2.3 PowerMock"></a>2.3 PowerMock</h2><blockquote>
-<p>&#x4F5C;&#x4E3A; Mockito &#x7684;&#x8865;&#x5145;&#xFF0C;&#x589E;&#x52A0;&#x5BF9; <code>private</code>&#x3001;<code>static</code>&#x3001;<code>final</code> &#x7684;&#x652F;&#x6301;&#x3002;</p>
+<p>作为 Mockito 的补充，增加对 <code>private</code>、<code>static</code>、<code>final</code> 的支持。</p>
 </blockquote>
-<p>&#x4E3A;&#x4EC0;&#x4E48; Mockito &#x4E0D;&#x81EA;&#x5DF1;&#x652F;&#x6301;&#xFF1F;<a href="https://github.com/mockito/mockito/wiki/Mockito-And-Private-Methods" target="_blank" rel="external">Mockito-And-Private-Methods</a> &#x4F5C;&#x8005;&#x6709;&#x81EA;&#x5DF1;&#x7684;&#x8003;&#x8651;&#xFF0C;&#x4E0D;&#x8FC7;&#x5BF9;&#x4E8E;&#x4F7F;&#x7528;&#x8005;&#xFF0C;&#x589E;&#x52A0;&#x4E86;&#x5F88;&#x591A;&#x6574;&#x5408;&#x7684;&#x75DB;&#x82E6;&#x3002;</p>
-<h1 id="3-&#x5B9E;&#x8DF5;"><a href="#3-&#x5B9E;&#x8DF5;" class="headerlink" title="3. &#x5B9E;&#x8DF5;"></a>3. &#x5B9E;&#x8DF5;</h1><h2 id="3-1-Service-&#x5C42;"><a href="#3-1-Service-&#x5C42;" class="headerlink" title="3.1 Service &#x5C42;"></a>3.1 Service &#x5C42;</h2><blockquote>
-<p>&#x65B9;&#x6848;&#x4E00;&#xFF1A;</p>
+<p>为什么 Mockito 不自己支持？<a href="https://github.com/mockito/mockito/wiki/Mockito-And-Private-Methods" target="_blank" rel="external">Mockito-And-Private-Methods</a> 作者有自己的考虑，不过对于使用者，增加了很多整合的痛苦。</p>
+<h1 id="3-实践"><a href="#3-实践" class="headerlink" title="3. 实践"></a>3. 实践</h1><h2 id="3-1-Service-层"><a href="#3-1-Service-层" class="headerlink" title="3.1 Service 层"></a>3.1 Service 层</h2><blockquote>
+<p>方案一：</p>
 </blockquote>
-<ul class="ui list">
-<li>&#x4F9D;&#x8D56;&#x7684; Dao &#x5C42;&#x4EE3;&#x7801;&#xFF0C;&#x4F7F;&#x7528; mock &#x8FDB;&#x884C;&#x6A21;&#x62DF;</li>
-<li>&#x4F9D;&#x8D56;&#x7684; Service &#x5C42;&#x4EE3;&#x7801;&#xFF0C;&#x4F7F;&#x7528; mock &#x8FDB;&#x884C;&#x6A21;&#x62DF;</li>
+<ul>
+<li>依赖的 Dao 层代码，使用 mock 进行模拟</li>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
 </ul>
 <blockquote>
-<p>&#x65B9;&#x6848;&#x4E8C;&#xFF1A;</p>
+<p>方案二：</p>
 </blockquote>
-<ul class="ui list">
-<li>&#x4F9D;&#x8D56;&#x7684; Dao &#x5C42;&#x4EE3;&#x7801;&#xFF0C;&#x4F7F;&#x7528;&#x5185;&#x5D4C;&#x6570;&#x636E;&#x5E93;&#xFF0C;&#x4F8B;&#x5982;&#x8BF4; h2database </li>
-<li>&#x4F9D;&#x8D56;&#x7684; Service &#x5C42;&#x4EE3;&#x7801;&#xFF0C;&#x4F7F;&#x7528; mock &#x8FDB;&#x884C;&#x6A21;&#x62DF;</li>
+<ul>
+<li>依赖的 Dao 层代码，使用内嵌数据库，例如说 h2database </li>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
 </ul>
-<p><strong>&#x4E2A;&#x4EBA;&#x8F83;&#x4E3A;&#x63A8;&#x8350;&#x65B9;&#x6848;&#x4E8C;&#x3002;&#x4ECE;&#x53EF;&#x9760;&#x6027;&#x89D2;&#x5EA6;&#x8003;&#x8651;&#xFF0C;&#x76F8;&#x5BF9;&#x771F;&#x5B9E;&#x7684;&#x6A21;&#x62DF;&#x4E86; Dao &#x5C42;&#xFF0C;&#x4F8B;&#x5982;&#x6570;&#x636E;&#x63D2;&#x5165;&#x540E;&#xFF0C;&#x53EF;&#x4EE5;&#x8FDB;&#x884C;&#x67E5;&#x8BE2;&#xFF0C;&#x5224;&#x65AD;Service&#x662F;&#x5426;&#x6B63;&#x786E;&#x8BBE;&#x7F6E;&#x503C;&#xFF0C;&#x662F;&#x5426;&#x6709;&#x5C5E;&#x6027;&#x6F0F;&#x8BBE;&#x7F6E;&#x4F1A;&#x8BBE;&#x7F6E;&#x9519;&#xFF1B;&#x5F53;&#x7136;&#xFF0C;&#x8BE5;&#x65B9;&#x6848;&#x5728;&#x7EF4;&#x62A4;&#x4E0A;&#x4F1A;&#x76F8;&#x5BF9;&#x9EBB;&#x70E6;&#x4E00;&#x4E9B;&#xFF0C;&#x5404;&#x6709;&#x5229;&#x5F0A;&#x3002;</strong></p>
-<h2 id="3-2-Controller-&#x5C42;"><a href="#3-2-Controller-&#x5C42;" class="headerlink" title="3.2 Controller &#x5C42;"></a>3.2 Controller &#x5C42;</h2><blockquote>
-<p>&#x65B9;&#x6848;&#x4E00;&#xFF1A;</p>
+<p><strong>个人较为推荐方案二。从可靠性角度考虑，相对真实的模拟了 Dao 层，例如数据插入后，可以进行查询，判断Service是否正确设置值，是否有属性漏设置会设置错；当然，该方案在维护上会相对麻烦一些，各有利弊。</strong></p>
+<h2 id="3-2-Controller-层"><a href="#3-2-Controller-层" class="headerlink" title="3.2 Controller 层"></a>3.2 Controller 层</h2><blockquote>
+<p>方案一：</p>
 </blockquote>
-<ul class="ui list">
-<li>&#x4F9D;&#x8D56;&#x7684; Service &#x5C42;&#x4EE3;&#x7801;&#xFF0C;&#x4F7F;&#x7528; mock &#x8FDB;&#x884C;&#x6A21;&#x62DF;</li>
+<ul>
+<li>依赖的 Service 层代码，使用 mock 进行模拟</li>
 </ul>
 <blockquote>
-<p>&#x65B9;&#x6848;&#x4E8C;&#xFF1A;</p>
+<p>方案二：</p>
 </blockquote>
-<ul class="ui list">
-<li>&#x4F9D;&#x8D56;&#x7684; Service &#x5C42;&#x3010;<strong>&#x8BFB;</strong>&#x3011;&#x7C7B;&#x903B;&#x8F91;&#xFF0C;&#x6267;&#x884C;&#x771F;&#x5B9E;&#x903B;&#x8F91;&#x3002;&#x8BFB;&#x53D6;&#x4F9D;&#x8D56;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x4F7F;&#x7528;&#x5185;&#x5D4C;&#x6570;&#x636E;&#x5E93;&#x63D2;&#x5165;&#x3002;</li>
-<li>&#x4F9D;&#x8D56;&#x7684; Service &#x5C42;&#x3010;<strong>&#x5199;</strong>&#x3011;&#x7C7B;&#x903B;&#x8F91;&#xFF0C;&#x4F7F;&#x7528; mock &#x8FDB;&#x884C;&#x6A21;&#x62DF;&#x3002;&#x548C; Controller &#x7C7B;&#x7684;&#x903B;&#x8F91;&#x6216;&#x8005;&#x8FD4;&#x56DE;&#x6709;&#x5173;&#x7CFB;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x4F7F;&#x7528;&#x5185;&#x5D4C;&#x6570;&#x636E;&#x5E93;&#x63D2;&#x5165;&#x3002;</li>
+<ul>
+<li>依赖的 Service 层【<strong>读</strong>】类逻辑，执行真实逻辑。读取依赖的数据，使用内嵌数据库插入。</li>
+<li>依赖的 Service 层【<strong>写</strong>】类逻辑，使用 mock 进行模拟。和 Controller 类的逻辑或者返回有关系的数据，使用内嵌数据库插入。</li>
 </ul>
-<p><strong>&#x4E2A;&#x4EBA;&#x8F83;&#x4E3A;&#x63A8;&#x8350;&#x65B9;&#x6848;&#x4E8C;&#x3002;&#x539F;&#x56E0;&#x540C; Service &#x5C42;&#x5355;&#x5143;&#x6D4B;&#x8BD5;&#x3002;</strong></p>
-<p>&#x53E6;&#x5916;&#xFF0C;&#x5927;&#x90E8;&#x95E8;&#x4E92;&#x8054;&#x7F51;&#x516C;&#x53F8; MVC &#x6846;&#x67B6;&#x9009;&#x7528;&#x7684;&#x662F; SpringMVC &#xFF0C;&#x53EF;&#x4EE5;&#x4F7F;&#x7528; SpringMVC Test &#x6846;&#x67B6;&#x3002;&#x4F7F;&#x7528;&#x65B9;&#x5F0F;&#x5982;&#x4E0B;&#xFF1A;</p>
+<p><strong>个人较为推荐方案二。原因同 Service 层单元测试。</strong></p>
+<p>另外，大部门互联网公司 MVC 框架选用的是 SpringMVC ，可以使用 SpringMVC Test 框架。使用方式如下：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">MockMvcBuilders.standaloneSetup(XXXController).build()</div></pre></td></tr></table></figure>
-<h2 id="3-3-Dao-&#x5C42;"><a href="#3-3-Dao-&#x5C42;" class="headerlink" title="3.3 Dao &#x5C42;"></a>3.3 Dao &#x5C42;</h2><p>&#x4F7F;&#x7528;&#x5185;&#x5D4C;&#x7684;&#x6570;&#x636E;&#x5B9E;&#x73B0;&#x8FDB;&#x884C;&#x6D4B;&#x8BD5;&#x3002;</p>
-<ul class="ui list">
-<li>MySQL &#xFF1A;<a href="https://github.com/h2database/h2database" target="_blank" rel="external">h2database</a> </li>
-<li>MongoDB &#xFF1A;<a href="https://github.com/fakemongo/fongo" target="_blank" rel="external">fongo</a></li>
-<li>Redis &#xFF1A;<a href="https://github.com/kstyrc/embedded-redis" target="_blank" rel="external">embedded-redis</a></li>
+<h2 id="3-3-Dao-层"><a href="#3-3-Dao-层" class="headerlink" title="3.3 Dao 层"></a>3.3 Dao 层</h2><p>使用内嵌的数据实现进行测试。</p>
+<ul>
+<li>MySQL ：<a href="https://github.com/h2database/h2database" target="_blank" rel="external">h2database</a> </li>
+<li>MongoDB ：<a href="https://github.com/fakemongo/fongo" target="_blank" rel="external">fongo</a></li>
+<li>Redis ：<a href="https://github.com/kstyrc/embedded-redis" target="_blank" rel="external">embedded-redis</a></li>
 </ul>
-<h1 id="4-&#x5EFA;&#x8BAE;"><a href="#4-&#x5EFA;&#x8BAE;" class="headerlink" title="4. &#x5EFA;&#x8BAE;"></a>4. &#x5EFA;&#x8BAE;</h1><ol class="ui list">
-<li>&#x52A0; QQ&#xFF1A;<strong>7685413</strong>&#xFF0C;&#x8FDB;&#x884C;&#x4E92;&#x76F8;&#x4EA4;&#x6D41;&#x3002;&#x1F61C;&#x3002;</li>
-<li>&#x5F53;&#x4F7F;&#x7528; TestNG + Mockito + PowerMock &#xFF0C;&#x6D4B;&#x8BD5;&#x7C7B;&#x4F7F;&#x7528; IObjectFactory &#x800C;&#x4E0D;&#x8981;&#x53BB;&#x7EE7;&#x627F; PowerMockTestCase &#x3002;Java &#x65E0;&#x6CD5;&#x591A;&#x7EE7;&#x627F;&#xFF0C;&#x5982;&#x679C;&#x6B64;&#x65F6;&#x4F60;&#x6709;&#x5FC5;&#x987B;&#x7EE7;&#x627F;&#x7684;&#x7C7B;&#x5C31;&#x5341;&#x5206;&#x68D8;&#x624B;&#x3002;</li>
+<h1 id="4-建议"><a href="#4-建议" class="headerlink" title="4. 建议"></a>4. 建议</h1><ol>
+<li>加 QQ：<strong>7685413</strong>，进行互相交流。😜。</li>
+<li>当使用 TestNG + Mockito + PowerMock ，测试类使用 IObjectFactory 而不要去继承 PowerMockTestCase 。Java 无法多继承，如果此时你有必须继承的类就十分棘手。</li>
 </ol>
 <pre><code>@ObjectFactory  
 public IObjectFactory getObjectFactory() {  
     return new PowerMockObjectFactory();  
 }
-</code></pre><ol class="ui list">
-<li>&#x5F53;&#x4F7F;&#x7528; PowerMockTestCase &#x6BCF;&#x4E2A;&#x6D4B;&#x8BD5;&#x5355;&#x5143;&#x6267;&#x884C;&#x5B8C;&#x540E;&#xFF0C;&#x4F1A;&#x6E05;&#x7406;&#x6389;&#x5BF9;&#x65B9;&#x6CD5;&#x7684; mock&#x3002;&#x56E0;&#x6B64;&#xFF0C;&#x5982;&#x679C;&#x6709;&#x516C;&#x7528;&#x7684; mock &#x65B9;&#x6CD5;&#xFF0C;&#x9700;&#x8981;&#x4F7F;&#x7528;&#x4E0B; @BeforeMethod&#xFF08;TestNG&#xFF09;&#x3001;@Before&#xFF08;JUnit&#xFF09;&#x91CC;&#x5728;&#x8FDB;&#x884C;&#x4E00;&#x6B21;mock&#x3002;</li>
-<li>&#x5F53;&#x4F7F;&#x7528; Mockito + PowerMock &#xFF0C;&#x5BF9;&#x6D4B;&#x8BD5;&#x7C7B;&#x8FDB;&#x884C;&#x6D4B;&#x8BD5;&#x65F6;&#xFF0C;&#x6709;&#x9700;&#x8981;&#x5BF9;&#x6D4B;&#x8BD5;&#x7C7B;&#x7684;&#x4E00;&#x4E9B;&#x79C1;&#x6709;&#x65B9;&#x6CD5;&#x3001;&#x6216;&#x8005;&#x9759;&#x6001;&#x65B9;&#x6CD5;&#x8FDB;&#x884C; mock &#x65F6;&#xFF0C;&#x4E0D;&#x8981;&#x4F7F;&#x7528; @Spy&#xFF0C;&#x800C;&#x8981;&#x4F7F;&#x7528;PowerMokito.spy()&#x8FDB;&#x884C; mock &#x3002;&#x5F88;&#x9178;&#x723D;&#x3002;</li>
+</code></pre><ol>
+<li>当使用 PowerMockTestCase 每个测试单元执行完后，会清理掉对方法的 mock。因此，如果有公用的 mock 方法，需要使用下 @BeforeMethod（TestNG）、@Before（JUnit）里在进行一次mock。</li>
+<li>当使用 Mockito + PowerMock ，对测试类进行测试时，有需要对测试类的一些私有方法、或者静态方法进行 mock 时，不要使用 @Spy，而要使用PowerMokito.spy()进行 mock 。很酸爽。</li>
 </ol>
 
   </div>

@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 源码分析 —— Message">
 <meta property="og:url" content="http://www.yunai.me/RocketMQ/message/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+<meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-07-20T15:02:49.000Z">
+<meta property="og:updated_time" content="2017-07-27T14:07:19.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 源码分析 —— Message">
-<meta name="twitter:description" content="&amp;#x1F642;&amp;#x1F642;&amp;#x1F642;&amp;#x5173;&amp;#x6CE8;&amp;#x5FAE;&amp;#x4FE1;&amp;#x516C;&amp;#x4F17;&amp;#x53F7;&amp;#xFF1A;&amp;#x3010;&amp;#x828B;&amp;#x827F;&amp;#x7684;&amp;#x540E;&amp;#x7AEF;&amp;#x5C0F;&amp;#x5C4B;&amp;#x3011;&amp;#x6709;&amp;#x798F;&amp;#x5229;&amp;#xFF1A;">
+<meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -180,14 +180,15 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><a class="magnific-img" href="http://www.yunai.me/images/common/wechat_mp.jpeg"><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt="" class="ui centered image"></a></p>
+    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
 <blockquote>
-<p>&#x1F642;&#x1F642;&#x1F642;&#x5173;&#x6CE8;<strong>&#x5FAE;&#x4FE1;&#x516C;&#x4F17;&#x53F7;&#xFF1A;&#x3010;&#x828B;&#x827F;&#x7684;&#x540E;&#x7AEF;&#x5C0F;&#x5C4B;&#x3011;</strong>&#x6709;&#x798F;&#x5229;&#xFF1A;  </p>
-<ol class="ui list">
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x6240;&#x6709;</strong>&#x6E90;&#x7801;&#x5206;&#x6790;&#x6587;&#x7AE0;&#x5217;&#x8868;  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>&#x4E2D;&#x6587;&#x6CE8;&#x91CA;&#x6E90;&#x7801; GitHub &#x5730;&#x5740;</strong>  </li>
-<li>&#x60A8;&#x5BF9;&#x4E8E;&#x6E90;&#x7801;&#x7684;&#x7591;&#x95EE;&#x6BCF;&#x6761;&#x7559;&#x8A00;<strong>&#x90FD;</strong>&#x5C06;&#x5F97;&#x5230;<strong>&#x8BA4;&#x771F;</strong>&#x56DE;&#x590D;&#x3002;<strong>&#x751A;&#x81F3;&#x4E0D;&#x77E5;&#x9053;&#x5982;&#x4F55;&#x8BFB;&#x6E90;&#x7801;&#x4E5F;&#x53EF;&#x4EE5;&#x8BF7;&#x6559;&#x5662;</strong>&#x3002;  </li>
-<li><strong>&#x65B0;&#x7684;</strong>&#x6E90;&#x7801;&#x89E3;&#x6790;&#x6587;&#x7AE0;<strong>&#x5B9E;&#x65F6;</strong>&#x6536;&#x5230;&#x901A;&#x77E5;&#x3002;<strong>&#x6BCF;&#x5468;&#x66F4;&#x65B0;&#x4E00;&#x7BC7;&#x5DE6;&#x53F3;</strong>&#x3002;</li>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>

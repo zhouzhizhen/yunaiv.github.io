@@ -1,4 +1,4 @@
-title: Sharding-JDBC 源码分析 —— SQL 解析（三）之插入SQL
+title: Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL
 date: 2017-07-27
 tags:
 categories: Sharding-JDBC
@@ -12,10 +12,31 @@ permalink: Sharding-JDBC/sql-parse-3
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
 > 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
 > 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
-> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。  
 > 5. **认真的**源码交流微信群。
 
 -------
+
+- [1. 概述](#)
+- [2. SelectStatement](#)
+	- [2.1 AbstractSQLStatement](#)
+	- [2.2 SQLToken](#)
+- [3. #query()](#)
+	- [3.1 #parseDistinct()](#)
+	- [3.2 #parseSelectList()](#)
+	- [3.3 #skipToFrom()](#)
+	- [3.4 #parseFrom()](#)
+	- [3.5 #parseWhere()](#)
+	- [3.6 #parseGroupBy()](#)
+	- [3.7 #parseOrderBy()](#)
+	- [3.8 #parseLimit()](#)
+	- [3.9 #queryRest()](#)
+- [4. appendDerived等方法](#)
+	- [4.1 appendAvgDerivedColumns](#)
+	- [4.2 appendDerivedOrderColumns](#)
+	- [4.3 ItemsToken](#)
+	- [4.4 appendDerivedOrderBy()](#)
+- [666. 彩蛋](#)
 
 -------
 
@@ -26,9 +47,13 @@ permalink: Sharding-JDBC/sql-parse-3
 * [《SQL 解析（一）之词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self)
 * [《SQL 解析（二）之SQL解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self)
 
-本文分享**插入SQL解析**的源码实现。每个数据库都有自己的 SELECT 语句的解析器实现方式，我们主要分析大家最常用的 MySQL。大体流程如下：
+本文分享**插入SQL解析**的源码实现。
 
-![](../../../images/Sharding-JDBC/2017_07_27/03.png)
+由于每个数据库在遵守 SQL 语法规范的同时，又有各自独特的语法。因此，在 Sharding-JDBC 里每个数据库都有自己的 SELECT 语句的解析器实现方式，当然绝大部分逻辑是相同的。**本文主要分享笔者最常用的 MySQL 查询**。
+
+查询 SQL 解析主流程如下：
+
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/03.png)
 
 ```Java
 // AbstractSelectParser.java
@@ -42,16 +67,24 @@ public final SelectStatement parse() {
 }
 ```
 
-* `parseOrderBy()` ：对于 MySQL SELECT 语句无效果，进行省略。
-* `customizedSelect()` ：Oracle、SQLServer 重写了该方法，对于 MySQL 是个空方法，进行省略。有兴趣的同学可以单独去研究研究。
+* `#parseOrderBy()` ：对于 MySQL 查询语句解析器无效果，因为已经在 `#query()` 方法里面已经调用 `#parseOrderBy()`，因此图中省略该方法。
+* `#customizedSelect()` ：Oracle、SQLServer 查询语句解析器重写了该方法，对于 MySQL 查询解析器是个空方法，进行省略。有兴趣的同学可以单独去研究研究。
+
+> **Sharding-JDBC 正在收集使用公司名单：[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)。  
+> 🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> Sharding-JDBC 也会因此，能够覆盖更多的业务场景。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> 登记吧，骚年！[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)**
+
+👼 查询语句解析是增删改查里面**最灵活也是最复杂的**，希望大家有耐心看完本文。理解查询语句解析，另外三种语句理解起来简直是 SO EASY。骗人是小狗🐶。  
+🙂如果对本文有不理解的地方，可以给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。骗人是小猪🐷。
+
+OK，不废话啦，开始我们这段痛并快乐的旅途。
 
 # 2. SelectStatement
 
-🙂 **本节只介绍这些类，解析源码我们在本文下节分享。** 🙂  
-🙂 **本节只介绍这些类，解析源码我们在本文下节分享。** 🙂  
-🙂 **本节只介绍这些类，解析源码我们在本文下节分享。** 🙂  
+🙂 **本节只介绍这些类，方便本文下节分析源码实现大家能知道认识它们** 🙂  
 
-SelectStatement，SELECT SQL 语句解析结果对象。
+SelectStatement，查询语句解析结果对象。
 
 ```Java
 // SelectStatement.java
@@ -101,15 +134,17 @@ public final class SelectStatement extends AbstractSQLStatement {
     * containStar
     * items
     * selectListLastPosition
-* 分组
+* 分组条件
     * groupByItems
     * groupByLastPosition
-* 排序
+* 排序条件
     * orderByItems
-* 分页
+* 分页条件
     * limit
 
 ## 2.1 AbstractSQLStatement
+
+增删改查解析结果对象的**抽象父类**。
 
 ```Java
 public abstract class AbstractSQLStatement implements SQLStatement {
@@ -135,7 +170,7 @@ public abstract class AbstractSQLStatement implements SQLStatement {
 
 ## 2.2 SQLToken
 
-SQLToken，SQL标记对象。
+SQLToken，SQL标记对象接口，下面都是它的实现类。
 
 | 类 | 说明 |
 | :--- | :--- |
@@ -179,11 +214,9 @@ SELECT
     [FOR UPDATE | LOCK IN SHARE MODE]]
 ```
 
-流程如下：
+大体流程如下：
 
-![](../../../images/Sharding-JDBC/2017_07_27/04.png)
-
-代码如下：
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/04.png)
 
 ```Java
 // MySQLSelectParser.java
@@ -193,21 +226,14 @@ public void query() {
        parseDistinct();
        getSqlParser().skipAll(MySQLKeyword.HIGH_PRIORITY, DefaultKeyword.STRAIGHT_JOIN, MySQLKeyword.SQL_SMALL_RESULT, MySQLKeyword.SQL_BIG_RESULT, MySQLKeyword.SQL_BUFFER_RESULT,
                MySQLKeyword.SQL_CACHE, MySQLKeyword.SQL_NO_CACHE, MySQLKeyword.SQL_CALC_FOUND_ROWS);
-       // 解析 查询字段
-       parseSelectList();
-       // 跳到 FROM 处
-       skipToFrom();
+       parseSelectList(); // 解析 查询字段
+       skipToFrom(); // 跳到 FROM 处
    }
-   // 解析 表（JOIN ON / FROM 单&多表）
-   parseFrom();
-   // 解析 WHERE 条件
-   parseWhere();
-   // 解析 Group By 和 Having（目前不支持）条件
-   parseGroupBy();
-   // 解析 Order By 条件
-   parseOrderBy();
-   // 解析 分页 Limit 条件
-   parseLimit();
+   parseFrom();// 解析 表（JOIN ON / FROM 单&多表）
+   parseWhere(); // 解析 WHERE 条件
+   parseGroupBy(); // 解析 Group By 和 Having（目前不支持）条件
+   parseOrderBy(); // 解析 Order By 条件
+   parseLimit(); // 解析 分页 Limit 条件
    // [PROCEDURE] 暂不支持
    if (getSqlParser().equalAny(DefaultKeyword.PROCEDURE)) {
        throw new SQLParsingUnsupportedException(getSqlParser().getLexer().getCurrentToken().getType());
@@ -238,7 +264,7 @@ protected final void parseDistinct() {
 }
 ```
 
-此处的 DISTINCT 和我们常用的 DISTINCT(字段) 不同，它是针对查询结果做去重，即整行重复。举个例子：
+此处 DISTINCT 和 DISTINCT(字段) 不同，它是针对查询结果做去重，即整行重复。举个例子：
 
 ```SQL
 mysql> SELECT item_id, order_id FROM t_order_item;
@@ -265,13 +291,13 @@ mysql> SELECT DISTINCT item_id, order_id FROM t_order_item;
 | --- | --- | --- | --- | --- |
 |  | SelectItem | SelectItem | SelectItem |  |
 
-将 SQL **查询字段** 按照**逗号( , )**切割成多个选择项( SelectItem)。核心代码如下：
+将 SQL **查询字段** 按照**逗号( , )**切割成**多个**选择项( SelectItem)。核心代码如下：
 
 ```Java
 // AbstractSelectParser.java
 protected final void parseSelectList() {
    do {
-       // 解析 选择项
+       // 解析单个选择项
        parseSelectItem();
    } while (sqlParser.skipIfEqual(Symbol.COMMA));
    // 设置 最后一个查询项下一个 Token 的开始位置
@@ -286,7 +312,7 @@ SelectItem 是一个接口，有 2 个实现类：
 * CommonSelectItem ：通用选择项
 * AggregationSelectItem ：聚合选择项
 
-![](../../../images/Sharding-JDBC/2017_07_27/01.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/01.png)
 
 解析单个 SelectItem 核心代码：
 
@@ -351,7 +377,7 @@ SELECT `*` FROM t_user; // 也能达到查询所有字段的效果
 例如，`SELECT COUNT(user_id) FROM t_user` 的 `COUNT(user_id)`。
 
 解析结果 AggregationSelectItem：  
-![](../../../images/Sharding-JDBC/2017_07_27/05.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/05.png)
 
 `sqlParser.skipParentheses()` 解析见[《SQL 解析（二）之SQL解析》的AbstractParser小节](http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self)。
 
@@ -359,16 +385,16 @@ SELECT `*` FROM t_user; // 也能达到查询所有字段的效果
 
 例如，`SELECT user_id FROM t_user`。
 
-从实现上，逻辑会复杂很多。第一种，可以根据 `*` 做字段判断；第二种，可以使用 `(` 和 `)` 做字段判断。能够判断一个**包含别名的** SelectItem 结束有 4 种 Token，根据结束方式我们分成 2 种：
+从实现上，逻辑会复杂很多。相比第一种，可以根据 `*` 做字段判断；相比第二种，可以使用 `(` 和 `)` 做字段判断。能够判断一个**包含别名的** SelectItem 结束有 4 种 Token，根据结束方式我们分成 2 种：
 
-* DefaultKeyword.AS ：能够接触出 SelectItem 表达式，**即不包含别名**。例如，`SELECT user_id AS uid FROM t_user`，能够直接解析出 `user_id`。
+* DefaultKeyword.AS ：能够接触出 SelectItem 字段，**即不包含别名**。例如，`SELECT user_id AS uid FROM t_user`，能够直接解析出 `user_id`。
 * Symbol.COMMA / DefaultKeyword.FROM / Assist.END ：**包含别名**。例如，`SELECT user_id uid FROM t_user`，解析结果为 `user_id uid`。
 
-基于这个在配合上面的代码注释，大家再重新理解下怎么解析第三种情况。
+基于这个在配合上面的代码注释，大家再重新理解下第三种情况的实现。
 
 * 第四种：SQLServer ROW_NUMBER：
 
-ROW_NUMBER 是 SQLServer 独有的。由于本文大部分的读者使用的 MySQL / Oracle，就不分析了。有兴趣的同学可以看 [SQLServerSelectParser#parseRowNumberSelectItem()](https://github.com/dangdangdotcom/sharding-jdbc/blob/9354031743b63e44cbded5618980ae71a15f0260/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/parsing/parser/dialect/sqlserver/SQLServerSelectParser.java) 方法。
+ROW_NUMBER 是 SQLServer 独有的。由于本文大部分的读者使用的 MySQL / Oracle，就跳过了。有兴趣的同学可以看 [SQLServerSelectParser#parseRowNumberSelectItem()](https://github.com/dangdangdotcom/sharding-jdbc/blob/9354031743b63e44cbded5618980ae71a15f0260/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/parsing/parser/dialect/sqlserver/SQLServerSelectParser.java) 方法。
 
 ### 3.2.2 #parseAlias() 解析别名
 
@@ -379,7 +405,6 @@ ROW_NUMBER 是 SQLServer 独有的。由于本文大部分的读者使用的 MyS
 TableToken，记录表名在 SQL 里出现的**位置**和**名字**。
 
 ```Java
-// TableToken.java
 public final class TableToken implements SQLToken {
     /**
      * 开始位置
@@ -392,7 +417,6 @@ public final class TableToken implements SQLToken {
     
     /**
      * 获取表名称.
-     * 
      * @return 表名称
      */
     public String getTableName() {
@@ -402,8 +426,7 @@ public final class TableToken implements SQLToken {
 ```
 
 例如上文第三种情况。
-![](../../../images/Sharding-JDBC/2017_07_27/06.png)
-
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/06.png)
 
 ## 3.3 #skipToFrom()
 
@@ -420,7 +443,7 @@ private void skipToFrom() {
 
 ## 3.4 #parseFrom()
 
-解析单个表名和表别名。
+解析表以及表连接关系。**这块相对比较复杂，请大家耐心+耐心+耐心。**
 
 **MySQL JOIN Syntax**：
 
@@ -482,12 +505,12 @@ SELECT * FROM t_order o, t_order_item i
 
 在看实现代码之前，先一起看下调用顺序图：
 
-![](../../../images/Sharding-JDBC/2017_07_27/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_07_27/02.png)
 
 看懂上图后，来继续看下实现代码（🙂**代码有点多，不要方！**）：
 
 ```Java
-// AbstractSelectParser.class
+// AbstractSelectParser.java
 /**
 * 解析所有表名和表别名
 */
@@ -505,22 +528,17 @@ public void parseTable() {
        if (!selectStatement.getTables().isEmpty()) {
            throw new UnsupportedOperationException("Cannot support subquery for nested tables.");
        }
-       selectStatement.setContainStar(false); // TODO 疑问
-       // 去掉子查询左括号
-       sqlParser.skipUselessParentheses();
-       // 解析子查询 SQL
-       parse();
-       // 去掉子查询右括号
-       sqlParser.skipUselessParentheses();
+       selectStatement.setContainStar(false);
+       sqlParser.skipUselessParentheses(); // 去掉子查询左括号
+       parse(); // 解析子查询 SQL
+       sqlParser.skipUselessParentheses(); // 去掉子查询右括号
        //
        if (!selectStatement.getTables().isEmpty()) {
            return;
        }
    }
-   // 解析当前表
-   parseTableFactor();
-   // 解析下一个表
-   parseJoinTable();
+   parseTableFactor(); // 解析当前表
+   parseJoinTable(); // 解析下一个表
 }
 /**
 * 解析单个表名和表别名
@@ -579,7 +597,7 @@ private void parseTableCondition(final int startPosition) {
 }
 ```
 
-OK，递归因为平时日常中写的比较少，可能理解起来可能会困难一些，努力看懂！🙂**如果真的看不懂，可以加微信公众号（芋艿的后端小屋），我来帮你一起理解。**
+OK，递归因为平时日常中写的比较少，可能理解起来可能会困难一些，努力看懂！🙂**如果真的看不懂，可以加微信公众号（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)），我来帮你一起理解。**
 
 ### 3.4.2 子查询
 
@@ -610,7 +628,7 @@ if (!selectStatement.getTables().isEmpty()) {
 
 ### 3.4.3 #parseJoinTable()
 
-MySQLSelectParser 重写了 `#parseJoinTable()` 用于解析 USE / IGNORE / FORCE index_hint。具体语法见上文 **JOIN Syntax**。这里就不做解析，有兴趣的同学可以去看看。
+MySQLSelectParser 重写了 `#parseJoinTable()` 方法用于解析 USE / IGNORE / FORCE index_hint。具体语法见上文 **JOIN Syntax**。这里就跳过，有兴趣的同学可以去看看。
 
 ### 3.4.4 Tables 表集合对象
 
@@ -642,7 +660,7 @@ selectStatement.getTables().add(new Table(SQLUtil.getExactlyValue(literals), sql
 
 ## 3.6 #parseGroupBy()
 
-解析分组条件，实现上比较类似查询字段，更简单一些。
+解析分组条件，实现上比较类似 `#parseSelectList`，会更加简单一些。
 
 ```Java
 // AbstractSelectParser.java
@@ -755,11 +773,11 @@ public final class OrderItem {
 
 ## 3.7 #parseOrderBy()
 
-解析排序条件。实现逻辑类似 `#parseGroupBy()`，这里就不做解析，有兴趣的同学可以去看看。
+解析排序条件。实现逻辑类似 `#parseGroupBy()`，这里就跳过，有兴趣的同学可以去看看。
 
 ## 3.8 #parseLimit()
 
-解析分页 Limit 条件。相对简单，这里就不做解析，有兴趣的同学可以去看看。注意下，分成 3 种情况：
+解析分页 Limit 条件。相对简单，这里就跳过，有兴趣的同学可以去看看。注意下，分成 3 种情况：
 
 * LIMIT row_count
 * LIMIT offset, row_count
@@ -772,7 +790,6 @@ public final class OrderItem {
 ```Java
 // Limit.java
 public final class Limit {
-
     /**
      * 是否重写rowCount
      * TODO 待补充：预计和内存分页合并有关
@@ -850,7 +867,7 @@ protected void queryRest() {
 
 # 4. appendDerived等方法
 
-因为 Sharding-JDBC 对表做了分片，在 AVG , GROUP BY , ORDER BY 需要对 SQL 进行一些改写，以达到能在内存里对结果做进一步处理，例如求平均值、分组、排序等。
+因为 Sharding-JDBC 对表做了分片，在 AVG , GROUP BY , ORDER BY 需要对 SQL 进行一些改写，**以达到能在内存里对结果做进一步处理**，例如求平均值、分组、排序等。
 
 😈：打起精神，此块是非常有趣的。
 
@@ -943,14 +960,13 @@ private boolean isContainsItem(final OrderItem orderItem) {
 
 ## 4.3 ItemsToken
 
-选择项标记对象。目前有 3 个情况会产生：
+选择项标记对象。目前有 3 个情况会创建：
 
 1. `AVG` 查询额外 COUNT 和 SUM：`#appendAvgDerivedColumns()`
 2. `GROUP BY` 不在 查询字段，额外查询该字段 ：`#appendDerivedOrderColumns()`
 3. `ORDER BY` 不在 查询字段，额外查询该字段 ：`#appendDerivedOrderColumns()`
 
 ```Java
-// ItemsToken.java
 public final class ItemsToken implements SQLToken {
 
     /**
@@ -976,20 +992,18 @@ mysql> SELECT order_id FROM t_order GROUP BY order_id;
 | 1        |
 | 2        |
 | 3        |
-| 4        |
 +----------+
-4 rows in set (0.05 sec)
+3 rows in set (0.05 sec)
 
 mysql> SELECT order_id FROM t_order GROUP BY order_id DESC;
 +----------+
 | order_id |
 +----------+
-| 4        |
 | 3        |
 | 2        |
 | 1        |
 +----------+
-4 rows in set (0.02 sec)
+3 rows in set (0.02 sec)
 ```
 
 ```JAVA
@@ -1019,6 +1033,11 @@ public final class OrderByToken implements SQLToken {
 }
 ```
 
-# 7. 彩蛋
+# 666. 彩蛋
 
+咳咳咳，确实有一些略长。但请相信，INSERT / UPDATE / DELETE 会简单很多很多。考试考的 SQL 最多的是什么？SELECT 语句呀！为啥，难呗。恩，我相信看到此处的你，一定是能看懂的，加油！
+
+🙂如果对本文有不理解的地方，可以关注我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**获得**微信号**，我们来一场，1 对 1 的搞基吧，不不不，是交流交流。
+
+道友，帮我分享一波怎么样？
 
