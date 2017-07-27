@@ -1,4 +1,4 @@
-title: Sharding-JDBC 源码分析 —— SQL 解析（一）之语法解析
+title: Sharding-JDBC 源码分析 —— SQL 解析（一）之词法解析
 date: 2017-07-23
 tags:
 categories: Sharding-JDBC

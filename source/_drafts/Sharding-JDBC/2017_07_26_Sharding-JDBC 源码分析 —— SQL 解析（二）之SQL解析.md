@@ -92,7 +92,7 @@ public SQLStatement parse() {
 
 # 3. SQLParser SQL解析器
 
-SQLParser，SQL 解析器。和语法解析器 Lexer 一样，不同数据库有不同的实现。
+SQLParser，SQL 解析器。和词法解析器 Lexer 一样，不同数据库有不同的实现。
 
 类图如下（**包含所有属性和方法**）（**[放大图片](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/02.png)**）：
 
