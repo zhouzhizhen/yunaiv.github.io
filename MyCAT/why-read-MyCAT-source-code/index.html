@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
+    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么阅读 MyCAT 源码？">
 <meta property="og:url" content="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
+<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
-<meta property="og:updated_time" content="2017-07-27T14:05:59.000Z">
+<meta property="og:updated_time" content="2017-07-27T16:54:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么阅读 MyCAT 源码？">
-<meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
+<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-MyCAT-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#功能点"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -182,17 +182,18 @@
   <div class="content" itemprop="articleBody">
     <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
 <li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<h2 id="为什么阅读-MyCAT-源码？"><a href="#为什么阅读-MyCAT-源码？" class="headerlink" title="为什么阅读 MyCAT 源码？"></a>为什么阅读 MyCAT 源码？</h2><ul>
+<h2>为什么阅读 MyCAT 源码？</h2>
+<ul>
 <li>深入了解<strong>数据库中间件</strong> ，知其然知其所以然。</li>
 <li>NIO 的实现 与 Netty 有什么特殊的地方？</li>
 <li>分布式事务如何实现的？</li>
@@ -200,7 +201,8 @@
 <li>SQL 解析</li>
 <li>等等</li>
 </ul>
-<h2 id="功能点"><a href="#功能点" class="headerlink" title="功能点"></a>功能点</h2><ul>
+<h2>功能点</h2>
+<ul>
 <li>[ ] NIO</li>
 <li>[x] 分布式事务</li>
 <li>[ ] MyCAT 主从</li>
@@ -225,7 +227,7 @@
 <li>[ ] 监控</li>
 <li>[ ] Mongodb</li>
 <li>[ ] 内存管理 20%</li>
-<li>[ ] 数据聚合 30% </li>
+<li>[ ] 数据聚合 30%</li>
 <li>[ ] 数据排序 25%</li>
 <li>[ ] 分表</li>
 <li>[ ] 分库 50%</li>
@@ -261,7 +263,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-MyCAT-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#功能点"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 MyCAT 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能点</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
