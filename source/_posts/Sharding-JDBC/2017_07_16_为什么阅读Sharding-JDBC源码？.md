@@ -32,14 +32,14 @@ permalink: Sharding-JDBC/why-read-Sharding-JDBC-source-code
 
     **从 MyCAT 阅读计划复制，用于对比。**
 
-* [ ] NIO
+* [ ] ~~NIO~~
 * [ ] ~~分布式事务~~
 * [ ] ~~MyCAT 主从~~
 * [ ] ~~支持prepare预编译指令~~
 * [ ] 自增序列
 * [ ] 单库任意 Join
 * [ ] 跨库2表 Join
-* [ ] 跨库多表 Join
+* [ ] ~~跨库多表 Join~~
 * [ ] SQL 解析
 * [ ] 读写分离
 * [ ] MySQL 主从
@@ -52,7 +52,7 @@ permalink: Sharding-JDBC/why-read-Sharding-JDBC-source-code
 * [ ] 路由
 * [ ] ~~MyCAT 集群~~
 * [ ] 注解
-* [ ] 缓存
+* [ ] ~~缓存~~
 * [ ] 监控
 * [ ] ~~Mongodb~~
 * [ ] 内存管理
@@ -61,7 +61,7 @@ permalink: Sharding-JDBC/why-read-Sharding-JDBC-source-code
 * [ ] 分表
 * [ ] 分库
 * [ ] 全局表
-* [ ] E/R关系
+* [ ] ~~E/R关系~~
 * [ ] 服务降级
 * [ ] SQL 注入攻击拦截
 * [ ] ~~MySQL 协议~~

@@ -1,8 +1,10 @@
-title: Sharding-JDBC 源码分析 —— SQL 解析（二）之SQL解析
+title: 【推荐阅读】Sharding-JDBC 源码分析 —— SQL 解析（二）之SQL解析
 date: 2017-07-26
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/sql-parse-2
+encrypt: true
+enc_pwd: coke
 
 -------
 

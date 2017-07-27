@@ -92,7 +92,7 @@ baidu_url_submit:
 nofollow:
 	enable: true
 	exclude:
-      github.com
+      github.com:
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
