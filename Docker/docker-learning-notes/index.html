@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+<meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker —— 学习笔记">
+<meta property="og:url" content="http://www.yunai.me/Docker/docker-learning-notes/index.html">
+<meta property="og:site_name" content="芋艿V的博客">
+<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+<meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta property="og:image" content="http://www.yunai.me/Docker/docker-learning-notes/images/008CD83F-DF1E-470C-8192-5B5D0F9DFE70.png">
+<meta property="og:image" content="http://www.yunai.me/images/4A097CA8-F4DC-44AA-91D0-C4397C753576.png">
+<meta property="og:image" content="http://www.yunai.me/images/452D8BD2-8FDF-45F2-B3D8-BA8BF04BE294.png">
+<meta property="og:image" content="http://www.yunai.me/images/Docker/2017_01_06/03.png">
+<meta property="og:updated_time" content="2017-07-27T17:10:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker —— 学习笔记">
+<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+<meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Docker —— 学习笔记</title>
+    <!-- keywords -->
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+
+
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+    <script>AV.initialize("uxUSudJeAFuAk0PKwFMY7MJW-gzGzoHsz", "NTPUE2VIEE0gyPPGbAaLPtLb");</script>
+    <!-- 百度统计 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" class="active"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:visible;">
+    <i class="fa fa-chevron-up fa-lg"></i>
+  </a>
+  <span id="menu" style="visibility: visible;">
+    <span id="nav">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="http://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">GitHub</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/Nginx/nginx-dynamic-upstream/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
+        
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$(" #i-top").toggle();"="" onmouseout="$("></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$(" #i-share").toggle();"="" onmouseout="$(" onclick="$(" #share").toggle();return="" false;"=""></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Docker/docker-learning-notes/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Docker/docker-learning-notes/&text=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Docker/docker-learning-notes/&is_video=false&description=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Docker —— 学习笔记&body=Check out this article: http://www.yunai.me/Docker/docker-learning-notes/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Docker/docker-learning-notes/&name=Docker —— 学习笔记&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">本文背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">《Docker —— 从入门到实践》碰到的问题：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">服务发现的选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.1.</span> <span class="toc-text">目前考虑选择Etcd：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.2.</span> <span class="toc-text">Etcd本地测试集群搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.3.</span> <span class="toc-text">Etcd多服务器集群搭建</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Docker —— 学习笔记
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">芋艿V的博客</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2017-01-05T16:00:00.000Z" itemprop="datePublished">2017-01-06</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="http://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<h1>本文背景</h1>
+<ul>
+<li>系统：macOS Sierra 10.12.1</li>
+<li>Docker版本：Docker version 1.12.3, build 6b644ec</li>
+<li>《Docker —— 从入门到实践》PDF版本：6448a627f6c4a9f0ca762951f390d3f9a571d310</li>
+<li>本文记录：在学习Docker的过程以及尝试中碰到的问题。</li>
+</ul>
+<hr>
+<h1>《Docker —— 从入门到实践》碰到的问题：</h1>
+<ol>
+<li>
+<p>执行<code>docker run -d -p 80:80 --name webserver nginx</code>报错：<code>docker: Cannot connect to the Docker daemon. Is the docker daemon running on this host?.</code></p>
+<ul>
+<li>原因：TODO</li>
+<li>解决方式：<code>sudo docker run -d -p 80:80 --name webserver nginx</code>
+ps：该解决方式暂时不是最优。TODO</li>
+</ul>
+</li>
+<li>
+<p>执行<code>docker run -d -p 80:80 --name webserver nginx</code>报错：<code>docker: Network timed out while trying to connect to https://index.docker.io/v1/repositories/library/nginx/images. You may want to check your internet connection or if you are</code></p>
+<ul>
+<li>
+<p>原因：docker.io存在被墙、连接困难的情况。</p>
+</li>
+<li>
+<p>解决方式：更换阿里云docker镜像。</p>
+<p><img src="images/008CD83F-DF1E-470C-8192-5B5D0F9DFE70.png" alt="*"></p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>nsenter</code>：随着docker1.3版本开始，<code>docker exec -it CONTAINER_NAME bash</code>成为推荐的连接到容器的方式。参考：https://github.com/jpetazzo/nsenter。</p>
+<blockquote>
+<p>There are differences between nsenter and docker exec; namely, nsenter doesn't enter the cgroups, and therefore evades resource limitations. The potential benefit of this would be debugging and external audit, <strong>but for remote access, docker exec is the current recommended approach</strong>.</p>
+</blockquote>
+</li>
+<li>
+<p>在《使用网络-容器互联》章节，</p>
+<ul>
+<li>
+<p><code>sudo docker run -d --name db training/postgres</code></p>
+</li>
+<li>
+<p><code>sudo docker run -d -P --name web --link db:db training/webapp python app.py</code>
+后进行<code>docker ps</code>，无法得到如下图：
+<img src="http://www.yunai.me/images/4A097CA8-F4DC-44AA-91D0-C4397C753576.png" alt="*">
+得到的结果如下图：
+<img src="http://www.yunai.me/images/452D8BD2-8FDF-45F2-B3D8-BA8BF04BE294.png" alt="*"></p>
+</li>
+<li>
+<p>原因：TODO</p>
+</li>
+<li>
+<p>解决方式：<code>sudo docker inspect -f &quot;&quot; web</code> // hexo markdown 编译不过，看下图</p>
+<blockquote>
+<p>[/db:/web/db]</p>
+</blockquote>
+<p>示例成功。</p>
+</li>
+</ul>
+<p><img src="http://www.yunai.me/images/Docker/2017_01_06/03.png" alt=""></p>
+</li>
+</ol>
+<hr>
+<hr>
+<h1>服务发现的选择</h1>
+<h3>目前考虑选择Etcd：</h3>
+<p>主要有3种选择：</p>
+<ul>
+<li>Etcd</li>
+<li>Consul</li>
+<li>ZooKeeper</li>
+</ul>
+<p>选择Etcd的原因如下：</p>
+<ul>
+<li><code>CoreOS</code> 发起的开源项目</li>
+<li><code>K8s</code> 对etcd的官方支持</li>
+</ul>
+<hr>
+<h3>Etcd本地测试集群搭建</h3>
+<ul>
+<li>参考文章：https://github.com/coreos/etcd/blob/master/Documentation/dev-guide/local_cluster.md</li>
+<li>可能会碰到的问题：
+<ol>
+<li>
+<p>go安装：<code>yum install go</code></p>
+</li>
+<li>
+<p>git安装：<code>yum install git</code></p>
+</li>
+<li>
+<p><code>go get github.com/mattn/goreman</code> 报错：<code>package github.com/mattn/goreman: cannot download, $GOPATH not set. For more details see: go help gopath</code>。</p>
+<p>解决方式：<code>export GOPATH=~/work</code>。然后执行上面的命令。最终<code>goreman</code>在<code>~/work/bin</code>下。</p>
+</li>
+<li>
+<p><code>goreman -f Procfile start</code>报错：<code>open Procfile: no such file or directory</code>。从<a href="https://github.com/coreos/etcd/blob/master/Procfile" target="_blank" rel="external nofollow noopener noreferrer">https://github.com/coreos/etcd/blob/master/Procfile</a>进行下载。下载完后，需要修改下文件里的<code>bin/etcd</code>为<code>etcd</code>所在目录。</p>
+</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3>Etcd多服务器集群搭建</h3>
+<pre><code>curl -X PUT http://127.0.0.1:2379/v2/keys/upstreams/test/127.0.0.1:8080
+</code></pre>
+<p>curl -X PUT -d value=&quot;{&quot;weight&quot;:1, &quot;max_fails&quot;:100, &quot;fail_timeout&quot;:1000}&quot; http://127.0.0.1:2379/v2/keys/upstreams/test/127.0.0.1:8080</p>
+<pre><code>curl -X DELETE http://127.0.0.1:2379/v2/keys/upstreams/test/127.0.0.1:8080
+
+curl -X DELETE http://127.0.0.1:2379/v2/keys/upstreams/test/127.0.0.1:8080;
+cat conf/servers/servers_test.conf;
+</code></pre>
+<p>./configure --add-module=/root/nginx/nginx-1.10.1/modules/nginx-upsync-module --add-module=/root/nginx/nginx-1.10.1/modules/nginx_upstream_check_module-0.3.0</p>
+<p>./configure --add-module=/root/nginx/nginx-1.10.1/modules/nginx-upsync-module --add-module=/root/nginx/nginx-1.10.1/modules/nginx_upstream_check_module</p>
+<p>05.24：https://github.com/weibocom/nginx-upsync-module/releases/tag/v1.0.0
+07.31修复：https://github.com/weibocom/nginx-upsync-module/issues/91
+自己提交的issue：https://github.com/weibocom/nginx-upsync-module/issues/133</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">GitHub</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">本文背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">《Docker —— 从入门到实践》碰到的问题：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">服务发现的选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.1.</span> <span class="toc-text">目前考虑选择Etcd：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.2.</span> <span class="toc-text">Etcd本地测试集群搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">3.0.3.</span> <span class="toc-text">Etcd多服务器集群搭建</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://www.yunai.me/Docker/docker-learning-notes/" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://www.yunai.me/Docker/docker-learning-notes/&text=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://www.yunai.me/Docker/docker-learning-notes/&is_video=false&description=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Docker —— 学习笔记&body=Check out this article: http://www.yunai.me/Docker/docker-learning-notes/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://www.yunai.me/Docker/docker-learning-notes/&title=Docker —— 学习笔记" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://www.yunai.me/Docker/docker-learning-notes/&name=Docker —— 学习笔记&description=" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$(" #toc-footer").toggle();return="" false;"=""><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$(" #share-footer").toggle();return="" false;"=""><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$(" #nav-footer").toggle();return="" false;"=""><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 王文斌
+  </div>
+
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">GitHub</a></li>
+        
+          <li>
+              Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+          </li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+<!-- Disqus Comments -->
+
+
+<!--page counter part-->
+<script>
+    function addCount(Counter) {
+        // TODO 待优化：过滤 爬虫
+        url = $('#actions .icon').attr('href').trim(); // 文章url
+//        alert(url);
+        title = $('.posttitle').text().trim(); // 文章标题
+        var query = new AV.Query(Counter);
+        //use url as unique idnetfication
+        query.equalTo("url", url);
+        query.find({
+            success: function (results) {
+                if (results.length > 0) {
+                    var counter = results[0];
+                    counter.fetchWhenSave(true); //get recent result
+                    counter.increment("time");
+                    counter.save();
+                    // 插入次数
+                    $('.postdate').append('&nbsp;' + (counter.get('time') + 1) + '  Views');
+                } else {
+                    var newcounter = new Counter();
+                    newcounter.set("title", title);
+                    newcounter.set("url", url);
+                    newcounter.set("time", 1);
+                    newcounter.save(null, {
+                        success: function (newcounter) {
+                            // 插入次数
+                            $('.postdate').append('&nbsp;1  Views');
+                        },
+                        error: function (newcounter, error) {
+                        }
+                    });
+                }
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=")
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1
+                c_end = document.cookie.indexOf(";", c_start)
+                if (c_end == -1) c_end = document.cookie.length
+                return unescape(document.cookie.substring(c_start, c_end))
+            }
+        }
+        return ""
+    }
+
+    function setCookie(c_name, value, expiredays) {
+        var exdate = new Date()
+        exdate.setDate(exdate.getDate() + expiredays)
+        document.cookie = c_name + "=" + escape(value) +
+            ((expiredays == null) ? "" : ";expires=" + exdate.toGMTString())
+    }
+
+    function addVisitLog() {
+        // 获取uid
+        var visitorId = getCookie('blog_visitor_id');
+        if (visitorId.length != 36) {
+            visitorId = uuid();
+            setCookie('blog_visitor_id', visitorId);
+        }
+        // ip 浏览器无法获取
+        // time 服务端已经记录
+        var url = location.href;
+        var ua = navigator.userAgent;
+        var referer = document.referrer;
+        var Log = AV.Object.extend("VisitLog");
+        var log = new Log();
+        log.set('url', url);
+        log.set('ua', ua);
+        log.set('referer', referer);
+        log.set('visitorId', visitorId);
+        log.save();
+    }
+
+    function uuid() {
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 36; i++) {
+            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+        }
+        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+        s[8] = s[13] = s[18] = s[23] = "-";
+
+        var uuid = s.join("");
+        return uuid;
+    }
+
+    // TODO 待优化：此处性能较差，可能
+    function countVisitLog() {
+        var Log = AV.Object.extend("VisitLog");
+        var query = new AV.Query(Log);
+        query.count({
+            success: function (results) {
+                $('.footer-left').append('&nbsp;' + results + '  Views');
+            },
+            error: function (error) {
+            }
+        });
+    }
+
+    $(function () {
+        // 判断是否在文章页
+        setTimeout(function () {
+            if ($('.posttitle').length == 1) {
+                var Counter = AV.Object.extend("Counter");
+                // 增加文章访问次数
+                addCount(Counter);
+            }
+            // 记录访问日志
+            addVisitLog();
+            // 计算多少人访问
+            countVisitLog();
+        }, 1000);
+    });
+</script>
