@@ -170,7 +170,7 @@ public abstract class AbstractSQLStatement implements SQLStatement {
 
 ## 2.2 SQLToken
 
-SQLToken，SQL标记对象接口，下面都是它的实现类。
+SQLToken，SQL标记对象接口，SQL 改写时使用到。下面都是它的实现类：
 
 | 类 | 说明 |
 | :--- | :--- |
@@ -307,7 +307,7 @@ protected final void parseSelectList() {
 
 ### 3.2.1 SelectItem 选择项
 
-SelectItem 是一个接口，有 2 个实现类：
+SelectItem 接口，**属于分片上下文信息**，有 2 个实现类：
 
 * CommonSelectItem ：通用选择项
 * AggregationSelectItem ：聚合选择项
@@ -632,6 +632,8 @@ MySQLSelectParser 重写了 `#parseJoinTable()` 方法用于解析 USE / IGNORE 
 
 ### 3.4.4 Tables 表集合对象
 
+**属于分片上下文信息**
+
 ```Java
 // Tables.java
 public final class Tables {
@@ -743,6 +745,8 @@ private Optional<String> getAlias(final String name) {
 
 ### 3.6.1 OrderItem 排序项
 
+**属于分片上下文信息**
+
 ```Java
 public final class OrderItem {
     /**
@@ -785,7 +789,7 @@ public final class OrderItem {
 
 ### 3.8.1 Limit
 
-分页对象。
+分页对象。**属于分片上下文信息**。
 
 ```Java
 // Limit.java
@@ -960,7 +964,7 @@ private boolean isContainsItem(final OrderItem orderItem) {
 
 ## 4.3 ItemsToken
 
-选择项标记对象。目前有 3 个情况会创建：
+选择项标记对象，**属于分片上下文信息**，目前有 3 个情况会创建：
 
 1. `AVG` 查询额外 COUNT 和 SUM：`#appendAvgDerivedColumns()`
 2. `GROUP BY` 不在 查询字段，额外查询该字段 ：`#appendDerivedOrderColumns()`
@@ -968,7 +972,6 @@ private boolean isContainsItem(final OrderItem orderItem) {
 
 ```Java
 public final class ItemsToken implements SQLToken {
-
     /**
      * SQL 开始位置
      */

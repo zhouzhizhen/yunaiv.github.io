@@ -3,8 +3,6 @@ date: 2017-07-26
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/sql-parse-2
-encrypt: true
-enc_pwd: coke
 
 -------
 
@@ -40,7 +38,12 @@ enc_pwd: coke
 
 上篇文章[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)分享了**词法解析器Lexer**是如何解析 SQL 里的词法。本文分享**SQL解析引擎**是如何解析与理解 SQL的。因为本文建立在[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)之上，你需要阅读它后在开始这段旅程。🙂如果对词法解析不完全理解，请给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。
 
-本文涉及到三个组件：
+区别于 Lexer，Parser **理解SQL**：
+
+* **提炼分片上下文**
+* **标记需要SQL改写的部分**
+
+Parser 有三个组件：
 
 * SQLParsingEngine ：SQL 解析引擎
 * SQLParser ：SQL 解析器
@@ -551,8 +554,19 @@ public final class SelectParserFactory {
 
 ![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/07.png)
 
-## 4.3 预告
+Statement 包含两部分信息：
 
+* 分片上下文：用于 SQL 路由。
+
+    ![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/08.png)
+
+* SQL 标记对象：用于 SQL 改写。
+
+   ![](http://www.yunai.me/images/Sharding-JDBC/2017_07_26/09.png)
+
+我们会在后文增删改查SQL解析的过程中分享到它们。
+
+## 4.3 预告
 
 | Parser | Statement | 分享文章 |
 | --- | --- | --- |
