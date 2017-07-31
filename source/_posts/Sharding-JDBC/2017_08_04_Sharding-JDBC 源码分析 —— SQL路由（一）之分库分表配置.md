@@ -258,6 +258,8 @@ ShardingRule，分库分表规则配置对象，内嵌 ShardingRuleBuilder 对�
 > 例：订单表和订单项表，均按照订单ID分片，则此两张表互为BindingTable关系。  
 > BindingTable关系的多表关联查询不会出现笛卡尔积关联，关联查询效率将大大提升。
 
+😈 这么说，可能不太容易理解。[《分表分库路由》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)，我们在源码的基础上，好好理解下。**非常重要，特别是性能优化上面**。
+
 # 4. ShardingStrategy
 
 ShardingStrategy，分片策略。
