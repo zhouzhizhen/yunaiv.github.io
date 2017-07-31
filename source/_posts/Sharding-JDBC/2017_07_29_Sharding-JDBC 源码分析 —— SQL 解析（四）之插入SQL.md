@@ -6,7 +6,7 @@ permalink: Sharding-JDBC/sql-parse-4
 
 -------
 
-![](https://www.yunai.me/images/common/wechat_mp.jpeg)
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -294,7 +294,7 @@ public final class GeneratedKey {
 
 ### 3.4.2 Condition
 
-条件对象，**属于分片上下文信息**。在**插入SQL解析**里存储**影响分片的值字段**。后续[《SQL 路由》](http://www.yunai.me/images/common/wechat_mp.jpeg) 会专门分享这块。
+条件对象，**属于分片上下文信息**。在**插入SQL解析**里存储**影响分片的值字段**。后续[《SQL 路由》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 会专门分享这块。
 
 ```Java
 public final class Condition {
@@ -375,7 +375,7 @@ private void parseInsertSet() {
 INSERT INTO t_user(nickname, age) VALUES (?, ?)
 ```
 
-后续 SQL 改写会生成该自增编号，并改写该 SQL。后续[《SQL 改写》](http://www.yunai.me/images/common/wechat_mp.jpeg) 会专门分享这块。
+后续 SQL 改写会生成该自增编号，并改写该 SQL。后续[《SQL 改写》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 会专门分享这块。
 
 ```Java
 private void appendGenerateKey() {

@@ -18,14 +18,14 @@
 <meta property="og:url" content="http://www.yunai.me/Sharding-JDBC/sql-parse-5/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
 <meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
-<meta property="og:image" content="https://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta property="og:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_07_31/01.png">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_07_31/02.png">
-<meta property="og:updated_time" content="2017-07-28T08:31:35.000Z">
+<meta property="og:updated_time" content="2017-07-31T12:30:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL">
 <meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
-<meta name="twitter:image" content="https://www.yunai.me/images/common/wechat_mp.jpeg">
+<meta name="twitter:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
     
     
         
@@ -182,7 +182,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p><img src="https://www.yunai.me/images/common/wechat_mp.jpeg" alt=""></p>
+    <p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
 <p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
 <ol>
@@ -241,7 +241,7 @@
 <h2 id="3-3-parseSetItems"><a href="#3-3-parseSetItems" class="headerlink" title="3.3 #parseSetItems()"></a>3.3 #parseSetItems()</h2><p>解析<code>SET</code>后语句。 </p>
 <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractUpdateParser.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析多个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetItems</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.accept(DefaultKeyword.SET);</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       parseSetItem();</div><div class="line">   &#125; <span class="keyword">while</span> (sqlParser.skipIfEqual(Symbol.COMMA)); <span class="comment">// 以 "," 分隔</span></div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetItem</span><span class="params">()</span> </span>&#123;</div><div class="line">   parseSetColumn();</div><div class="line">   sqlParser.skipIfEqual(Symbol.EQ, Symbol.COLON_EQ);</div><div class="line">   parseSetValue();</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetColumn</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">       sqlParser.skipParentheses();</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">int</span> beginPosition = sqlParser.getLexer().getCurrentToken().getEndPosition();</div><div class="line">   String literals = sqlParser.getLexer().getCurrentToken().getLiterals();</div><div class="line">   sqlParser.getLexer().nextToken();</div><div class="line">   <span class="keyword">if</span> (sqlParser.skipIfEqual(Symbol.DOT)) &#123; <span class="comment">// 字段有别名</span></div><div class="line">       <span class="comment">// TableToken</span></div><div class="line">       <span class="keyword">if</span> (updateStatement.getTables().getSingleTableName().equalsIgnoreCase(SQLUtil.getExactlyValue(literals))) &#123;</div><div class="line">           updateStatement.getSqlTokens().add(<span class="keyword">new</span> TableToken(beginPosition - literals.length(), literals));</div><div class="line">       &#125;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 值</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetValue</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.parseExpression(updateStatement);</div><div class="line">   parametersIndex = sqlParser.getParametersIndex();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h2 id="3-4-parseWhere"><a href="#3-4-parseWhere" class="headerlink" title="3.4 #parseWhere()"></a>3.4 #parseWhere()</h2><p>解析 WHERE 条件。解析代码：<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的#parseWhere()小节</a>。</p>
-<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😝 比更新SQL解析是不是简单，更不用对比查询SQL解析。😳有一种在水更的感觉。嘿嘿，下一篇（<a href="http://www.yunai.me/images/common/wechat_mp.jpeg">《删除SQL解析》</a>）会更加容易。</p>
+<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😝 比更新SQL解析是不是简单，更不用对比查询SQL解析。😳有一种在水更的感觉。嘿嘿，下一篇（<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《删除SQL解析》</a>）会更加容易。</p>
 <p>道友，帮我分享一波怎么样？</p>
 
   </div>

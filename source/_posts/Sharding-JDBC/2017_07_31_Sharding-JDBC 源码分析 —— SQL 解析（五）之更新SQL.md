@@ -6,7 +6,7 @@ permalink: Sharding-JDBC/sql-parse-5
 
 -------
 
-![](https://www.yunai.me/images/common/wechat_mp.jpeg)
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -181,7 +181,7 @@ private void parseSetValue() {
 
 # 666. 彩蛋
 
-😝 比更新SQL解析是不是简单，更不用对比查询SQL解析。😳有一种在水更的感觉。嘿嘿，下一篇（[《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)）会更加容易。
+😝 比更新SQL解析是不是简单，更不用对比查询SQL解析。😳有一种在水更的感觉。嘿嘿，下一篇（[《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)）会更加容易。
 
 道友，帮我分享一波怎么样？
 

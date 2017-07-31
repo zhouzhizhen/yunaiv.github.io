@@ -6,7 +6,7 @@ permalink: MyCAT/connect-mongodb
 
 ---
 
-![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -431,7 +431,7 @@ private int InsertData(SQLInsertStatement state) {
 
 老铁，看到这里，来一波微信公众号关注吧？！
 
-![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 **1、支持多 MongoDB ，并使用 MyCAT 进行分片。**
 

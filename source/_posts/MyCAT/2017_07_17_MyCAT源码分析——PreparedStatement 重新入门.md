@@ -6,7 +6,7 @@ permalink: MyCAT/what-is-PreparedStatement
 
 ---
 
-![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -338,7 +338,7 @@ public void recachePreparedStatement(ServerPreparedStatement pstmt) throws SQLEx
 
 🗿 这个“彩蛋”还满意么？**请关注我的公众号：芋艿的后端小屋**。下一篇更新：《MyCAT源码解析 —— MongoDB》，极大可能就在本周噢。
 
-![wechat_mp](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![wechat_mp](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 另外推荐一篇文章：[《JDBC PreparedStatement》](https://www.zybuluo.com/stefanlu/note/254899)。
 

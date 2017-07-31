@@ -1,4 +1,4 @@
-title: 【推荐阅读】Sharding-JDBC 源码分析 —— SQL 解析（二）之SQL解析
+title: Sharding-JDBC 源码分析 —— SQL 解析（二）之SQL解析
 date: 2017-07-26
 tags:
 categories: Sharding-JDBC
@@ -6,9 +6,9 @@ permalink: Sharding-JDBC/sql-parse-2
 
 -------
 
-![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
-> 🙂🙂🙂关注**微信公众号：[【芋艿的后端小屋】](http://www.yunai.me/images/common/wechat_mp.jpeg)**有福利：  
+> 🙂🙂🙂关注**微信公众号：[【芋艿的后端小屋】](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
 > 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
 > 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
@@ -36,7 +36,7 @@ permalink: Sharding-JDBC/sql-parse-2
 
 # 1. 概述
 
-上篇文章[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)分享了**词法解析器Lexer**是如何解析 SQL 里的词法。本文分享**SQL解析引擎**是如何解析与理解 SQL的。因为本文建立在[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)之上，你需要阅读它后在开始这段旅程。🙂如果对词法解析不完全理解，请给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。
+上篇文章[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)分享了**词法解析器Lexer**是如何解析 SQL 里的词法。本文分享**SQL解析引擎**是如何解析与理解 SQL的。因为本文建立在[《词法解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-1/)之上，你需要阅读它后在开始这段旅程。🙂如果对词法解析不完全理解，请给我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)）**留言，我会**逐条认真耐心**回复。
 
 区别于 Lexer，Parser **理解SQL**：
 
@@ -172,7 +172,7 @@ public final String skipParentheses() {
 }
 ```
 
-这个类其它方法很重要，逻辑相对简单，我们就不占用篇幅了。大家一定要看哟，后面调用非常非常多。[AbstractParser.java 传送门](https://github.com/dangdangdotcom/sharding-jdbc/blob/master/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/parsing/parser/AbstractParser.java)。👼也可以关注我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**发送关键字【sjdbc】获取**增加方法内注释的项目地址**。
+这个类其它方法很重要，逻辑相对简单，我们就不占用篇幅了。大家一定要看哟，后面调用非常非常多。[AbstractParser.java 传送门](https://github.com/dangdangdotcom/sharding-jdbc/blob/master/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/parsing/parser/AbstractParser.java)。👼也可以关注我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)）**发送关键字【sjdbc】获取**增加方法内注释的项目地址**。
 
 ## 3.2 SQLParser
 
@@ -300,7 +300,7 @@ private void skipRestCompositeExpression() {
 }
 ```
 
-解析了 SQLExpression 有什么用呢？我们会在[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)、[《插入SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)、[《更新SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)、[《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)。留个悬念😈，关注我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**，**实时收到新文更新通知**。
+解析了 SQLExpression 有什么用呢？我们会在[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)、[《插入SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)、[《更新SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)、[《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)。留个悬念😈，关注我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)）**，**实时收到新文更新通知**。
 
 ### 3.2.2 #parseAlias()
 
@@ -373,7 +373,7 @@ public final void parseSingleTable(final SQLStatement sqlStatement) {
 
 ### 3.2.4 #skipJoin()
 
-跳过表关联词法，支持 `SELECT * FROM t_user, t_order WHERE ...`, `SELECT * FROM t_user JOIN t_order ON ...`。下篇[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)**解析表**会用到这个方法。
+跳过表关联词法，支持 `SELECT * FROM t_user, t_order WHERE ...`, `SELECT * FROM t_user JOIN t_order ON ...`。下篇[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)**解析表**会用到这个方法。
 
 ```Java
 // SQLParser.java
@@ -507,7 +507,7 @@ private void parseEqualCondition(final SQLStatement sqlStatement, final SQLExpre
 }
 ```
 
-`#parseEqualCondition()` 解析到 `右SQL表达式(right)`，并判断 `左右SQL表达式` 与路由逻辑是否有影响，如果有，则加入到 Condition。**这个就是 `#parseWhere()` 的目的：解析 WHERE 查询条件对路由有影响的条件。**[《路由》](http://www.yunai.me/images/common/wechat_mp.jpeg)相关的逻辑，会单独开文章介绍。这里，我们先留有映像。
+`#parseEqualCondition()` 解析到 `右SQL表达式(right)`，并判断 `左右SQL表达式` 与路由逻辑是否有影响，如果有，则加入到 Condition。**这个就是 `#parseWhere()` 的目的：解析 WHERE 查询条件对路由有影响的条件。**[《路由》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)相关的逻辑，会单独开文章介绍。这里，我们先留有映像。
 
 # 4. StatementParser SQL语句解析器
 
@@ -570,20 +570,20 @@ Statement 包含两部分信息：
 
 | Parser | Statement | 分享文章 |
 | --- | --- | --- |
-| SelectStatementParser | SelectStatement + AbstractSQLStatement | [《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
-| InsertStatementParser | InsertStatement | [《插入SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
-| UpdateStatementParser | UpdateStatement | [《更新SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
-| DeleteStatementParser | DeleteStatement | [《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg) |
+| SelectStatementParser | SelectStatement + AbstractSQLStatement | [《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) |
+| InsertStatementParser | InsertStatement | [《插入SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) |
+| UpdateStatementParser | UpdateStatement | [《更新SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) |
+| DeleteStatementParser | DeleteStatement | [《删除SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) |
 
 # 5. 彩蛋
 
 老铁，是不是有丢丢长？  
 如果有地方错误，烦请指出🙂。  
-如果有地方不是很理解，可以加我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp.jpeg)）**留言，我会**逐条认真耐心**回复。  
+如果有地方不是很理解，可以加我的公众号**（[芋艿的后端小屋](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)）**留言，我会**逐条认真耐心**回复。  
 如果觉得还凑合，劳驾分享朋友圈或者基佬。
 
-[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp.jpeg)已经写了一半，预计很快...
+[《查询SQL解析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)已经写了一半，预计很快...
 
-![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 
