@@ -235,7 +235,7 @@ ShardingRule，分库分表规则配置对象，内嵌 ShardingRuleBuilder 对�
 
 # 4. ShardingStrategy
 
-ShardingStrategy，分片策略。
+ShardingStrategy，分片策略。针对分库、分表有两个子类。
 
 # 5. ShardingAlgorithm
 
