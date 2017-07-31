@@ -1,6 +1,6 @@
 # 1. 概述
 
-[《SQL 解析》](http://www.yunai.me/categories/Sharding-JDBC/?self) 已经告于段落，我们要开始新的旅程：[《SQL 路由》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)。相比**SQL解析**，路由会容易理解很多，骗人是小🐷。整个系列预计会拆分成**四小篇**文章：
+😆[《SQL 解析》](http://www.yunai.me/categories/Sharding-JDBC/?self) 已经告于段落，我们要开始新的旅程：[《SQL 路由》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)。相比**SQL解析**，路由会容易理解很多，骗人是小🐷。整个系列预计会拆分成**四小篇**文章：
 
 1. 《分库分表配置》
 2. 《分表分库路由》
@@ -235,7 +235,41 @@ ShardingRule，分库分表规则配置对象，内嵌 ShardingRuleBuilder 对�
 
 # 4. ShardingStrategy
 
-ShardingStrategy，分片策略。针对分库、分表有两个子类。
+ShardingStrategy，分片策略。
+
+* 针对分库、分表有两个子类。
+
+![](../../../images/Sharding-JDBC/2017_08_04/04.png)
+
+* DatabaseShardingStrategy，使用**分库**算法进行分片
+* TableShardingStrategy，使用**分表**算法进行分片
+
+[《分表分库路由》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 会进一步说明。
 
 # 5. ShardingAlgorithm
+
+ShardingAlgorithm，分片算法。
+
+* 针对分库、分表有两个子**接口**。
+* 针对**分片键**数量分成：无分片键算法、单片键算法、多片键算法。
+
+其中 NoneKeyDatabaseShardingAlgorithm、NoneTableShardingAlgorithm 为 ShardingRule 再未设置分库、分表算法的默认值。代码如下：
+
+```Java
+// ShardingRule.java
+public ShardingRule(
+       final DataSourceRule dataSourceRule, final Collection<TableRule> tableRules, final Collection<BindingTableRule> bindingTableRules,
+       final DatabaseShardingStrategy databaseShardingStrategy, final TableShardingStrategy tableShardingStrategy, final KeyGenerator keyGenerator) {
+   // ... 省略部分代码
+   this.databaseShardingStrategy = null == databaseShardingStrategy ? new DatabaseShardingStrategy(
+           Collections.<String>emptyList(), new NoneDatabaseShardingAlgorithm()) : databaseShardingStrategy;
+   this.tableShardingStrategy = null == tableShardingStrategy ? new TableShardingStrategy(
+           Collections.<String>emptyList(), new NoneTableShardingAlgorithm()) : tableShardingStrategy;
+   // ... 省略部分代码
+}
+```
+
+[《分表分库路由》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 会进一步说明。
+
+# 666. 彩蛋
 
