@@ -221,6 +221,8 @@ ShardingRule，分库分表规则配置对象，内嵌 ShardingRuleBuilder 对�
 
 ## 3.1 dataSourceRule
 
+`dataSourceRule`，数据源配置对象。ShardingRule 需要数据源配置正确。这点和 TableRule 是不同的。TableRule 对 `dataSourceRule` **只使用数据源名字，最终执行SQL 使用数据源名字从 ShardingRule 获取数据源连接**。大家可以回到本文【2.2.1 DataNode】细看下 DataNode 的生成过程。
+
 ## 3.2 tableRules
 
 `tableRules`，表规则配置对象**集合**。
@@ -232,6 +234,8 @@ ShardingRule，分库分表规则配置对象，内嵌 ShardingRuleBuilder 对�
 > BindingTable关系的多表关联查询不会出现笛卡尔积关联，关联查询效率将大大提升。
 
 # 4. ShardingStrategy
+
+ShardingStrategy，分片策略。
 
 # 5. ShardingAlgorithm
 
