@@ -469,3 +469,196 @@ public RoutingResult route() {
 
 # 6. ParsingSQLRouter
 
+ParsingSQLRouter，需要解析的SQL路由器。
+
+ParsingSQLRouter 使用 SQLParsingEngine **解析SQL**。对**SQL解析**有兴趣的同学可以看看拙作[《Sharding-JDBC 源码分析 —— SQL 解析》](http://www.yunai.me/categories/Sharding-JDBC/?mp)。
+
+```Java
+// ParsingSQLRouter.java
+public SQLStatement parse(final String logicSQL, final int parametersSize) {
+   SQLParsingEngine parsingEngine = new SQLParsingEngine(databaseType, logicSQL, shardingRule);
+   Context context = MetricsContext.start("Parse SQL");
+   SQLStatement result = parsingEngine.parse();
+   if (result instanceof InsertStatement) {
+       ((InsertStatement) result).appendGenerateKeyToken(shardingRule, parametersSize);
+   }
+   MetricsContext.stop(context);
+   return result;
+}
+```
+
+* `#appendGenerateKeyToken()` 会在[《SQL 改写》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)分享
+
+-------
+
+ParsingSQLRouter 在路由时，会根据**表情况**使用 SimpleRoutingEngine 或 CartesianRoutingEngine 进行路由。
+
+```Java
+private RoutingResult route(final List<Object> parameters, final SQLStatement sqlStatement) {
+   Collection<String> tableNames = sqlStatement.getTables().getTableNames();
+   RoutingEngine routingEngine;
+   if (1 == tableNames.size() || shardingRule.isAllBindingTables(tableNames)) {
+       routingEngine = new SimpleRoutingEngine(shardingRule, parameters, tableNames.iterator().next(), sqlStatement);
+   } else {
+       // TODO 可配置是否执行笛卡尔积
+       routingEngine = new ComplexRoutingEngine(shardingRule, parameters, tableNames, sqlStatement);
+   }
+   return routingEngine.route();
+}
+```
+
+* 当只进行**一张表**或者**多表互为BindingTable关系**时，使用 SimpleRoutingEngine 简单路由引擎。**多表互为BindingTable关系**时，每张表的路由结果是相同的，所以只要计算第一张表的分片即可。
+* BindingTable关系在 ShardingRule 的 `tableRules` 配置。配置该关系 TableRule 有如下需要遵守的规则：
+    * 分片策略与算法相同
+    * 数据源配置对象相同
+    * 真实表**数量**相同
+
+```Java
+// ShardingRule.java
+// 调用顺序 #isAllBindingTables()=>#filterAllBindingTables()=>#findBindingTableRule()=>#findBindingTableRule()
+/**
+* 判断逻辑表名称集合是否全部属于Binding表.
+* @param logicTables 逻辑表名称集合
+*/
+public boolean isAllBindingTables(final Collection<String> logicTables) {
+   Collection<String> bindingTables = filterAllBindingTables(logicTables);
+   return !bindingTables.isEmpty() && bindingTables.containsAll(logicTables);
+}
+/**
+* 过滤出所有的Binding表名称.
+*/
+public Collection<String> filterAllBindingTables(final Collection<String> logicTables) {
+   if (logicTables.isEmpty()) {
+       return Collections.emptyList();
+   }
+   Optional<BindingTableRule> bindingTableRule = findBindingTableRule(logicTables);
+   if (!bindingTableRule.isPresent()) {
+       return Collections.emptyList();
+   }
+   // 交集
+   Collection<String> result = new ArrayList<>(bindingTableRule.get().getAllLogicTables());
+   result.retainAll(logicTables);
+   return result;
+}
+/**
+* 获得包含<strong>任一</strong>在逻辑表名称集合的binding表配置的逻辑表名称集合
+*/
+private Optional<BindingTableRule> findBindingTableRule(final Collection<String> logicTables) {
+   for (String each : logicTables) {
+       Optional<BindingTableRule> result = findBindingTableRule(each);
+       if (result.isPresent()) {
+           return result;
+       }
+   }
+   return Optional.absent();
+}
+/**
+* 根据逻辑表名称获取binding表配置的逻辑表名称集合.
+*/
+public Optional<BindingTableRule> findBindingTableRule(final String logicTable) {
+   for (BindingTableRule each : bindingTableRules) {
+       if (each.hasLogicTable(logicTable)) {
+           return Optional.of(each);
+       }
+   }
+   return Optional.absent();
+}
+```
+
+* 逻辑看起来比较长，目的是找到一条 BindingTableRule 包含**所有**逻辑表集合
+* 不支持[《传递关系》](https://zh.wikipedia.org/wiki/%E4%BC%A0%E9%80%92%E5%85%B3%E7%B3%BB)：配置 BindingTableRule 时，**相同绑定关系一定要配置在一条**，必须是 `[a, b, c]`，而不能是 `[a, b], [b, c]`。
+
+## 6.1 SimpleRoutingEngine
+
+SimpleRoutingEngine，简单路由引擎。
+
+![](../../../images/Sharding-JDBC/2017_08_06/07.png)
+
+```Java
+// SimpleRoutingEngine.java
+private Collection<String> routeDataSources(final TableRule tableRule) {
+   DatabaseShardingStrategy strategy = shardingRule.getDatabaseShardingStrategy(tableRule);
+   List<ShardingValue<?>> shardingValues = HintManagerHolder.isUseShardingHint() ? getDatabaseShardingValuesFromHint(strategy.getShardingColumns())
+           : getShardingValues(strategy.getShardingColumns());
+   Collection<String> result = strategy.doStaticSharding(sqlStatement.getType(), tableRule.getActualDatasourceNames(), shardingValues);
+   Preconditions.checkState(!result.isEmpty(), "no database route info");
+   return result;
+}
+private List<ShardingValue<?>> getShardingValues(final Collection<String> shardingColumns) {
+   List<ShardingValue<?>> result = new ArrayList<>(shardingColumns.size());
+   for (String each : shardingColumns) {
+       Optional<Condition> condition = sqlStatement.getConditions().find(new Column(each, logicTableName));
+       if (condition.isPresent()) {
+           result.add(condition.get().getShardingValue(parameters));
+       }
+   }
+   return result;
+}
+```
+
+* 可以使用 HintManager 设置**库**分片值进行**强制路由**。
+* `#getShardingValues()` 我们看到了[《SQL 解析（二）之SQL解析》](http://www.yunai.me/Sharding-JDBC/sql-parse-2/)分享的 Condition 对象。之前我们提到过**Parser 半理解SQL的目的之一是：提炼分片上下文**，此处即是该目的的体现。Condition 里只放**明确**影响路由的条件，例如：`order_id = 1`, `order_id IN (1, 2)`, `order_id BETWEEN (1, 3)`，不放**无法计算**的条件，例如：`o.order_id = i.order_id`。该方法里，使用**分片键**从 Condition 查找 **分片值**。🙂 是不是对 Condition 的认识更加清晰一丢丢落。
+
+```Java
+// SimpleRoutingEngine.java
+private Collection<String> routeTables(final TableRule tableRule, final Collection<String> routedDataSources) {
+   TableShardingStrategy strategy = shardingRule.getTableShardingStrategy(tableRule);
+   List<ShardingValue<?>> shardingValues = HintManagerHolder.isUseShardingHint() ? getTableShardingValuesFromHint(strategy.getShardingColumns())
+           : getShardingValues(strategy.getShardingColumns());
+   Collection<String> result = tableRule.isDynamic() ? strategy.doDynamicSharding(shardingValues)
+           : strategy.doStaticSharding(sqlStatement.getType(), tableRule.getActualTableNames(routedDataSources), shardingValues);
+   Preconditions.checkState(!result.isEmpty(), "no table route info");
+   return result;
+}
+```
+
+* 可以使用 HintManager 设置**表**分片值进行**强制路由**。
+* 根据 `dynamic` 属性来判断调用 `#doDynamicSharding()` 还是 `#doStaticSharding()` 计算分片。
+
+```Java
+// SimpleRoutingEngine.java
+private RoutingResult generateRoutingResult(final TableRule tableRule, final Collection<String> routedDataSources, final Collection<String> routedTables) {
+   RoutingResult result = new RoutingResult();
+   for (DataNode each : tableRule.getActualDataNodes(routedDataSources, routedTables)) {
+       result.getTableUnits().getTableUnits().add(new TableUnit(each.getDataSourceName(), logicTableName, each.getTableName()));
+   }
+   return result;
+}
+
+// TableRule.java
+/**
+* 根据数据源名称过滤获取真实数据单元.
+* @param targetDataSources 数据源名称集合
+* @param targetTables 真实表名称集合
+* @return 真实数据单元
+*/
+public Collection<DataNode> getActualDataNodes(final Collection<String> targetDataSources, final Collection<String> targetTables) {
+   return dynamic ? getDynamicDataNodes(targetDataSources, targetTables) : getStaticDataNodes(targetDataSources, targetTables);
+}  
+private Collection<DataNode> getDynamicDataNodes(final Collection<String> targetDataSources, final Collection<String> targetTables) {
+   Collection<DataNode> result = new LinkedHashSet<>(targetDataSources.size() * targetTables.size());
+   for (String targetDataSource : targetDataSources) {
+       for (String targetTable : targetTables) {
+           result.add(new DataNode(targetDataSource, targetTable));
+       }
+   }
+   return result;
+} 
+private Collection<DataNode> getStaticDataNodes(final Collection<String> targetDataSources, final Collection<String> targetTables) {
+   Collection<DataNode> result = new LinkedHashSet<>(actualTables.size());
+   for (DataNode each : actualTables) {
+       if (targetDataSources.contains(each.getDataSourceName()) && targetTables.contains(each.getTableName())) {
+           result.add(each);
+       }
+   }
+   return result;
+}
+```
+
+* 在 SimpleRoutingEngine 只生成了当前表的 TableUnits。如果存在**与其互为BindingTable关系**的表的 TableUnits 怎么获得？你可以想想噢，当然在后文[《SQL 改写》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)也会给出答案，看看和你想的是否一样。
+
+## 6.2 ComplexRoutingEngine
+
+ComplexRoutingEngine，混合多库表路由引擎。
+
+
