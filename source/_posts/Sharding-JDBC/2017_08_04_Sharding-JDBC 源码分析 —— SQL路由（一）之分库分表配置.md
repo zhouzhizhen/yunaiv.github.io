@@ -1,4 +1,4 @@
-title: Sharding-JDBC 源码分析 —— SQL路由（一）之分库分表配置
+title: Sharding-JDBC 源码分析 —— SQL 路由（一）之分库分表配置
 date: 2017-08-04
 tags:
 categories: Sharding-JDBC
