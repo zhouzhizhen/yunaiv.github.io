@@ -329,5 +329,143 @@ RoutingEngine，路由引擎接口，共有四种实现：
 
 # 5. DatabaseHintSQLRouter
 
+DatabaseHintSQLRouter，基于数据库提示的路由引擎。路由器工厂 SQLRouterFactory 创建路由器时，判断到使用数据库提示( Hint ) 时，创建 DatabaseHintSQLRouter。
+
+```Java
+// DatabaseHintRoutingEngine.java
+public static SQLRouter createSQLRouter(final ShardingContext shardingContext) {
+   return HintManagerHolder.isDatabaseShardingOnly() ? new DatabaseHintSQLRouter(shardingContext) : new ParsingSQLRouter(shardingContext);
+}
+```
+
+先来看下 HintManagerHolder、HintManager **部分相关**的代码：
+
+```Java
+// HintManagerHolder.java
+public final class HintManagerHolder {
+    /**
+     * HintManager 线程变量
+     */
+    private static final ThreadLocal<HintManager> HINT_MANAGER_HOLDER = new ThreadLocal<>();
+    /**
+     * 判断是否当前只分库.
+     * 
+     * @return 是否当前只分库.
+     */
+    public static boolean isDatabaseShardingOnly() {
+        return null != HINT_MANAGER_HOLDER.get() && HINT_MANAGER_HOLDER.get().isDatabaseShardingOnly();
+    }
+    /**
+     * 清理线索分片管理器的本地线程持有者.
+     */
+    public static void clear() {
+        HINT_MANAGER_HOLDER.remove();
+    }
+}
+
+// HintManager.java
+public final class HintManager implements AutoCloseable {
+    /**
+     * 库分片值集合
+     */
+    private final Map<ShardingKey, ShardingValue<?>> databaseShardingValues = new HashMap<>();
+    /**
+     * 只做库分片
+     * {@link DatabaseHintRoutingEngine}
+     */
+    @Getter
+    private boolean databaseShardingOnly;
+    /**
+     * 获取线索分片管理器实例.
+     * 
+     * @return 线索分片管理器实例
+     */
+    public static HintManager getInstance() {
+        HintManager result = new HintManager();
+        HintManagerHolder.setHintManager(result);
+        return result;
+    }
+    /**
+     * 设置分库分片值.
+     * 
+     * <p>分片操作符为等号.该方法适用于只分库的场景</p>
+     * 
+     * @param value 分片值
+     */
+    public void setDatabaseShardingValue(final Comparable<?> value) {
+        databaseShardingOnly = true;
+        addDatabaseShardingValue(HintManagerHolder.DB_TABLE_NAME, HintManagerHolder.DB_COLUMN_NAME, value);
+    }
+}
+```
+
+那么如果要使用 DatabaseHintSQLRouter，我们只需要 `HintManager.getInstance().setDatabaseShardingValue(库分片值)` 即可。这里有两点要注意下：
+
+* `HintManager#getInstance()`，每次获取到的都是**新**的 HintManager，多次赋值需要小心。
+* `HintManager#close()`，使用完需要去清理，避免下个请求读到遗漏的线程变量。
+
+-------
+
+看看 DatabaseHintSQLRouter 的实现：
+
+```Java
+// DatabaseHintSQLRouter.java
+@Override
+public SQLStatement parse(final String logicSQL, final int parametersSize) {
+   return new SQLJudgeEngine(logicSQL).judge(); // 只解析 SQL 类型
+}  
+@Override
+// TODO insert的SQL仍然需要解析自增主键
+public SQLRouteResult route(final String logicSQL, final List<Object> parameters, final SQLStatement sqlStatement) {
+   Context context = MetricsContext.start("Route SQL");
+   SQLRouteResult result = new SQLRouteResult(sqlStatement);
+   // 路由
+   RoutingResult routingResult = new DatabaseHintRoutingEngine(shardingRule.getDataSourceRule(), shardingRule.getDatabaseShardingStrategy(), sqlStatement.getType())
+           .route();
+   // SQL最小执行单元
+   for (TableUnit each : routingResult.getTableUnits().getTableUnits()) {
+       result.getExecutionUnits().add(new SQLExecutionUnit(each.getDataSourceName(), logicSQL));
+   }
+   MetricsContext.stop(context);
+   if (showSQL) {
+       SQLLogger.logSQL(logicSQL, sqlStatement, result.getExecutionUnits(), parameters);
+   }
+   return result;
+}
+```
+
+* `#parse()` 只解析了 SQL 类型，即 SELECT / UPDATE / DELETE / INSERT 。
+* **使用的分库策略来自 ShardingRule，不是 TableRule，这个一定要留心。**❓因为 SQL 未解析**表名**。因此，即使在 TableRule 设置了 `actualTables` 属性也是没有效果的。
+* 目前不支持 Sharding-JDBC 的主键自增。❓因为 SQL 未解析**自增主键**。从代码上的`TODO`应该会支持。
+* `HintManager.getInstance().setDatabaseShardingValue(库分片值)` 设置的库分片值使用的是  EQUALS，因而分库策略计算出来的只有**一个库分片**，即 TableUnit 只有一个，SQLExecutionUnit 只有一个。
+
+-------
+
+看看 DatabaseHintSQLRouter 的实现：
+
+```Java
+// DatabaseHintRoutingEngine.java
+@Override
+public RoutingResult route() {
+   // 从 Hint 获得 分片键值
+   Optional<ShardingValue<?>> shardingValue = HintManagerHolder.getDatabaseShardingValue(new ShardingKey(HintManagerHolder.DB_TABLE_NAME, HintManagerHolder.DB_COLUMN_NAME));
+   Preconditions.checkState(shardingValue.isPresent());
+   log.debug("Before database sharding only db:{} sharding values: {}", dataSourceRule.getDataSourceNames(), shardingValue.get());
+   // 路由。表分片规则使用的是 ShardingRule 里的。因为没 SQL 解析。
+   Collection<String> routingDataSources = databaseShardingStrategy.doStaticSharding(sqlType, dataSourceRule.getDataSourceNames(), Collections.<ShardingValue<?>>singleton(shardingValue.get()));
+   Preconditions.checkState(!routingDataSources.isEmpty(), "no database route info");
+   log.debug("After database sharding only result: {}", routingDataSources);
+   // 路由结果
+   RoutingResult result = new RoutingResult();
+   for (String each : routingDataSources) {
+       result.getTableUnits().getTableUnits().add(new TableUnit(each, "", ""));
+   }
+   return result;
+}
+```
+
+* **只**调用 `databaseShardingStrategy.doStaticSharding()` 方法计算**库**分片。
+* `new TableUnit(each, "", "")` 的 `logicTableName`，`actualTableName` 都是空串，相信为什么的原因你已经知道。
+
 # 6. ParsingSQLRouter
 
