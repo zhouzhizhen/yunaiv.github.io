@@ -11,22 +11,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="1. 概述 2. TableRule 2.1 logicTable 2.2 数据单元 2.2.1 DataNode 2.2.2 DynamicDataNode   2.3 分库/分表策略 2.4 主键生成   3. ShardingRule 3.1 dataSourceRule 3.2 tableRules 3.3 bindingTableRules   4. ShardingStrategy">
+    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Sharding-JDBC 源码分析 —— SQL 路由（一）之分库分表配置">
 <meta property="og:url" content="http://www.yunai.me/Sharding-JDBC/sql-route-1/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="1. 概述 2. TableRule 2.1 logicTable 2.2 数据单元 2.2.1 DataNode 2.2.2 DynamicDataNode   2.3 分库/分表策略 2.4 主键生成   3. ShardingRule 3.1 dataSourceRule 3.2 tableRules 3.3 bindingTableRules   4. ShardingStrategy">
+<meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
+<meta property="og:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_04/01.png">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_04/02.png">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_04/03.png">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_04/04.png">
-<meta property="og:updated_time" content="2017-08-01T03:39:19.000Z">
+<meta property="og:updated_time" content="2017-08-02T08:27:47.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sharding-JDBC 源码分析 —— SQL 路由（一）之分库分表配置">
-<meta name="twitter:description" content="1. 概述 2. TableRule 2.1 logicTable 2.2 数据单元 2.2.1 DataNode 2.2.2 DynamicDataNode   2.3 分库/分表策略 2.4 主键生成   3. ShardingRule 3.1 dataSourceRule 3.2 tableRules 3.3 bindingTableRules   4. ShardingStrategy">
-<meta name="twitter:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_04/01.png">
+<meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
+<meta name="twitter:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
     
     
         
@@ -119,6 +120,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" href="/Sharding-JDBC/sql-route-2/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
+        
         
         <li><a class="icon" href="/Sharding-JDBC/sql-parse-6/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
         
@@ -181,7 +184,19 @@
   
 
   <div class="content" itemprop="articleBody">
-    <ul>
+    <p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<ul>
 <li><a href="#">1. 概述</a></li>
 <li><a href="#">2. TableRule</a><ul>
 <li><a href="#">2.1 logicTable</a></li>
@@ -209,10 +224,9 @@
 <ol>
 <li>《分库分表配置》</li>
 <li>《分表分库路由》</li>
-<li>《读写分离》</li>
 <li>《Spring与YAML配置》</li>
 </ol>
-<p>第一、二篇会在<strong>近期</strong>更新。第三、四篇会在<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 改写》</a>、<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 执行》</a>完成后进行更新。😈改写和执行相对有趣。</p>
+<p>第一、二篇会在<strong>近期</strong>更新。第三篇会在<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 改写》</a>、<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 执行》</a>完成后进行更新。😈改写和执行相对有趣。</p>
 <p>👼道友，您看，逗比博主<strong>“很有规划”</strong>，是关注公众号一波<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">【芋艿的后端小屋】</a>还是分享朋友圈。</p>
 <hr>
 <p>阅读本文之前，建议已经读过<strong>官方</strong>相关文章：</p>

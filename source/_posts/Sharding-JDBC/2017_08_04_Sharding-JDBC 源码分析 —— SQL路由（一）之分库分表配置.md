@@ -6,6 +6,17 @@ permalink: Sharding-JDBC/sql-route-1
 
 -------
 
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。  
+> 5. **认真的**源码交流微信群。
+
+-------
+
 - [1. 概述](#)
 - [2. TableRule](#)
 	- [2.1 logicTable](#)
@@ -30,10 +41,9 @@ permalink: Sharding-JDBC/sql-route-1
 
 1. 《分库分表配置》
 2. 《分表分库路由》
-3. 《读写分离》
-4. 《Spring与YAML配置》
+3. 《Spring与YAML配置》
 
-第一、二篇会在**近期**更新。第三、四篇会在[《SQL 改写》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)、[《SQL 执行》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)完成后进行更新。😈改写和执行相对有趣。
+第一、二篇会在**近期**更新。第三篇会在[《SQL 改写》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)、[《SQL 执行》](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)完成后进行更新。😈改写和执行相对有趣。
 
 👼道友，您看，逗比博主**“很有规划”**，是关注公众号一波[【芋艿的后端小屋】](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)还是分享朋友圈。
 
