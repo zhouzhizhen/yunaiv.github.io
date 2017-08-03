@@ -1,3 +1,4 @@
+http://www.yunai.me/Sharding-JDBC/sql-rewrite/
 http://www.yunai.me/Sharding-JDBC/sql-route-3/
 http://www.yunai.me/Sharding-JDBC/sql-route-2/
 http://www.yunai.me/Sharding-JDBC/sql-route-1/

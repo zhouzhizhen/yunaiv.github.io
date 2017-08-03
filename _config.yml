@@ -7,7 +7,7 @@ title: 芋艿V的博客
 subtitle:
 description: 愿编码半生，好奇如初识！
 author: 王文斌
-language: zh-cn
+language: zh-CN
 timezone:
 keywords: Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客
 
@@ -70,6 +70,7 @@ pagination_dir: page
 #theme: again
 #theme: apollo
 theme: cactus-light
+#theme: maupassant
 #theme: aloha
 #theme: polarbear
 #theme: phase
