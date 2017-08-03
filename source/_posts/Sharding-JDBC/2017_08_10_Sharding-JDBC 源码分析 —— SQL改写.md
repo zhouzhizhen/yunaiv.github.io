@@ -17,8 +17,6 @@ permalink: Sharding-JDBC/sql-rewrite
 
 -------
 
-
-
 -------
 
 # 1. 概述
