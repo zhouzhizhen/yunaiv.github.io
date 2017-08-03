@@ -28,6 +28,7 @@ permalink: Sharding-JDBC/sql-rewrite
 	- [3.5 OrderByToken](#)
 	- [3.6 GeneratedKeyToken](#)
 - [4. SQL 生成](#)
+- [666. 彩蛋](#)
 
 -------
 
@@ -44,7 +45,7 @@ SQLRewriteEngine，SQL重写引擎，实现 SQL 改写、生成功能。从 Shar
 
 > 1.4.x及之前版本，SQL改写是在SQL路由之前完成的，在1.5.x中调整为SQL路由之后，因为SQL改写可以根据路由至单库表还是多库表而进行进一步优化。
 
-😆 很多同学看完[《SQL 解析-系列》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 可能是一脸懵逼，特别对**“SQL 半理解”**。![](../../../images/Sharding-JDBC/2017_08_10/01.png)希望本文能给你一些启发。
+😆 很多同学看完[《SQL 解析-系列》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) 可能是一脸懵逼，特别对**“SQL 半理解”**。![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/01.png)希望本文能给你一些启发。
 
 > **Sharding-JDBC 正在收集使用公司名单：[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)。  
 > 🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
@@ -57,7 +58,7 @@ SQLRewriteEngine，SQL重写引擎，实现 SQL 改写、生成功能。从 Shar
 
 SQLToken，SQL标记对象**接口**。SQLRewriteEngine 基于 SQLToken 实现 **SQL改写**。SQL解析器在 SQL解析过程中，很重要的一个目的是**标记需要SQL改写的部分**，也就是 SQLToken。
 
-![](../../../images/Sharding-JDBC/2017_08_10/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/02.png)
 
 **各 SQLToken 生成条件如下**(*悲伤，做成表格形式排版是乱的*)：
 
@@ -125,7 +126,7 @@ public SQLBuilder rewrite(final boolean isRewriteLimit) {
     * 间隔：遍历 SQLToken，逐个拼接。
 
 例如：
-    ![](../../../images/Sharding-JDBC/2017_08_10/03.png)
+    ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/03.png)
 
 -------
 
@@ -234,9 +235,9 @@ public static String getExactlyValue(final String value) {
 
 * 当 SQL 为 `SELECT o.* FROM t_order o`
     * TableToken 为查询列前的表别名 `o` 时返回结果：
-        ![](../../../images/Sharding-JDBC/2017_08_10/04.png)
+        ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/04.png)
     * TableToken 为表名 `t_order` 时返回结果：
-        ![](../../../images/Sharding-JDBC/2017_08_10/05.png)
+        ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/05.png)
 
 ## 3.2 ItemsToken
 
@@ -266,9 +267,9 @@ private void appendItemsToken(final SQLBuilder sqlBuilder, final ItemsToken item
 ```
 
 * 第一种情况，**AVG查询列**，SQL 为 `SELECT AVG(order_id) FROM t_order o` 时返回结果：
-  ![](../../../images/Sharding-JDBC/2017_08_10/06.png)
+  ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/06.png)
 * 第二种情况，**ORDER BY 字段不在查询列**，SQL 为 `SELECT userId FROM t_order o ORDER BY order_id` 时返回结果：
-  ![](../../../images/Sharding-JDBC/2017_08_10/07.png)
+  ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/07.png)
 * 第三种情况，**GROUP BY 字段不在查询列**，类似第二种情况，就不举例子列。
 
 ## 3.3 OffsetToken
@@ -443,7 +444,7 @@ private void appendOrderByToken(final SQLBuilder sqlBuilder) {
 ```
 
 * 当 SQL 为 `SELECT order_id FROM t_order o GROUP BY order_id` 返回结果：
-    ![](../../../images/Sharding-JDBC/2017_08_10/08.png)
+    ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/08.png)
 
 ## 3.6 GeneratedKeyToken
 
@@ -661,7 +662,7 @@ public String toSQL(final Map<String, String> tableTokens) {
 }
 ```
 
-* `#toSQL()` 结果如图： ![](../../../images/Sharding-JDBC/2017_08_10/09.png)
+* `#toSQL()` 结果如图： ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/09.png)
   😜 对 **SQL改写** 是不是清晰很多了。
 
 -------
@@ -743,12 +744,12 @@ public String getBindingActualTable(final String dataSource, final String logicT
 
 可能看起来有些绕，我们看张图：
 
-![](../../../images/Sharding-JDBC/2017_08_10/10.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_10/10.png)
 
 **友情提示**：这里不嫌啰嗦在提一句，互为 BindingTable 的表，配置 TableRule 时，`actualTables` 数量一定要一致，否则多出来的表，可能会无法被路由到。
 
 
-#666. 彩蛋
+# 666. 彩蛋
 
 哈哈哈，看完**SQL改写**后，**SQL解析**是不是清晰多了！嘿嘿嘿，反正我现在有点嗨。恩，蛮嗨的。
 
