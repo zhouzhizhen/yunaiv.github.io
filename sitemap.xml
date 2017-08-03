@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-rewrite/</loc>
     
-    <lastmod>2017-08-03T09:40:22.000Z</lastmod>
+    <lastmod>2017-08-03T09:50:53.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-rewrite/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
     
-    <lastmod>2017-08-03T07:24:39.000Z</lastmod>
+    <lastmod>2017-08-03T09:40:22.000Z</lastmod>
     
   </url>
   
