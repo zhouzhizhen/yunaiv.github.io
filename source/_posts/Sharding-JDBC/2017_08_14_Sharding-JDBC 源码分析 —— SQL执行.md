@@ -1,3 +1,38 @@
+title: Sharding-JDBC 源码分析 —— SQL 执行
+date: 2017-08-14
+tags:
+categories: Sharding-JDBC
+permalink: Sharding-JDBC/sql-execute
+
+-------
+
+![](https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。  
+> 5. **认真的**源码交流微信群。
+
+-------
+
+- [1. 概述](#)
+- [2. ExecutorEngine](#)
+	- [2.1 ListeningExecutorService](#)
+	- [2.2 关闭](#)
+	- [2.3 执行 SQL 任务](#)
+- [3. Executor](#)
+	- [3.1 StatementExecutor](#)
+	- [3.2 PreparedStatementExecutor](#)
+	- [3.3 BatchPreparedStatementExecutor](#)
+- [4. ExecutionEvent](#)
+	- [4.1 EventBus](#)
+	- [4.2 BestEffortsDeliveryListener](#)
+- [666. 彩蛋](#)
+
+-------
+
 # 1. 概述
 
 越过千山万水（SQL 解析、SQL 路由、SQL 改写），我们终于来到了 **SQL 执行**。开森不开森？！
@@ -8,6 +43,8 @@
 
 ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/06.png)
 
+**绿框部分** SQL 执行主流程。
+
 # 2. ExecutorEngine
 
 ExecutorEngine，SQL执行引擎。
@@ -15,10 +52,10 @@ ExecutorEngine，SQL执行引擎。
 分表分库，需要执行的 SQL 数量从单条变成了多条，此时有两种方式执行：
 
 * **串行**执行 SQL
-* 并行执行 SQL
+* **并行**执行 SQL
 
 前者，编码容易，性能较差，总耗时是多条 SQL 执行时间累加。  
-后者，编码相对复杂，性能较好，总耗时约等于执行时间最长的 SQL。
+后者，编码复杂，性能较好，总耗时约等于执行时间最长的 SQL。
 
 👼 ExecutorEngine 当然采用的是**后者**，并行执行 SQL。
 
@@ -36,10 +73,10 @@ ExecutorEngine，SQL执行引擎。
 
 > ListenableFuture可以允许你注册回调方法(callbacks)，在运算（多线程执行）完成的时候进行调用,  或者在运算（多线程执行）完成后立即执行。这样简单的改进，使得可以明显的支持更多的操作，这样的功能在JDK concurrent中的Future是不支持的。
 
-如上内容引用自 [《Google Guava包的ListenableFuture解析
+如上内容来自[《Google Guava包的ListenableFuture解析
 》](http://ifeve.com/google-guava-listenablefuture/)，文章写的很棒。下文你会看到 Sharding-JDBC 是**如何通过 ListenableFuture 简化并发编程的**。
 
-下面看看 Sharding-JDBC ListeningExecutorService 
+下面看看 ExecutorEngine 如何**初始化** ListeningExecutorService 
 
 ```Java
 // ShardingDataSource.java
@@ -91,7 +128,7 @@ public void close() {
 }
 ```
 
-* `#shutdownNow()` 尝试以 `Thread.interrupt()` 打断正在执行中的任务，未执行的任务不再执行。**建议**打印下哪些任务未执行，因为 SQL 未执行，可能数据未能持久化。
+* `#shutdownNow()` 尝试使用 `Thread.interrupt()` 打断正在执行中的任务，未执行的任务不再执行。**建议**打印下哪些任务未执行，因为 SQL 未执行，可能数据未能持久化。
 * `#awaitTermination()` 因为 `#shutdownNow()` 打断不是**立即**结束，需要一个过程，因此这里**等待**了 5 秒。
 * **等待** 5 秒后，线程池不一定已经关闭，此时抛出异常给上层。**建议**打印下日志，记录出现这个情况。
 
@@ -559,6 +596,13 @@ EventBusInstance.getInstance().register(new Runnable() {
 * `EventBus#post()` 发布事件，**同步**调用订阅逻辑
 
 ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/05.png)
+
+* 推荐阅读文章：[《Guava学习笔记：EventBus》](http://www.cnblogs.com/peida/p/EventBus.html)
+
+> **Sharding-JDBC 正在收集使用公司名单：[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)。  
+> 🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> Sharding-JDBC 也会因此，能够覆盖更多的业务场景。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> 登记吧，骚年！[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)**
 
 ## 4.2 BestEffortsDeliveryListener
 

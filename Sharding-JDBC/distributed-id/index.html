@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
 <meta property="og:image" content="http://www.yunai.me/images/Sharding-JDBC/2017_08_12/01.png">
 <meta property="og:image" content="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
-<meta property="og:updated_time" content="2017-08-03T13:12:12.000Z">
+<meta property="og:updated_time" content="2017-08-04T18:10:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sharding-JDBC 源码分析 —— 分布式主键">
 <meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。   认">
@@ -118,6 +118,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" href="/Sharding-JDBC/sql-execute/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$(" #i-prev").toggle();"="" onmouseout="$("></i></a></li>
+        
         
         <li><a class="icon" href="/Sharding-JDBC/sql-rewrite/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$(" #i-next").toggle();"="" onmouseout="$("></i></a></li>
         
@@ -207,9 +209,13 @@
 <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文分享 Sharding-JDBC <strong>分布式主键</strong>实现。</p>
 <p>官方文档<a href="http://dangdangdotcom.github.io/sharding-jdbc/02-guide/key-generator/" rel="external nofollow noopener noreferrer" target="_blank">《分布式主键》</a>对其介绍及使用方式介绍很完整，强烈先阅读。下面先引用下分布式主键的<strong>实现动机</strong>：</p>
 <blockquote>
-<p>传统数据库软件开发中，主键自动生成技术是基本需求。而各大数据库对于该需求也提供了相应的支持，比如MySQL的自增键。 对于MySQL而言，分库分表之后，不同表生成全局唯一的Id是非常棘手的问题。因为同一个逻辑表内的不同实际表之间的自增键是无法互相感知的， 这样会造成重复Id的生成。我们当然可以通过约束表生成键的规则来达到数据的不重复，但是这需要引入额外的运维力量来解决重复性问题，并使框架缺乏扩展性。</p>
-<p>目前有许多第三方解决方案可以完美解决这个问题，比如UUID等依靠特定算法自生成不重复键，或者通过引入Id生成服务等。 但也正因为这种多样性导致了Sharding-JDBC如果强依赖于任何一种方案就会限制其自身的发展。</p>
-<p>基于以上的原因，最终采用了以JDBC接口来实现对于生成Id的访问，而将底层具体的Id生成实现分离出来。</p>
+<p>传统数据库软件开发中，主键自动生成技术是基本需求。而各大数据库对于该需求也提供了相应的支持，比如MySQL的自增键。对于MySQL而言，分库分表之后，不同表生成全局唯一的Id是非常棘手的问题。因为同一个逻辑表内的不同实际表之间的自增键是无法互相感知的，这样会造成重复Id的生成。我们当然可以通过约束表生成键的规则来达到数据的不重复，但是这需要引入额外的运维力量来解决重复性问题，并使框架缺乏扩展性。  </p>
+<p>目前有许多第三方解决方案可以完美解决这个问题，比如UUID等依靠特定算法自生成不重复键，或者通过引入Id生成服务等。 但也正因为这种多样性导致了Sharding-JDBC如果强依赖于任何一种方案就会限制其自身的发展。  </p>
+<p>基于以上的原因，最终采用了以JDBC接口来实现对于生成Id的访问，而将底层具体的Id生成实现分离出来。  </p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
 </blockquote>
 <h1 id="2-KeyGenerator"><a href="#2-KeyGenerator" class="headerlink" title="2. KeyGenerator"></a>2. KeyGenerator</h1><p>KeyGenerator，主键生成器接口。实现类通过实现 <code>#generateKey()</code> 方法对外提供<strong>生成主键</strong>的功能。</p>
 <h2 id="2-1-DefaultKeyGenerator"><a href="#2-1-DefaultKeyGenerator" class="headerlink" title="2.1 DefaultKeyGenerator"></a>2.1 DefaultKeyGenerator</h2><p>DefaultKeyGenerator，默认的主键生成器。该生成器采用 Twitter Snowflake 算法实现，生成 <strong>64 Bits</strong> 的 <strong>Long</strong> 型编号。国内另外一款数据库中间件 MyCAT 分布式主键也是基于该算法实现。国内很多大型互联网公司<strong>发号器</strong>服务基于该算法加部分改造实现。所以 DefaultKeyGenerator 必须是<strong>根正苗红</strong>。如果你对<strong>分布式主键</strong>感兴趣，可以看看逗比笔者整理的<a href="http://www.yunai.me/Architecture/talk-about-global-id/?self">《谈谈 ID》</a>。</p>

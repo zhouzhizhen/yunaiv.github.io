@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-03T13:12:12.000Z</updated>
+  <updated>2017-08-04T18:07:37.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,11 +16,233 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
+    <link href="http://www.yunai.me/Sharding-JDBC/sql-execute/"/>
+    <id>http://www.yunai.me/Sharding-JDBC/sql-execute/</id>
+    <published>2017-08-13T16:00:00.000Z</published>
+    <updated>2017-08-04T18:07:37.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. ExecutorEngine</a><ul>
+<li><a href="#">2.1 ListeningExecutorService</a></li>
+<li><a href="#">2.2 关闭</a></li>
+<li><a href="#">2.3 执行 SQL 任务</a></li>
+</ul>
+</li>
+<li><a href="#">3. Executor</a><ul>
+<li><a href="#">3.1 StatementExecutor</a></li>
+<li><a href="#">3.2 PreparedStatementExecutor</a></li>
+<li><a href="#">3.3 BatchPreparedStatementExecutor</a></li>
+</ul>
+</li>
+<li><a href="#">4. ExecutionEvent</a><ul>
+<li><a href="#">4.1 EventBus</a></li>
+<li><a href="#">4.2 BestEffortsDeliveryListener</a></li>
+</ul>
+</li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>越过千山万水（SQL 解析、SQL 路由、SQL 改写），我们终于来到了 <strong>SQL 执行</strong>。开森不开森？！</p>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/01.png" alt=""></p>
+<p>本文主要分享<strong>SQL 执行</strong>的过程，不包括<strong>结果聚合</strong>。<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《结果聚合》</a> <strong>东半球第二良心笔者</strong>会更新，关注微信公众号<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">【芋艿的后端小屋】</a>完稿后<strong>第一时间</strong>通知您哟。</p>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/06.png" alt=""></p>
+<p><strong>绿框部分</strong> SQL 执行主流程。</p>
+<h1 id="2-ExecutorEngine"><a href="#2-ExecutorEngine" class="headerlink" title="2. ExecutorEngine"></a>2. ExecutorEngine</h1><p>ExecutorEngine，SQL执行引擎。</p>
+<p>分表分库，需要执行的 SQL 数量从单条变成了多条，此时有两种方式执行：</p>
+<ul>
+<li><strong>串行</strong>执行 SQL</li>
+<li><strong>并行</strong>执行 SQL</li>
+</ul>
+<p>前者，编码容易，性能较差，总耗时是多条 SQL 执行时间累加。<br>后者，编码复杂，性能较好，总耗时约等于执行时间最长的 SQL。</p>
+<p>👼 ExecutorEngine 当然采用的是<strong>后者</strong>，并行执行 SQL。</p>
+<h2 id="2-1-ListeningExecutorService"><a href="#2-1-ListeningExecutorService" class="headerlink" title="2.1 ListeningExecutorService"></a>2.1 ListeningExecutorService</h2><p><a href="http://www.yiibai.com/guava/" rel="external nofollow noopener noreferrer" target="_blank">Guava( Java 工具库 )</a> 提供的继承自  ExecutorService 的<strong>线程服务接口</strong>，提供创建 ListenableFuture 功能。ListenableFuture 接口，继承 Future 接口，有如下好处：</p>
+<blockquote>
+<p>我们强烈地建议你在代码中多使用ListenableFuture来代替JDK的 Future, 因为：  </p>
+<ul>
+<li>大多数Futures 方法中需要它。  </li>
+<li>转到ListenableFuture 编程比较容易。  </li>
+<li>Guava提供的通用公共类封装了公共的操作方方法，不需要提供Future和ListenableFuture的扩展方法。  </li>
+</ul>
+<p>传统JDK中的Future通过异步的方式计算返回结果:在多线程运算中可能或者可能在没有结束返回结果，Future是运行中的多线程的一个引用句柄，确保在服务执行返回一个Result。   </p>
+<p>ListenableFuture可以允许你注册回调方法(callbacks)，在运算（多线程执行）完成的时候进行调用,  或者在运算（多线程执行）完成后立即执行。这样简单的改进，使得可以明显的支持更多的操作，这样的功能在JDK concurrent中的Future是不支持的。</p>
+</blockquote>
+<p>如上内容来自<a href="http://ifeve.com/google-guava-listenablefuture/" rel="external nofollow noopener noreferrer" target="_blank">《Google Guava包的ListenableFuture解析<br>》</a>，文章写的很棒。下文你会看到 Sharding-JDBC 是<strong>如何通过 ListenableFuture 简化并发编程的</strong>。</p>
+<p>下面看看 ExecutorEngine 如何<strong>初始化</strong> ListeningExecutorService </p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingDataSource.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ShardingDataSource</span><span class="params">(<span class="keyword">final</span> ShardingRule shardingRule, <span class="keyword">final</span> Properties props)</span> </span>&#123;</div><div class="line">    <span class="comment">// .... 省略部分代码</span></div><div class="line">   shardingProperties = <span class="keyword">new</span> ShardingProperties(props);</div><div class="line">   <span class="keyword">int</span> executorSize = shardingProperties.getValue(ShardingPropertiesConstant.EXECUTOR_SIZE);</div><div class="line">   executorEngine = <span class="keyword">new</span> ExecutorEngine(executorSize);</div><div class="line">   <span class="comment">// .... 省略部分代码</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ExecutorEngine</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ExecutorEngine</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span> executorSize)</span> </span>&#123;</div><div class="line">   executorService = MoreExecutors.listeningDecorator(<span class="keyword">new</span> ThreadPoolExecutor(</div><div class="line">           executorSize, executorSize, <span class="number">0</span>, TimeUnit.MILLISECONDS, <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(),</div><div class="line">           <span class="keyword">new</span> ThreadFactoryBuilder().setDaemon(<span class="keyword">true</span>).setNameFormat(<span class="string">"ShardingJDBC-%d"</span>).build()));</div><div class="line">   MoreExecutors.addDelayedShutdownHook(executorService, <span class="number">60</span>, TimeUnit.SECONDS);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>一个分片数据源( ShardingDataSource ) <strong>独占</strong> 一个 SQL执行引擎( ExecutorEngine )。</li>
+<li><code>MoreExecutors#listeningDecorator()</code> 创建 ListeningExecutorService，这样 <code>#submit()</code>，<code>#invokeAll()</code> 可以返回 ListenableFuture。</li>
+<li>默认情况下，线程池大小为 <strong>8</strong>。可以根据实际业务需要，设置 ShardingProperties 进行调整。</li>
+<li><code>#setNameFormat()</code> 并发编程时，一定要对线程名字做下定义，这样排查问题会方便很多。</li>
+<li><code>MoreExecutors#addDelayedShutdownHook()</code>，<strong>应用关闭</strong>时，等待<strong>所有任务全部完成</strong>再关闭。默认配置等待时间为 60 秒，<strong>建议</strong>将等待时间做成可配的。</li>
+</ul>
+<h2 id="2-2-关闭"><a href="#2-2-关闭" class="headerlink" title="2.2 关闭"></a>2.2 关闭</h2><p>数据源关闭时，会调用 ExecutorEngine 也进行关闭。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingDataSource.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</div><div class="line">   executorEngine.close();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ExecutorEngine</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</div><div class="line">   executorService.shutdownNow();</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       executorService.awaitTermination(<span class="number">5</span>, TimeUnit.SECONDS);</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> InterruptedException ignored) &#123;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (!executorService.isTerminated()) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> ShardingJdbcException(<span class="string">"ExecutorEngine can not been terminated"</span>);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>#shutdownNow()</code> 尝试使用 <code>Thread.interrupt()</code> 打断正在执行中的任务，未执行的任务不再执行。<strong>建议</strong>打印下哪些任务未执行，因为 SQL 未执行，可能数据未能持久化。</li>
+<li><code>#awaitTermination()</code> 因为 <code>#shutdownNow()</code> 打断不是<strong>立即</strong>结束，需要一个过程，因此这里<strong>等待</strong>了 5 秒。</li>
+<li><strong>等待</strong> 5 秒后，线程池不一定已经关闭，此时抛出异常给上层。<strong>建议</strong>打印下日志，记录出现这个情况。</li>
+</ul>
+<h2 id="2-3-执行-SQL-任务"><a href="#2-3-执行-SQL-任务" class="headerlink" title="2.3 执行 SQL 任务"></a>2.3 执行 SQL 任务</h2><p>ExecutorEngine 对外暴露 <code>#executeStatement()</code>，<code>#executePreparedStatement()</code>，<code>#executeBatch()</code> </p>
+<p>三个方法分别提供给 StatementExecutor、PreparedStatementExecutor、BatchPreparedStatementExecutor 调用。而这三个方法，内部调用的都是 <code>#execute()</code> 私有方法。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ExecutorEngine.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行Statement.</div><div class="line">* <span class="doctag">@param</span> sqlType SQL类型</div><div class="line">* <span class="doctag">@param</span> statementUnits 语句对象执行单元集合</div><div class="line">* <span class="doctag">@param</span> executeCallback 执行回调函数</div><div class="line">* <span class="doctag">@param</span> &lt;T&gt; 返回值类型</div><div class="line">* <span class="doctag">@return</span> 执行结果</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">List&lt;T&gt; <span class="title">executeStatement</span><span class="params">(<span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> Collection&lt;StatementUnit&gt; statementUnits, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback)</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> execute(sqlType, statementUnits, Collections.&lt;List&lt;Object&gt;&gt;emptyList(), executeCallback);</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行PreparedStatement.</div><div class="line">* <span class="doctag">@param</span> sqlType SQL类型</div><div class="line">* <span class="doctag">@param</span> preparedStatementUnits 语句对象执行单元集合</div><div class="line">* <span class="doctag">@param</span> parameters 参数列表</div><div class="line">* <span class="doctag">@param</span> executeCallback 执行回调函数</div><div class="line">* <span class="doctag">@param</span> &lt;T&gt; 返回值类型</div><div class="line">* <span class="doctag">@return</span> 执行结果</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">List&lt;T&gt; <span class="title">executePreparedStatement</span><span class="params">(</span></span></div><div class="line">       <span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> Collection&lt;PreparedStatementUnit&gt; preparedStatementUnits, <span class="keyword">final</span> List&lt;Object&gt; parameters, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback) &#123;</div><div class="line">   <span class="keyword">return</span> execute(sqlType, preparedStatementUnits, Collections.singletonList(parameters), executeCallback);</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行Batch.</div><div class="line">* <span class="doctag">@param</span> sqlType SQL类型</div><div class="line">* <span class="doctag">@param</span> batchPreparedStatementUnits 语句对象执行单元集合</div><div class="line">* <span class="doctag">@param</span> parameterSets 参数列表集</div><div class="line">* <span class="doctag">@param</span> executeCallback 执行回调函数</div><div class="line">* <span class="doctag">@return</span> 执行结果</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> List&lt;<span class="keyword">int</span>[]&gt; executeBatch(</div><div class="line">       <span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> Collection&lt;BatchPreparedStatementUnit&gt; batchPreparedStatementUnits, <span class="keyword">final</span> List&lt;List&lt;Object&gt;&gt; parameterSets, <span class="keyword">final</span> ExecuteCallback&lt;<span class="keyword">int</span>[]&gt; executeCallback) &#123;</div><div class="line">   <span class="keyword">return</span> execute(sqlType, batchPreparedStatementUnits, parameterSets, executeCallback);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>#execute()</code> 执行过程大体流程如下图：</p>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/02.png" alt=""></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 执行</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> sqlType SQL 类型</div><div class="line">* <span class="doctag">@param</span> baseStatementUnits 语句对象执行单元集合</div><div class="line">* <span class="doctag">@param</span> parameterSets 参数列表集</div><div class="line">* <span class="doctag">@param</span> executeCallback 执行回调函数</div><div class="line">* <span class="doctag">@param</span> &lt;T&gt; 返回值类型</div><div class="line">* <span class="doctag">@return</span> 执行结果</div><div class="line">*/</div><div class="line"><span class="keyword">private</span>  &lt;T&gt; <span class="function">List&lt;T&gt; <span class="title">execute</span><span class="params">(</span></span></div><div class="line">       <span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> Collection&lt;? extends BaseStatementUnit&gt; baseStatementUnits, <span class="keyword">final</span> List&lt;List&lt;Object&gt;&gt; parameterSets, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback) &#123;</div><div class="line">   <span class="keyword">if</span> (baseStatementUnits.isEmpty()) &#123;</div><div class="line">       <span class="keyword">return</span> Collections.emptyList();</div><div class="line">   &#125;</div><div class="line">   Iterator&lt;? extends BaseStatementUnit&gt; iterator = baseStatementUnits.iterator();</div><div class="line">   BaseStatementUnit firstInput = iterator.next();</div><div class="line">   <span class="comment">// 第二个任务开始所有 SQL任务 提交线程池【异步】执行任务</span></div><div class="line">   ListenableFuture&lt;List&lt;T&gt;&gt; restFutures = asyncExecute(sqlType, Lists.newArrayList(iterator), parameterSets, executeCallback);</div><div class="line">   T firstOutput;</div><div class="line">   List&lt;T&gt; restOutputs;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       <span class="comment">// 第一个任务【同步】执行任务</span></div><div class="line">       firstOutput = syncExecute(sqlType, firstInput, parameterSets, executeCallback);</div><div class="line">       <span class="comment">// 等待第二个任务开始所有 SQL任务完成</span></div><div class="line">       restOutputs = restFutures.get();</div><div class="line">       <span class="comment">//CHECKSTYLE:OFF</span></div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       <span class="comment">//CHECKSTYLE:ON</span></div><div class="line">       ExecutorExceptionHandler.handleException(ex);</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 返回结果</span></div><div class="line">   List&lt;T&gt; result = Lists.newLinkedList(restOutputs);</div><div class="line">   result.add(<span class="number">0</span>, firstOutput);</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>第一个任务<strong>【同步】</strong>调用 <code>#executeInternal()</code> 执行任务。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">private</span> &lt;T&gt; <span class="function">T <span class="title">syncExecute</span><span class="params">(<span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> BaseStatementUnit baseStatementUnit, <span class="keyword">final</span> List&lt;List&lt;Object&gt;&gt; parameterSets, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">   <span class="comment">// 【同步】执行任务</span></div><div class="line">   <span class="keyword">return</span> executeInternal(sqlType, baseStatementUnit, parameterSets, executeCallback, ExecutorExceptionHandler.isExceptionThrown(), ExecutorDataMap.getDataMap());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>第二个开始的任务<strong>提交线程池异步</strong>调用 <code>#executeInternal()</code> 执行任务。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">private</span> &lt;T&gt; ListenableFuture&lt;List&lt;T&gt;&gt; asyncExecute(</div><div class="line">       <span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> Collection&lt;BaseStatementUnit&gt; baseStatementUnits, <span class="keyword">final</span> List&lt;List&lt;Object&gt;&gt; parameterSets, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback) &#123;</div><div class="line">   List&lt;ListenableFuture&lt;T&gt;&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;(baseStatementUnits.size());</div><div class="line">   <span class="keyword">final</span> <span class="keyword">boolean</span> isExceptionThrown = ExecutorExceptionHandler.isExceptionThrown();</div><div class="line">   <span class="keyword">final</span> Map&lt;String, Object&gt; dataMap = ExecutorDataMap.getDataMap();</div><div class="line">   <span class="keyword">for</span> (<span class="keyword">final</span> BaseStatementUnit each : baseStatementUnits) &#123;</div><div class="line">       <span class="comment">// 提交线程池【异步】执行任务</span></div><div class="line">       result.add(executorService.submit(<span class="keyword">new</span> Callable&lt;T&gt;() &#123;</div><div class="line">           </div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> T <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">               <span class="keyword">return</span> executeInternal(sqlType, each, parameterSets, executeCallback, isExceptionThrown, dataMap);</div><div class="line">           &#125;</div><div class="line">       &#125;));</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 返回 ListenableFuture</span></div><div class="line">   <span class="keyword">return</span> Futures.allAsList(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>我们注意下 <code>Futures.allAsList(result);</code> 和 <code>restOutputs = restFutures.get();</code>。神器 Guava <strong>简化并发编程</strong> 的好处就提现出来了。<code>ListenableFuture#get()</code> 当<strong>所有任务都成功</strong>时，返回所有任务执行结果；当<strong>任何一个任务失败</strong>时，<strong>马上</strong>抛出异常，无需等待其他任务执行完成。</li>
+</ul>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/03.gif" alt=""></p>
+<p>_😮 Guava 真她喵神器，公众号：<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">【芋艿的后端小屋】</a>会更新 Guava 源码分享的一个系列哟！老司机还不赶紧上车？_</p>
+<ul>
+<li>为什么会分同步执行和异步执行呢？猜测，当<strong>SQL 执行是单表时</strong>，只要进行第一个任务的同步调用，性能更加优秀。等跟张亮大神请教确认原因后，咱会进行更新。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ExecutorEngine.java</span></div><div class="line"><span class="keyword">private</span> &lt;T&gt; <span class="function">T <span class="title">executeInternal</span><span class="params">(<span class="keyword">final</span> SQLType sqlType, <span class="keyword">final</span> BaseStatementUnit baseStatementUnit, <span class="keyword">final</span> List&lt;List&lt;Object&gt;&gt; parameterSets, <span class="keyword">final</span> ExecuteCallback&lt;T&gt; executeCallback, </span></span></div><div class="line">                     <span class="keyword">final</span> <span class="keyword">boolean</span> isExceptionThrown, <span class="keyword">final</span> Map&lt;String, Object&gt; dataMap) <span class="keyword">throws</span> Exception &#123;</div><div class="line">   <span class="keyword">synchronized</span> (baseStatementUnit.getStatement().getConnection()) &#123;</div><div class="line">       T result;</div><div class="line">       ExecutorExceptionHandler.setExceptionThrown(isExceptionThrown);</div><div class="line">       ExecutorDataMap.setDataMap(dataMap);</div><div class="line">       List&lt;AbstractExecutionEvent&gt; events = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">       <span class="comment">// 生成 Event</span></div><div class="line">       <span class="keyword">if</span> (parameterSets.isEmpty()) &#123;</div><div class="line">           events.add(getExecutionEvent(sqlType, baseStatementUnit, Collections.emptyList()));</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">for</span> (List&lt;Object&gt; each : parameterSets) &#123;</div><div class="line">               events.add(getExecutionEvent(sqlType, baseStatementUnit, each));</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// EventBus 发布 EventExecutionType.BEFORE_EXECUTE</span></div><div class="line">       <span class="keyword">for</span> (AbstractExecutionEvent event : events) &#123;</div><div class="line">           EventBusInstance.getInstance().post(event);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="comment">// 执行回调函数</span></div><div class="line">           result = executeCallback.execute(baseStatementUnit);</div><div class="line">       &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SQLException ex) &#123;</div><div class="line">           <span class="comment">// EventBus 发布 EventExecutionType.EXECUTE_FAILURE</span></div><div class="line">           <span class="keyword">for</span> (AbstractExecutionEvent each : events) &#123;</div><div class="line">               each.setEventExecutionType(EventExecutionType.EXECUTE_FAILURE);</div><div class="line">               each.setException(Optional.of(ex));</div><div class="line">               EventBusInstance.getInstance().post(each);</div><div class="line">               ExecutorExceptionHandler.handleException(ex);</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// EventBus 发布 EventExecutionType.EXECUTE_SUCCESS</span></div><div class="line">       <span class="keyword">for</span> (AbstractExecutionEvent each : events) &#123;</div><div class="line">           each.setEventExecutionType(EventExecutionType.EXECUTE_SUCCESS);</div><div class="line">           EventBusInstance.getInstance().post(each);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>result = executeCallback.execute(baseStatementUnit);</code> 执行回调函数。StatementExecutor，PreparedStatementExecutor，BatchPreparedStatementExecutor 通过传递<strong>执行回调函数</strong>( ExecuteCallback )实现给 ExecutorEngine 实现并行执行。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ExecuteCallback</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 执行任务.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@param</span> baseStatementUnit 语句对象执行单元</div><div class="line">     * <span class="doctag">@return</span> 处理结果</div><div class="line">     * <span class="doctag">@throws</span> Exception 执行期异常</div><div class="line">     */</div><div class="line">    <span class="function">T <span class="title">execute</span><span class="params">(BaseStatementUnit baseStatementUnit)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>synchronized (baseStatementUnit.getStatement().getConnection())</code> 原以为 Connection 非线程安全，因此需要用<strong>同步</strong>，后翻查资料<a href="http://blog.csdn.net/goldenfish1919/article/details/9089667" rel="external nofollow noopener noreferrer" target="_blank">《数据库连接池为什么要建立多个连接》</a>，Connection 是线程安全的。等跟张亮大神请教确认原因后，咱会进行更新。</li>
+<li>ExecutionEvent 这里先不解释，在本文第四节【EventBus】分享。</li>
+<li>ExecutorExceptionHandler、ExecutorDataMap 和 柔性事务 ( AbstractSoftTransaction )，放在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《柔性事务》</a>分享。</li>
+</ul>
+<h1 id="3-Executor"><a href="#3-Executor" class="headerlink" title="3. Executor"></a>3. Executor</h1><p>Executor，执行器，目前一共有三个执行器。不同的执行器对应不同的执行单元 (BaseStatementUnit)。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">执行器类</th>
+<th style="text-align:left">执行器名</th>
+<th style="text-align:left">执行单元</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">StatementExecutor</td>
+<td style="text-align:left">静态语句对象执行单元</td>
+<td style="text-align:left">StatementUnit</td>
+</tr>
+<tr>
+<td style="text-align:left">PreparedStatementExecutor</td>
+<td style="text-align:left">预编译语句对象请求的执行器</td>
+<td style="text-align:left">PreparedStatementUnit</td>
+</tr>
+<tr>
+<td style="text-align:left">BatchPreparedStatementExecutor</td>
+<td style="text-align:left">批量预编译语句对象请求的执行器</td>
+<td style="text-align:left">BatchPreparedStatementUnit</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>执行器提供的方法不同，因此不存在公用接口或者抽象类。</li>
+<li>执行单元继承自 BaseStatementUnit</li>
+</ul>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/04.png" alt=""></p>
+<h2 id="3-1-StatementExecutor"><a href="#3-1-StatementExecutor" class="headerlink" title="3.1 StatementExecutor"></a>3.1 StatementExecutor</h2><p>StatementExecutor，<strong>多线程</strong>执行静态语句对象请求的执行器，一共有三类方法：</p>
+<ul>
+<li><code>#executeQuery()</code> </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// StatementExecutor.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行SQL查询.</div><div class="line">* <span class="doctag">@return</span> 结果集列表</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;ResultSet&gt; <span class="title">executeQuery</span><span class="params">()</span> </span>&#123;</div><div class="line">   Context context = MetricsContext.start(<span class="string">"ShardingStatement-executeQuery"</span>);</div><div class="line">   List&lt;ResultSet&gt; result;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       result = executorEngine.executeStatement(sqlType, statementUnits, <span class="keyword">new</span> ExecuteCallback&lt;ResultSet&gt;() &#123;</div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> ResultSet <span class="title">execute</span><span class="params">(<span class="keyword">final</span> BaseStatementUnit baseStatementUnit)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">               <span class="keyword">return</span> baseStatementUnit.getStatement().executeQuery(baseStatementUnit.getSqlExecutionUnit().getSql());</div><div class="line">           &#125;</div><div class="line">       &#125;);</div><div class="line">   &#125; <span class="keyword">finally</span> &#123;</div><div class="line">       MetricsContext.stop(context);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>#executeUpdate()</code> 因为有四个不同情况的<code>#executeUpdate()</code>，所以抽象了 Updater 接口，从而达到逻辑重用。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// StatementExecutor.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行SQL更新.</div><div class="line">* <span class="doctag">@return</span> 更新数量</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">executeUpdate</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> executeUpdate(<span class="keyword">new</span> Updater() &#123;</div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">executeUpdate</span><span class="params">(<span class="keyword">final</span> Statement statement, <span class="keyword">final</span> String sql)</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">           <span class="keyword">return</span> statement.executeUpdate(sql);</div><div class="line">       &#125;</div><div class="line">   &#125;);</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">executeUpdate</span><span class="params">(<span class="keyword">final</span> Updater updater)</span> </span>&#123;</div><div class="line">   Context context = MetricsContext.start(<span class="string">"ShardingStatement-executeUpdate"</span>);</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       List&lt;Integer&gt; results = executorEngine.executeStatement(sqlType, statementUnits, <span class="keyword">new</span> ExecuteCallback&lt;Integer&gt;() &#123;</div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> Integer <span class="title">execute</span><span class="params">(<span class="keyword">final</span> BaseStatementUnit baseStatementUnit)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">               <span class="keyword">return</span> updater.executeUpdate(baseStatementUnit.getStatement(), baseStatementUnit.getSqlExecutionUnit().getSql());</div><div class="line">           &#125;</div><div class="line">       &#125;);</div><div class="line">       <span class="keyword">return</span> accumulate(results);</div><div class="line">   &#125; <span class="keyword">finally</span> &#123;</div><div class="line">       MetricsContext.stop(context);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 计算总的更新数量</div><div class="line">* <span class="doctag">@param</span> results 更新数量数组</div><div class="line">* <span class="doctag">@return</span> 更新数量</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">accumulate</span><span class="params">(<span class="keyword">final</span> List&lt;Integer&gt; results)</span> </span>&#123;</div><div class="line">   <span class="keyword">int</span> result = <span class="number">0</span>;</div><div class="line">   <span class="keyword">for</span> (Integer each : results) &#123;</div><div class="line">       result += <span class="keyword">null</span> == each ? <span class="number">0</span> : each;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>#execute()</code> 因为有四个不同情况的<code>#execute()</code>，所以抽象了 Executor 接口，从而达到逻辑重用。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 执行SQL请求.</div><div class="line">* <span class="doctag">@return</span> true表示执行DQL语句, false表示执行的DML语句</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> execute(<span class="keyword">new</span> Executor() &#123;</div><div class="line">       </div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">execute</span><span class="params">(<span class="keyword">final</span> Statement statement, <span class="keyword">final</span> String sql)</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">           <span class="keyword">return</span> statement.execute(sql);</div><div class="line">       &#125;</div><div class="line">   &#125;);</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">execute</span><span class="params">(<span class="keyword">final</span> Executor executor)</span> </span>&#123;</div><div class="line">   Context context = MetricsContext.start(<span class="string">"ShardingStatement-execute"</span>);</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       List&lt;Boolean&gt; result = executorEngine.executeStatement(sqlType, statementUnits, <span class="keyword">new</span> ExecuteCallback&lt;Boolean&gt;() &#123; </div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> Boolean <span class="title">execute</span><span class="params">(<span class="keyword">final</span> BaseStatementUnit baseStatementUnit)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">               <span class="keyword">return</span> executor.execute(baseStatementUnit.getStatement(), baseStatementUnit.getSqlExecutionUnit().getSql());</div><div class="line">           &#125;</div><div class="line">       &#125;);</div><div class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> == result || result.isEmpty() || <span class="keyword">null</span> == result.get(<span class="number">0</span>)) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> result.get(<span class="number">0</span>);</div><div class="line">   &#125; <span class="keyword">finally</span> &#123;</div><div class="line">       MetricsContext.stop(context);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="3-2-PreparedStatementExecutor"><a href="#3-2-PreparedStatementExecutor" class="headerlink" title="3.2 PreparedStatementExecutor"></a>3.2 PreparedStatementExecutor</h2><p>PreparedStatementExecutor，<strong>多线程</strong>执行预编译语句对象请求的执行器。比 StatementExecutor 多了 <code>parameters</code> 参数，方法逻辑上基本一致，就不重复分享啦。</p>
+<h2 id="3-3-BatchPreparedStatementExecutor"><a href="#3-3-BatchPreparedStatementExecutor" class="headerlink" title="3.3 BatchPreparedStatementExecutor"></a>3.3 BatchPreparedStatementExecutor</h2><p>BatchPreparedStatementExecutor，<strong>多线程</strong>执行批量预编译语句对象请求的执行器。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// BatchPreparedStatementExecutor.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行批量SQL.</div><div class="line">* </div><div class="line">* <span class="doctag">@return</span> 执行结果</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> <span class="keyword">int</span>[] executeBatch() &#123;</div><div class="line">   Context context = MetricsContext.start(<span class="string">"ShardingPreparedStatement-executeBatch"</span>);</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       <span class="keyword">return</span> accumulate(executorEngine.executeBatch(sqlType, batchPreparedStatementUnits, parameterSets, <span class="keyword">new</span> ExecuteCallback&lt;<span class="keyword">int</span>[]&gt;() &#123;</div><div class="line">           </div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="keyword">public</span> <span class="keyword">int</span>[] execute(<span class="keyword">final</span> BaseStatementUnit baseStatementUnit) <span class="keyword">throws</span> Exception &#123;</div><div class="line">               <span class="keyword">return</span> baseStatementUnit.getStatement().executeBatch();</div><div class="line">           &#125;</div><div class="line">       &#125;));</div><div class="line">   &#125; <span class="keyword">finally</span> &#123;</div><div class="line">       MetricsContext.stop(context);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 计算每个语句的更新数量</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> results 每条 SQL 更新数量</div><div class="line">* <span class="doctag">@return</span> 每个语句的更新数量</div><div class="line">*/</div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span>[] accumulate(<span class="keyword">final</span> List&lt;<span class="keyword">int</span>[]&gt; results) &#123;</div><div class="line">   <span class="keyword">int</span>[] result = <span class="keyword">new</span> <span class="keyword">int</span>[parameterSets.size()];</div><div class="line">   <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">   <span class="comment">// 每个语句按照顺序，读取到其对应的每个分片SQL影响的行数进行累加</span></div><div class="line">   <span class="keyword">for</span> (BatchPreparedStatementUnit each : batchPreparedStatementUnits) &#123;</div><div class="line">       <span class="keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : each.getJdbcAndActualAddBatchCallTimesMap().entrySet()) &#123;</div><div class="line">           result[entry.getKey()] += <span class="keyword">null</span> == results.get(count) ? <span class="number">0</span> : results.get(count)[entry.getValue()];</div><div class="line">       &#125;</div><div class="line">       count++;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>眼尖</strong>的同学会发现，为什么有 BatchPreparedStatementExecutor，而没有 BatchStatementExecutor 呢？目前 Sharding-JDBC 不支持 Statement 批量操作，只能进行 PreparedStatement 的批操作。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// PreparedStatement 批量操作，不会报错</span></div><div class="line">PreparedStatement ps = conn.prepareStatement(sql)</div><div class="line">ps.addBatch();</div><div class="line">ps.addBatch();</div><div class="line"></div><div class="line"><span class="comment">// Statement 批量操作，会报错</span></div><div class="line">ps.addBatch(sql); <span class="comment">// 报错：at com.dangdang.ddframe.rdb.sharding.jdbc.unsupported.AbstractUnsupportedOperationStatement.addBatch</span></div></pre></td></tr></table></figure>
+<h1 id="4-ExecutionEvent"><a href="#4-ExecutionEvent" class="headerlink" title="4. ExecutionEvent"></a>4. ExecutionEvent</h1><p>AbstractExecutionEvent，SQL 执行事件抽象接口。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractExecutionEvent</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 事件编号</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String id;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 数据源</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String dataSource;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * SQL</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String sql;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 参数</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Object&gt; parameters;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 事件类型</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> EventExecutionType eventExecutionType;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 异常</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> Optional&lt;SQLException&gt; exception;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>AbstractExecutionEvent 有两个实现子类：</p>
+<ul>
+<li>DMLExecutionEvent：DML类SQL执行时事件</li>
+<li>DQLExecutionEvent：DQL类SQL执行时事件</li>
+</ul>
+<p>EventExecutionType，事件触发类型。</p>
+<ul>
+<li>BEFORE_EXECUTE：执行前</li>
+<li>EXECUTE_SUCCESS：执行成功</li>
+<li>EXECUTE_FAILURE：执行失败</li>
+</ul>
+<h2 id="4-1-EventBus"><a href="#4-1-EventBus" class="headerlink" title="4.1 EventBus"></a>4.1 EventBus</h2><p><strong>那究竟有什么用途呢？</strong> Sharding-JDBC 使用 Guava（<strong>没错，又是它</strong>）的 <strong>EventBus</strong> 实现了<strong>事件的发布和订阅</strong>。从上文 <code>ExecutorEngine#executeInternal()</code> 我们可以看到<strong>每个分片</strong> SQL 执行的过程中会发布相应事件：</p>
+<ul>
+<li>执行 SQL 前：发布类型类型为 BEFORE_EXECUTE 的事件</li>
+<li>执行 SQL 成功：发布类型类型为 EXECUTE_SUCCESS 的事件</li>
+<li>执行 SQL 失败：发布类型类型为 EXECUTE_FAILURE 的事件</li>
+</ul>
+<p><strong>怎么订阅事件呢？</strong>非常简单，例子如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line">EventBusInstance.getInstance().register(<span class="keyword">new</span> Runnable() &#123;</div><div class="line"></div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="meta">@Subscribe</span> <span class="comment">// 订阅</span></div><div class="line">  <span class="meta">@AllowConcurrentEvents</span> <span class="comment">// 是否允许并发执行，即线程安全</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listen</span><span class="params">(<span class="keyword">final</span> DMLExecutionEvent event)</span> </span>&#123; <span class="comment">// DMLExecutionEvent</span></div><div class="line">      System.out.println(<span class="string">"DMLExecutionEvent："</span> + event.getSql() + <span class="string">"\t"</span> + event.getEventExecutionType());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="meta">@Subscribe</span> <span class="comment">// 订阅</span></div><div class="line">  <span class="meta">@AllowConcurrentEvents</span> <span class="comment">// 是否允许并发执行，即线程安全</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listen2</span><span class="params">(<span class="keyword">final</span> DQLExecutionEvent event)</span> </span>&#123; <span class="comment">//DQLExecutionEvent</span></div><div class="line">      System.out.println(<span class="string">"DQLExecutionEvent："</span> + event.getSql() + <span class="string">"\t"</span> + event.getEventExecutionType());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<ul>
+<li><code>#register()</code> 任何类都可以，并非一定需要使用 Runnable 类。此处例子单纯因为方便</li>
+<li><code>@Subscribe</code> 注解在方法上，实现对事件的订阅</li>
+<li><code>@AllowConcurrentEvents</code> 注解在方法上，表示线程安全，允许并发执行</li>
+<li>方法上的<strong>参数对应的类</strong>即是订阅的事件。例如，<code>#listen()</code> 订阅了 DMLExecutionEvent 事件</li>
+<li><code>EventBus#post()</code> 发布事件，<strong>同步</strong>调用订阅逻辑</li>
+</ul>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/05.png" alt=""></p>
+<ul>
+<li>推荐阅读文章：<a href="http://www.cnblogs.com/peida/p/EventBus.html" rel="external nofollow noopener noreferrer" target="_blank">《Guava学习笔记：EventBus》</a></li>
+</ul>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+<h2 id="4-2-BestEffortsDeliveryListener"><a href="#4-2-BestEffortsDeliveryListener" class="headerlink" title="4.2 BestEffortsDeliveryListener"></a>4.2 BestEffortsDeliveryListener</h2><p>BestEffortsDeliveryListener，最大努力送达型事务监听器。</p>
+<p>本文暂时暂时不分析其实现，仅仅作为另外一个<strong>订阅者</strong>的例子。我们会在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《柔性事务》</a>进行分享。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">BestEffortsDeliveryListener</span> </span>&#123;</div><div class="line">    <span class="meta">@Subscribe</span></div><div class="line">    <span class="meta">@AllowConcurrentEvents</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listen</span><span class="params">(<span class="keyword">final</span> DMLExecutionEvent event)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (!isProcessContinuously()) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        SoftTransactionConfiguration transactionConfig = SoftTransactionManager.getCurrentTransactionConfiguration().get();</div><div class="line">        TransactionLogStorage transactionLogStorage = TransactionLogStorageFactory.createTransactionLogStorage(transactionConfig.buildTransactionLogDataSource());</div><div class="line">        BEDSoftTransaction bedSoftTransaction = (BEDSoftTransaction) SoftTransactionManager.getCurrentTransaction().get();</div><div class="line">        <span class="keyword">switch</span> (event.getEventExecutionType()) &#123;</div><div class="line">            <span class="keyword">case</span> BEFORE_EXECUTE:</div><div class="line">                <span class="comment">//TODO 对于批量执行的SQL需要解析成两层列表</span></div><div class="line">                transactionLogStorage.add(<span class="keyword">new</span> TransactionLog(event.getId(), bedSoftTransaction.getTransactionId(), bedSoftTransaction.getTransactionType(), </div><div class="line">                        event.getDataSource(), event.getSql(), event.getParameters(), System.currentTimeMillis(), <span class="number">0</span>));</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">case</span> EXECUTE_SUCCESS: </div><div class="line">                transactionLogStorage.remove(event.getId());</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">case</span> EXECUTE_FAILURE: </div><div class="line">                <span class="keyword">boolean</span> deliverySuccess = <span class="keyword">false</span>;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; transactionConfig.getSyncMaxDeliveryTryTimes(); i++) &#123;</div><div class="line">                    <span class="keyword">if</span> (deliverySuccess) &#123;</div><div class="line">                        <span class="keyword">return</span>;</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">boolean</span> isNewConnection = <span class="keyword">false</span>;</div><div class="line">                    Connection conn = <span class="keyword">null</span>;</div><div class="line">                    PreparedStatement preparedStatement = <span class="keyword">null</span>;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.UPDATE);</div><div class="line">                        <span class="keyword">if</span> (!isValidConnection(conn)) &#123;</div><div class="line">                            bedSoftTransaction.getConnection().release(conn);</div><div class="line">                            conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.UPDATE);</div><div class="line">                            isNewConnection = <span class="keyword">true</span>;</div><div class="line">                        &#125;</div><div class="line">                        preparedStatement = conn.prepareStatement(event.getSql());</div><div class="line">                        <span class="comment">//TODO 对于批量事件需要解析成两层列表</span></div><div class="line">                        <span class="keyword">for</span> (<span class="keyword">int</span> parameterIndex = <span class="number">0</span>; parameterIndex &lt; event.getParameters().size(); parameterIndex++) &#123;</div><div class="line">                            preparedStatement.setObject(parameterIndex + <span class="number">1</span>, event.getParameters().get(parameterIndex));</div><div class="line">                        &#125;</div><div class="line">                        preparedStatement.executeUpdate();</div><div class="line">                        deliverySuccess = <span class="keyword">true</span>;</div><div class="line">                        transactionLogStorage.remove(event.getId());</div><div class="line">                    &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SQLException ex) &#123;</div><div class="line">                        log.error(String.format(<span class="string">"Delivery times %s error, max try times is %s"</span>, i + <span class="number">1</span>, transactionConfig.getSyncMaxDeliveryTryTimes()), ex);</div><div class="line">                    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                        close(isNewConnection, conn, preparedStatement);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            <span class="keyword">default</span>: </div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(event.getEventExecutionType().toString());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>本文完，但也未完。</p>
+<p><strong>跨分片事务问题</strong>。例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">UPDATE</span> t_order <span class="keyword">SET</span> nickname = ? <span class="keyword">WHERE</span> user_id = ?</div></pre></td></tr></table></figure>
+<p>A 节点 <code>connection.commit()</code> 时，应用突然挂了！B节点 <code>connection.commit()</code> 还来不及执行。<br>我们一起去<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《柔性事务》</a>寻找答案。</p>
+<p><strong>道友，分享一波朋友圈可好？</strong></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋艿的后端小屋】&lt;/stron
+    
+    </summary>
+    
+      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>Sharding-JDBC 源码分析 —— 分布式主键</title>
     <link href="http://www.yunai.me/Sharding-JDBC/distributed-id/"/>
     <id>http://www.yunai.me/Sharding-JDBC/distributed-id/</id>
     <published>2017-08-11T16:00:00.000Z</published>
-    <updated>2017-08-03T13:12:12.000Z</updated>
+    <updated>2017-08-04T18:10:59.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -49,9 +271,13 @@
 <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文分享 Sharding-JDBC <strong>分布式主键</strong>实现。</p>
 <p>官方文档<a href="http://dangdangdotcom.github.io/sharding-jdbc/02-guide/key-generator/" rel="external nofollow noopener noreferrer" target="_blank">《分布式主键》</a>对其介绍及使用方式介绍很完整，强烈先阅读。下面先引用下分布式主键的<strong>实现动机</strong>：</p>
 <blockquote>
-<p>传统数据库软件开发中，主键自动生成技术是基本需求。而各大数据库对于该需求也提供了相应的支持，比如MySQL的自增键。 对于MySQL而言，分库分表之后，不同表生成全局唯一的Id是非常棘手的问题。因为同一个逻辑表内的不同实际表之间的自增键是无法互相感知的， 这样会造成重复Id的生成。我们当然可以通过约束表生成键的规则来达到数据的不重复，但是这需要引入额外的运维力量来解决重复性问题，并使框架缺乏扩展性。</p>
-<p>目前有许多第三方解决方案可以完美解决这个问题，比如UUID等依靠特定算法自生成不重复键，或者通过引入Id生成服务等。 但也正因为这种多样性导致了Sharding-JDBC如果强依赖于任何一种方案就会限制其自身的发展。</p>
-<p>基于以上的原因，最终采用了以JDBC接口来实现对于生成Id的访问，而将底层具体的Id生成实现分离出来。</p>
+<p>传统数据库软件开发中，主键自动生成技术是基本需求。而各大数据库对于该需求也提供了相应的支持，比如MySQL的自增键。对于MySQL而言，分库分表之后，不同表生成全局唯一的Id是非常棘手的问题。因为同一个逻辑表内的不同实际表之间的自增键是无法互相感知的，这样会造成重复Id的生成。我们当然可以通过约束表生成键的规则来达到数据的不重复，但是这需要引入额外的运维力量来解决重复性问题，并使框架缺乏扩展性。  </p>
+<p>目前有许多第三方解决方案可以完美解决这个问题，比如UUID等依靠特定算法自生成不重复键，或者通过引入Id生成服务等。 但也正因为这种多样性导致了Sharding-JDBC如果强依赖于任何一种方案就会限制其自身的发展。  </p>
+<p>基于以上的原因，最终采用了以JDBC接口来实现对于生成Id的访问，而将底层具体的Id生成实现分离出来。  </p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
 </blockquote>
 <h1 id="2-KeyGenerator"><a href="#2-KeyGenerator" class="headerlink" title="2. KeyGenerator"></a>2. KeyGenerator</h1><p>KeyGenerator，主键生成器接口。实现类通过实现 <code>#generateKey()</code> 方法对外提供<strong>生成主键</strong>的功能。</p>
 <h2 id="2-1-DefaultKeyGenerator"><a href="#2-1-DefaultKeyGenerator" class="headerlink" title="2.1 DefaultKeyGenerator"></a>2.1 DefaultKeyGenerator</h2><p>DefaultKeyGenerator，默认的主键生成器。该生成器采用 Twitter Snowflake 算法实现，生成 <strong>64 Bits</strong> 的 <strong>Long</strong> 型编号。国内另外一款数据库中间件 MyCAT 分布式主键也是基于该算法实现。国内很多大型互联网公司<strong>发号器</strong>服务基于该算法加部分改造实现。所以 DefaultKeyGenerator 必须是<strong>根正苗红</strong>。如果你对<strong>分布式主键</strong>感兴趣，可以看看逗比笔者整理的<a href="http://www.yunai.me/Architecture/talk-about-global-id/?self">《谈谈 ID》</a>。</p>
@@ -2259,74 +2485,149 @@
     <link href="http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/"/>
     <id>http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</id>
     <published>2017-07-15T16:00:00.000Z</published>
-    <updated>2017-07-31T13:05:22.000Z</updated>
+    <updated>2017-08-04T09:03:52.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
 <li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<h2 id="为什么阅读-Sharding-JDBC-源码？"><a href="#为什么阅读-Sharding-JDBC-源码？" class="headerlink" title="为什么阅读 Sharding-JDBC 源码？"></a>为什么阅读 Sharding-JDBC 源码？</h2><ol>
+<h2>为什么阅读 Sharding-JDBC 源码？</h2>
+<ol>
 <li>看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sharding-JDBC 是 Client 端级别，MyCAT 是 Server 级别。</li>
 <li>Sharding-JDBC 经历过当当本身业务的考验，从可靠性上来说会更让人有信赖感。</li>
 <li>文档更加完善，开发体系更加健全。</li>
 <li>Sharding-JDBC 1.5.0.M3 发布。</li>
 <li><strong>最大努力送达型</strong>事务支持，想要进一步了解分布式事务的解决方案。Last But Very Importment。</li>
 </ol>
-<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ul>
-<li><p>FROM MyCAT</p>
-<p>  <strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
+<h2>步骤</h2>
+<ul>
+<li>
+<p>FROM MyCAT</p>
+<p><strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
 </li>
-<li><p>[ ] <del>NIO</del></p>
+<li>
+<p>[x] <s>NIO</s></p>
 </li>
-<li>[ ] <del>分布式事务</del></li>
-<li>[ ] <del>MyCAT 主从</del></li>
-<li>[ ] <del>支持prepare预编译指令</del></li>
-<li>[ ] 自增序列</li>
-<li>[ ] 单库任意 Join</li>
-<li>[ ] 跨库2表 Join</li>
-<li>[ ] <del>跨库多表 Join</del></li>
-<li>[ ] SQL 解析</li>
-<li>[ ] 读写分离</li>
-<li>[ ] MySQL 主从</li>
-<li>[ ] <del>自动故障切换</del></li>
-<li>[ ] <del>Galera Cluster 集群</del></li>
-<li>[ ] <del>MHA 集群</del></li>
-<li>[ ] <del>Percona 集群</del></li>
-<li>[ ] <del>服务降级</del></li>
-<li>[ ] <del>多租户</del></li>
-<li>[ ] 路由</li>
-<li>[ ] <del>MyCAT 集群</del></li>
-<li>[ ] 注解</li>
-<li>[ ] <del>缓存</del></li>
-<li>[ ] 监控</li>
-<li>[ ] <del>Mongodb</del></li>
-<li>[ ] 内存管理</li>
-<li>[ ] 数据聚合</li>
-<li>[ ] 数据排序</li>
-<li>[ ] 分表</li>
-<li>[ ] 分库</li>
-<li>[ ] 全局表</li>
-<li>[ ] <del>E/R关系</del></li>
-<li>[ ] 服务降级</li>
-<li>[ ] SQL 注入攻击拦截</li>
-<li>[ ] <del>MySQL 协议</del></li>
-<li>[ ] <del>PostgreSQL 协议</del></li>
-<li><p>[ ] 存储过程</p>
+<li>
+<p>[x] <s>分布式事务</s></p>
 </li>
-<li><p>FROM Sharding-JDBC</p>
-<p>  <strong>从 官网 介绍获取。</strong></p>
+<li>
+<p>[x] <s>MyCAT 主从</s></p>
 </li>
-<li><p>[ ] 分布式事务 ：最大努力送达型事务</p>
+<li>
+<p>[x] <s>支持prepare预编译指令</s></p>
 </li>
-<li>[ ] 分布式事务 ：TCC型事务(TBD)</li>
+<li>
+<p>[x] 自增序列</p>
+</li>
+<li>
+<p>[x] 单库任意 Join</p>
+</li>
+<li>
+<p>[x] <s>跨库2表 Join</s></p>
+</li>
+<li>
+<p>[x] <s>跨库多表 Join</s></p>
+</li>
+<li>
+<p>[x] SQL 解析</p>
+</li>
+<li>
+<p>[ ] 读写分离</p>
+</li>
+<li>
+<p>[x] <s>MySQL 主从</s></p>
+</li>
+<li>
+<p>[x] <s>自动故障切换</s></p>
+</li>
+<li>
+<p>[x] <s>Galera Cluster 集群</s></p>
+</li>
+<li>
+<p>[x] <s>MHA 集群</s></p>
+</li>
+<li>
+<p>[x] <s>Percona 集群</s></p>
+</li>
+<li>
+<p>[x] <s>服务降级</s></p>
+</li>
+<li>
+<p>[x] <s>多租户</s></p>
+</li>
+<li>
+<p>[x] 路由</p>
+</li>
+<li>
+<p>[x] <s>MyCAT 集群</s></p>
+</li>
+<li>
+<p>[x] <s>注解</s></p>
+</li>
+<li>
+<p>[x] <s>缓存</s></p>
+</li>
+<li>
+<p>[x] <s>监控</s></p>
+</li>
+<li>
+<p>[x] <s>Mongodb</s></p>
+</li>
+<li>
+<p>[ ] 内存管理</p>
+</li>
+<li>
+<p>[ ] 数据聚合</p>
+</li>
+<li>
+<p>[ ] 数据排序</p>
+</li>
+<li>
+<p>[x] 分表</p>
+</li>
+<li>
+<p>[x] 分库</p>
+</li>
+<li>
+<p>[x] <s>全局表</s></p>
+</li>
+<li>
+<p>[x] <s>E/R关系</s></p>
+</li>
+<li>
+<p>[x] <s>服务降级</s></p>
+</li>
+<li>
+<p>[x] <s>SQL 注入攻击拦截</s></p>
+</li>
+<li>
+<p>[x] <s>MySQL 协议</s></p>
+</li>
+<li>
+<p>[x] <s>PostgreSQL 协议</s></p>
+</li>
+<li>
+<p>[ ] 存储过程</p>
+</li>
+<li>
+<p>FROM Sharding-JDBC</p>
+<p><strong>从 官网 介绍获取。</strong></p>
+</li>
+<li>
+<p>[ ] 分布式事务 ：最大努力送达型事务</p>
+</li>
+<li>
+<p>[ ] 分布式事务 ：TCC型事务(TBD)</p>
+</li>
 </ul>
 ]]></content>
     
@@ -2334,7 +2635,8 @@
     
       &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋艿的后端小屋】&lt;/strong
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
+&lt;ol
     
     </summary>
     
@@ -3050,85 +3352,6 @@
 <h1 id="5-响应执行-SQL-结果"><a href="#5-响应执行-SQL-结果" class="headerlink" title="5. 响应执行 SQL 结果"></a>5. 响应执行 SQL 结果</h1><p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/04.png" alt="【单库单表】插入（04执行响应）"></p>
 <h2 id="【-1-4-】"><a href="#【-1-4-】" class="headerlink" title="【 1 - 4 】"></a>【 1 - 4 】</h2><p>处理 MySQL Server 响应数据包。</p>
 <h2 id="【-5-8-】"><a href="#【-5-8-】" class="headerlink" title="【 5 - 8 】"></a>【 5 - 8 】</h2><p>发送插入成功结果给 MySQL Client。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋艿的后端小屋】&lt;/strong
-    
-    </summary>
-    
-      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>MyCAT 源码分析 —— 调试环境搭建</title>
-    <link href="http://www.yunai.me/MyCAT/build-debugging-environment/"/>
-    <id>http://www.yunai.me/MyCAT/build-debugging-environment/</id>
-    <published>2017-05-22T16:00:00.000Z</published>
-    <updated>2017-07-31T12:30:52.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<ul>
-<li><a href="#">1. 依赖工具</a></li>
-<li><a href="#">2. 源码拉取</a></li>
-<li><a href="#">3. 数据库配置</a></li>
-<li><a href="#">4. MyCat 配置</a></li>
-<li><a href="#">5. MyCAT 启动</a></li>
-<li><a href="#">6. MyCAT 测试</a></li>
-<li><a href="#">7. 交流</a></li>
-</ul>
-<h1 id="1-依赖工具"><a href="#1-依赖工具" class="headerlink" title="1. 依赖工具"></a>1. 依赖工具</h1><ul>
-<li>Maven</li>
-<li>Git</li>
-<li>JDK</li>
-<li>MySQL</li>
-<li>IntelliJ IDEA</li>
-</ul>
-<h1 id="2-源码拉取"><a href="#2-源码拉取" class="headerlink" title="2. 源码拉取"></a>2. 源码拉取</h1><p>从官方仓库 <a href="https://github.com/MyCATApache/Mycat-Server" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/MyCATApache/Mycat-Server</a> <code>Fork</code> 出属于自己的仓库。为什么要 <code>Fork</code> ？既然开始阅读、调试源码，我们可能会写一些注释，有了自己的仓库，可以进行自由的提交。😈</p>
-<p>使用 <code>IntelliJ IDEA</code> 从 <code>Fork</code> 出来的仓库拉取代码。拉取完成后，<code>Maven</code> 会下载依赖包，可能会花费一些时间，耐心等待下。</p>
-<h1 id="3-数据库配置"><a href="#3-数据库配置" class="headerlink" title="3. 数据库配置"></a>3. 数据库配置</h1><p>我们要搭建的是<strong>非分片表</strong>的调试环境，需要创建一个数据库和表：</p>
-<ol>
-<li>创建数据库：<code>db01</code> 。</li>
-<li>创建数据库表：<code>travelrecord</code> 。</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`travelrecord`</span> (</div><div class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</div><div class="line">  <span class="string">`name`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="built_in">CHARACTER</span> <span class="keyword">SET</span> latin1 <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> AUTO_INCREMENT=<span class="number">1</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin</div></pre></td></tr></table></figure>
-<h1 id="4-MyCAT-配置"><a href="#4-MyCAT-配置" class="headerlink" title="4. MyCAT 配置"></a>4. MyCAT 配置</h1><p>为了避免对实现源码产生影响，我们选择对 <code>test</code> 目录做变更。</p>
-<p>1、在 <code>resources</code> 目录下新建文件夹 <code>backups</code> ，将原 <code>resources</code> 下的所有文件移到 <code>backups</code> 下，这样我们的环境就干干净了。<br>2、在 <code>resources</code> 目录下新建 <code>schema.xml</code> 文件，配置 <code>MyCAT</code> 的逻辑库、表、数据节点、数据源。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><div class="line">&lt;?xml version="1.0"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE mycat:schema SYSTEM "schema.dtd"&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">mycat:schema</span> <span class="attr">xmlns:mycat</span>=<span class="string">"http://io.mycat/"</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">schema</span> <span class="attr">name</span>=<span class="string">"dbtest"</span> <span class="attr">checkSQLschema</span>=<span class="string">"true"</span> <span class="attr">sqlMaxLimit</span>=<span class="string">"100"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">table</span> <span class="attr">name</span>=<span class="string">"travelrecord"</span> <span class="attr">dataNode</span>=<span class="string">"dn1"</span> <span class="attr">autoIncrement</span>=<span class="string">"true"</span> <span class="attr">primaryKey</span>=<span class="string">"id"</span> /&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">schema</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">dataNode</span> <span class="attr">name</span>=<span class="string">"dn1"</span> <span class="attr">dataHost</span>=<span class="string">"localhost1"</span> <span class="attr">database</span>=<span class="string">"db1"</span> /&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">dataHost</span> <span class="attr">name</span>=<span class="string">"localhost1"</span> <span class="attr">maxCon</span>=<span class="string">"1000"</span> <span class="attr">minCon</span>=<span class="string">"10"</span> <span class="attr">balance</span>=<span class="string">"0"</span></span></div><div class="line">			  <span class="attr">writeType</span>=<span class="string">"0"</span> <span class="attr">dbType</span>=<span class="string">"mysql"</span> <span class="attr">dbDriver</span>=<span class="string">"native"</span> <span class="attr">switchType</span>=<span class="string">"1"</span> <span class="attr">slaveThreshold</span>=<span class="string">"100"</span>&gt;</div><div class="line">		<span class="tag">&lt;<span class="name">heartbeat</span>&gt;</span>select user()<span class="tag">&lt;/<span class="name">heartbeat</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">writeHost</span> <span class="attr">host</span>=<span class="string">"hostM1"</span> <span class="attr">url</span>=<span class="string">"127.0.0.1:33061"</span> <span class="attr">user</span>=<span class="string">"root"</span> <span class="attr">password</span>=<span class="string">"123456"</span>&gt;</span> <span class="comment">&lt;!-- ‼️‼️‼️ url、user、password 设置成你的数据库 --&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">writeHost</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dataHost</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">mycat:schema</span>&gt;</span></div></pre></td></tr></table></figure>
-<p>3、在 <code>resources</code> 目录下新建 <code>server.xml</code> 文件，配置 <code>MyCAT</code> 系统配置。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE mycat:server SYSTEM "server.dtd"&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">mycat:server</span> <span class="attr">xmlns:mycat</span>=<span class="string">"http://io.mycat/"</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">system</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"nonePasswordLogin"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span> <span class="comment">&lt;!-- 0为需要密码登陆、1为不需要密码登陆 ,默认为0，设置为1则需要指定默认账户--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useHandshakeV10"</span>&gt;</span>1<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useSqlStat"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span>  <span class="comment">&lt;!-- 1为开启实时统计、0为关闭 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useGlobleTableCheck"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span>  <span class="comment">&lt;!-- 1为开启全加班一致性检测、0为关闭 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"sequnceHandlerType"</span>&gt;</span>2<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"processorBufferPoolType"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"handleDistributedTransactions"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useOffHeapForMerge"</span>&gt;</span>1<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"memoryPageSize"</span>&gt;</span>64k<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"spillsFileBufferSize"</span>&gt;</span>1k<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useStreamOutput"</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"systemReserveMemorySize"</span>&gt;</span>384m<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"useZKSwitch"</span>&gt;</span>false<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">system</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">user</span> <span class="attr">name</span>=<span class="string">"root"</span> <span class="attr">defaultAccount</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"password"</span>&gt;</span>123456<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"schemas"</span>&gt;</span>dbtest<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">user</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">mycat:server</span>&gt;</span></div></pre></td></tr></table></figure>
-<h1 id="5-MyCAT-启动"><a href="#5-MyCAT-启动" class="headerlink" title="5. MyCAT 启动"></a>5. MyCAT 启动</h1><p>1、在 <code>java</code> 目录下新建 <code>debugger</code> 包，和原先已存在的包做区分。<br>2、在 <code>debbuger</code> 包下新建 <code>MycatStartupTest.java</code> ：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">package</span> debugger;</div><div class="line"></div><div class="line"><span class="keyword">import</span> io.mycat.MycatStartup;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * &#123;<span class="doctag">@link</span> io.mycat.MycatStartup&#125;测试</div><div class="line"> *</div><div class="line"> * Created by yunai on 2017/5/22.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MycatStartupTest</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        MycatStartup.main(args);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>3、运行 <code>MycatStartupTest.java</code> ，当看到输出日志 <code>MyCAT Server startup successfully. see logs in logs/mycat.log</code> 即为启动成功。</p>
-<p>截止目前，<code>test</code> 目录如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_23/01.png" alt="test目录.png"></p>
-<h1 id="6-MyCAT-测试"><a href="#6-MyCAT-测试" class="headerlink" title="6. MyCAT 测试"></a>6. MyCAT 测试</h1><p>调试环境已经搭建完成，我们看看是否正确。</p>
-<p>使用 <code>MySQL</code> 客户端连接 <code>MyCAT</code> ：</p>
-<ul>
-<li>HOST ：127.0.0.1</li>
-<li>PORT ：8066</li>
-<li>USERNAME ：root</li>
-<li>PASSWORD ：123456</li>
-</ul>
-<figure class="highlight"><table><tr><td class="code"><pre><div class="line">mysql&gt; insert into travelrecord(name) values ('haha');</div><div class="line">Query OK, 1 rows affected (0.01 sec)</div><div class="line"></div><div class="line">mysql&gt; select * from travelrecord;</div><div class="line">+--------------------+------+</div><div class="line">| id                 | name |</div><div class="line">+--------------------+------+</div><div class="line">| 866707181398003712 | haha |</div><div class="line">+--------------------+------+</div><div class="line">1 rows in set (0.05 sec)</div></pre></td></tr></table></figure>
-<p>成功。😈😈😈</p>
-<h1 id="7-交流"><a href="#7-交流" class="headerlink" title="7. 交流"></a>7. 交流</h1><p>感谢阅读、收藏、关注。<br><strong>知其然知其所以然。学习 MyCAT 会是一段很愉快的旅程。如果有你的交流，相信会更加愉快。欢迎添加微信：<code>wangwenbin-server</code> 进行探讨。</strong></p>
 ]]></content>
     
     <summary type="html">
