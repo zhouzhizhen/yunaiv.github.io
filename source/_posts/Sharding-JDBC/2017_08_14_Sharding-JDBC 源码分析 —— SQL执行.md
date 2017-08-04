@@ -2,9 +2,11 @@
 
 越过千山万水（SQL 解析、SQL 路由、SQL 改写），我们终于来到了 **SQL 执行**。开森不开森？！
 
-![](../../../images/Sharding-JDBC/2017_08_14/01.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/01.png)
 
 本文主要分享**SQL 执行**的过程，不包括**结果聚合**。[《结果聚合》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg) **东半球第二良心笔者**会更新，关注微信公众号[【芋艿的后端小屋】](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)完稿后**第一时间**通知您哟。
+
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/06.png)
 
 # 2. ExecutorEngine
 
@@ -143,7 +145,7 @@ public List<int[]> executeBatch(
 
 `#execute()` 执行过程大体流程如下图：
 
-![](../../../images/Sharding-JDBC/2017_08_14/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/02.png)
 
 ```Java
 /**
@@ -218,7 +220,7 @@ private <T> ListenableFuture<List<T>> asyncExecute(
 ```
 * 我们注意下 `Futures.allAsList(result);` 和 `restOutputs = restFutures.get();`。神器 Guava **简化并发编程** 的好处就提现出来了。`ListenableFuture#get()` 当**所有任务都成功**时，返回所有任务执行结果；当**任何一个任务失败**时，**马上**抛出异常，无需等待其他任务执行完成。
 
-![](../../../images/Sharding-JDBC/2017_08_14/03.gif)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/03.gif)
 
 _😮 Guava 真她喵神器，公众号：[【芋艿的后端小屋】](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)会更新 Guava 源码分享的一个系列哟！老司机还不赶紧上车？_
 
@@ -302,7 +304,7 @@ Executor，执行器，目前一共有三个执行器。不同的执行器对应
 * 执行器提供的方法不同，因此不存在公用接口或者抽象类。
 * 执行单元继承自 BaseStatementUnit
 
-![](../../../images/Sharding-JDBC/2017_08_14/04.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/04.png)
 
 ## 3.1 StatementExecutor
 
@@ -556,13 +558,13 @@ EventBusInstance.getInstance().register(new Runnable() {
 * 方法上的**参数对应的类**即是订阅的事件。例如，`#listen()` 订阅了 DMLExecutionEvent 事件
 * `EventBus#post()` 发布事件，**同步**调用订阅逻辑
 
-![](../../../images/Sharding-JDBC/2017_08_14/05.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_14/05.png)
 
 ## 4.2 BestEffortsDeliveryListener
 
 BestEffortsDeliveryListener，最大努力送达型事务监听器。
 
-本文暂时暂时不分析其实现，仅仅作为另外一个**订阅者**的例子。我们会在[《荣幸事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)进行分享。
+本文暂时暂时不分析其实现，仅仅作为另外一个**订阅者**的例子。我们会在[《柔性事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)进行分享。
 
 ```Java
 public final class BestEffortsDeliveryListener {
@@ -624,6 +626,16 @@ public final class BestEffortsDeliveryListener {
 
 # 666. 彩蛋
 
+本文完，但也未完。
 
+**跨分片事务问题**。例如：
 
+```SQL
+UPDATE t_order SET nickname = ? WHERE user_id = ?
+```
+
+A 节点 `connection.commit()` 时，应用突然挂了！B节点 `connection.commit()` 还来不及执行。  
+我们一起去[《柔性事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)寻找答案。
+
+**道友，分享一波朋友圈可好？**
 
