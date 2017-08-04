@@ -11,18 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
     <meta name="sogou_site_verification" content="MpPsku240L">
-    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 之 Namesrv 小结">
 <meta property="og:url" content="http://www.yunai.me/RocketMQ/namesrv-intro/index.html">
 <meta property="og:site_name" content="芋艿V的博客">
-<meta property="og:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+<meta property="og:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta property="og:image" content="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
 <meta property="og:updated_time" content="2017-07-31T12:30:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 之 Namesrv 小结">
-<meta name="twitter:description" content="🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址 您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。 新的源码解析文章实时收到通知。每周更新一篇左右。 认真的源码交流">
+<meta name="twitter:description" content="🙂🙂🙂关注微信公众号：【芋艿的后端小屋】有福利：    RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表   RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址   您对于源码的疑问每条留言都将得到认真回复。甚至不知道如何读源码也可以请教噢。   新的源码解析文章实时收到通知。每周更新一篇左右。 认真的">
 <meta name="twitter:image" content="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">
     
     
@@ -146,7 +146,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Namesrv组件"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -182,25 +182,22 @@
   <div class="content" itemprop="articleBody">
     <p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
 <li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<h2>Namesrv组件</h2>
-<ul>
-<li>KVConfigManager：KV配置管理
-<ul>
+<h2 id="Namesrv组件"><a href="#Namesrv组件" class="headerlink" title="Namesrv组件"></a>Namesrv组件</h2><ul>
+<li>KVConfigManager：KV配置管理<ul>
 <li>key-value配置管理，增删改查</li>
 </ul>
 </li>
-<li>RouteInfoManager：路由信息管理
-<ul>
+<li>RouteInfoManager：路由信息管理<ul>
 <li>注册Broker，提供Broker信息（名字、角色编号、地址、集群名）</li>
 <li>注册Topic，提供Topic信息（Topic名、读写权限、队列情况）</li>
 </ul>
@@ -230,7 +227,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Namesrv组件"><span class="toc-number">1.</span> <span class="toc-text">Namesrv组件</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
