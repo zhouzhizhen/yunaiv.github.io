@@ -284,6 +284,7 @@ public interface ExecuteCallback<T> {
 }
 ```
 
+* `synchronized (baseStatementUnit.getStatement().getConnection())` 原以为 Connection 非线程安全，因此需要用**同步**，后翻查资料[《数据库连接池为什么要建立多个连接》](http://blog.csdn.net/goldenfish1919/article/details/9089667)，Connection 是线程安全的。等跟张亮大神请教确认原因后，咱会进行更新。
 * ExecutionEvent 这里先不解释，在本文第四节【EventBus】分享。
 * ExecutorExceptionHandler、ExecutorDataMap 和 柔性事务 ( AbstractSoftTransaction )，放在[《柔性事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)分享。
 
@@ -298,9 +299,331 @@ Executor，执行器，目前一共有三个执行器。不同的执行器对应
 | PreparedStatementExecutor | 预编译语句对象请求的执行器 | PreparedStatementUnit |
 | BatchPreparedStatementExecutor | 批量预编译语句对象请求的执行器 | BatchPreparedStatementUnit |
 
-执行器提供的方法不同，因此不存在公用接口或者抽象类。
+* 执行器提供的方法不同，因此不存在公用接口或者抽象类。
+* 执行单元继承自 BaseStatementUnit
 
-执行单元继承自 BaseStatementUnit：
+![](../../../images/Sharding-JDBC/2017_08_14/04.png)
+
+## 3.1 StatementExecutor
+
+StatementExecutor，**多线程**执行静态语句对象请求的执行器，一共有三类方法：
+
+* `#executeQuery()` 
+
+```Java
+// StatementExecutor.java
+/**
+* 执行SQL查询.
+* @return 结果集列表
+*/
+public List<ResultSet> executeQuery() {
+   Context context = MetricsContext.start("ShardingStatement-executeQuery");
+   List<ResultSet> result;
+   try {
+       result = executorEngine.executeStatement(sqlType, statementUnits, new ExecuteCallback<ResultSet>() {
+           @Override
+           public ResultSet execute(final BaseStatementUnit baseStatementUnit) throws Exception {
+               return baseStatementUnit.getStatement().executeQuery(baseStatementUnit.getSqlExecutionUnit().getSql());
+           }
+       });
+   } finally {
+       MetricsContext.stop(context);
+   }
+   return result;
+}
+```
+
+* `#executeUpdate()` 因为有四个不同情况的`#executeUpdate()`，所以抽象了 Updater 接口，从而达到逻辑重用。
+
+```Java
+// StatementExecutor.java
+/**
+* 执行SQL更新.
+* @return 更新数量
+*/
+public int executeUpdate() {
+   return executeUpdate(new Updater() {
+       @Override
+       public int executeUpdate(final Statement statement, final String sql) throws SQLException {
+           return statement.executeUpdate(sql);
+       }
+   });
+}
+private int executeUpdate(final Updater updater) {
+   Context context = MetricsContext.start("ShardingStatement-executeUpdate");
+   try {
+       List<Integer> results = executorEngine.executeStatement(sqlType, statementUnits, new ExecuteCallback<Integer>() {
+           @Override
+           public Integer execute(final BaseStatementUnit baseStatementUnit) throws Exception {
+               return updater.executeUpdate(baseStatementUnit.getStatement(), baseStatementUnit.getSqlExecutionUnit().getSql());
+           }
+       });
+       return accumulate(results);
+   } finally {
+       MetricsContext.stop(context);
+   }
+}
+/**
+* 计算总的更新数量
+* @param results 更新数量数组
+* @return 更新数量
+*/
+private int accumulate(final List<Integer> results) {
+   int result = 0;
+   for (Integer each : results) {
+       result += null == each ? 0 : each;
+   }
+   return result;
+}
+```
+
+* `#execute()` 因为有四个不同情况的`#execute()`，所以抽象了 Executor 接口，从而达到逻辑重用。
+
+```Java
+/**
+* 执行SQL请求.
+* @return true表示执行DQL语句, false表示执行的DML语句
+*/
+public boolean execute() {
+   return execute(new Executor() {
+       
+       @Override
+       public boolean execute(final Statement statement, final String sql) throws SQLException {
+           return statement.execute(sql);
+       }
+   });
+}
+private boolean execute(final Executor executor) {
+   Context context = MetricsContext.start("ShardingStatement-execute");
+   try {
+       List<Boolean> result = executorEngine.executeStatement(sqlType, statementUnits, new ExecuteCallback<Boolean>() { 
+           @Override
+           public Boolean execute(final BaseStatementUnit baseStatementUnit) throws Exception {
+               return executor.execute(baseStatementUnit.getStatement(), baseStatementUnit.getSqlExecutionUnit().getSql());
+           }
+       });
+       if (null == result || result.isEmpty() || null == result.get(0)) {
+           return false;
+       }
+       return result.get(0);
+   } finally {
+       MetricsContext.stop(context);
+   }
+}
+```
+
+## 3.2 PreparedStatementExecutor
+
+PreparedStatementExecutor，**多线程**执行预编译语句对象请求的执行器。比 StatementExecutor 多了 `parameters` 参数，方法逻辑上基本一致，就不重复分享啦。
+
+## 3.3 BatchPreparedStatementExecutor
+
+BatchPreparedStatementExecutor，**多线程**执行批量预编译语句对象请求的执行器。
+
+```Java
+// BatchPreparedStatementExecutor.java
+/**
+* 执行批量SQL.
+* 
+* @return 执行结果
+*/
+public int[] executeBatch() {
+   Context context = MetricsContext.start("ShardingPreparedStatement-executeBatch");
+   try {
+       return accumulate(executorEngine.executeBatch(sqlType, batchPreparedStatementUnits, parameterSets, new ExecuteCallback<int[]>() {
+           
+           @Override
+           public int[] execute(final BaseStatementUnit baseStatementUnit) throws Exception {
+               return baseStatementUnit.getStatement().executeBatch();
+           }
+       }));
+   } finally {
+       MetricsContext.stop(context);
+   }
+}
+/**
+* 计算每个语句的更新数量
+*
+* @param results 每条 SQL 更新数量
+* @return 每个语句的更新数量
+*/
+private int[] accumulate(final List<int[]> results) {
+   int[] result = new int[parameterSets.size()];
+   int count = 0;
+   // 每个语句按照顺序，读取到其对应的每个分片SQL影响的行数进行累加
+   for (BatchPreparedStatementUnit each : batchPreparedStatementUnits) {
+       for (Map.Entry<Integer, Integer> entry : each.getJdbcAndActualAddBatchCallTimesMap().entrySet()) {
+           result[entry.getKey()] += null == results.get(count) ? 0 : results.get(count)[entry.getValue()];
+       }
+       count++;
+   }
+   return result;
+}
+```
+
+**眼尖**的同学会发现，为什么有 BatchPreparedStatementExecutor，而没有 BatchStatementExecutor 呢？目前 Sharding-JDBC 不支持 Statement 批量操作，只能进行 PreparedStatement 的批操作。
+
+
+```Java
+// PreparedStatement 批量操作，不会报错
+PreparedStatement ps = conn.prepareStatement(sql)
+ps.addBatch();
+ps.addBatch();
+
+// Statement 批量操作，会报错
+ps.addBatch(sql); // 报错：at com.dangdang.ddframe.rdb.sharding.jdbc.unsupported.AbstractUnsupportedOperationStatement.addBatch
+```
+
+# 4. ExecutionEvent
+
+AbstractExecutionEvent，SQL 执行事件抽象接口。
+
+```Java
+public abstract class AbstractExecutionEvent {
+    /**
+     * 事件编号
+     */
+    private final String id;
+    /**
+     * 数据源
+     */
+    private final String dataSource;
+    /**
+     * SQL
+     */
+    private final String sql;
+    /**
+     * 参数
+     */
+    private final List<Object> parameters;
+    /**
+     * 事件类型
+     */
+    private EventExecutionType eventExecutionType;
+    /**
+     * 异常
+     */
+    private Optional<SQLException> exception;
+}
+```
+
+AbstractExecutionEvent 有两个实现子类：
+
+* DMLExecutionEvent：DML类SQL执行时事件
+* DQLExecutionEvent：DQL类SQL执行时事件
+
+EventExecutionType，事件触发类型。
+
+* BEFORE_EXECUTE：执行前
+* EXECUTE_SUCCESS：执行成功
+* EXECUTE_FAILURE：执行失败
+
+## 4.1 EventBus
+
+**那究竟有什么用途呢？** Sharding-JDBC 使用 Guava（**没错，又是它**）的 **EventBus** 实现了**事件的发布和订阅**。从上文 `ExecutorEngine#executeInternal()` 我们可以看到**每个分片** SQL 执行的过程中会发布相应事件：
+
+* 执行 SQL 前：发布类型类型为 BEFORE_EXECUTE 的事件
+* 执行 SQL 成功：发布类型类型为 EXECUTE_SUCCESS 的事件
+* 执行 SQL 失败：发布类型类型为 EXECUTE_FAILURE 的事件
+
+**怎么订阅事件呢？**非常简单，例子如下：
+
+```Java
+EventBusInstance.getInstance().register(new Runnable() {
+
+  @Override
+  public void run() {
+  }
+
+  @Subscribe // 订阅
+  @AllowConcurrentEvents // 是否允许并发执行，即线程安全
+  public void listen(final DMLExecutionEvent event) { // DMLExecutionEvent
+      System.out.println("DMLExecutionEvent：" + event.getSql() + "\t" + event.getEventExecutionType());
+  }
+
+  @Subscribe // 订阅
+  @AllowConcurrentEvents // 是否允许并发执行，即线程安全
+  public void listen2(final DQLExecutionEvent event) { //DQLExecutionEvent
+      System.out.println("DQLExecutionEvent：" + event.getSql() + "\t" + event.getEventExecutionType());
+  }
+
+});
+```
+
+* `#register()` 任何类都可以，并非一定需要使用 Runnable 类。此处例子单纯因为方便
+* `@Subscribe` 注解在方法上，实现对事件的订阅
+* `@AllowConcurrentEvents` 注解在方法上，表示线程安全，允许并发执行
+* 方法上的**参数对应的类**即是订阅的事件。例如，`#listen()` 订阅了 DMLExecutionEvent 事件
+* `EventBus#post()` 发布事件，**同步**调用订阅逻辑
+
+![](../../../images/Sharding-JDBC/2017_08_14/05.png)
+
+## 4.2 BestEffortsDeliveryListener
+
+BestEffortsDeliveryListener，最大努力送达型事务监听器。
+
+本文暂时暂时不分析其实现，仅仅作为另外一个**订阅者**的例子。我们会在[《荣幸事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)进行分享。
+
+```Java
+public final class BestEffortsDeliveryListener {
+    @Subscribe
+    @AllowConcurrentEvents
+    public void listen(final DMLExecutionEvent event) {
+        if (!isProcessContinuously()) {
+            return;
+        }
+        SoftTransactionConfiguration transactionConfig = SoftTransactionManager.getCurrentTransactionConfiguration().get();
+        TransactionLogStorage transactionLogStorage = TransactionLogStorageFactory.createTransactionLogStorage(transactionConfig.buildTransactionLogDataSource());
+        BEDSoftTransaction bedSoftTransaction = (BEDSoftTransaction) SoftTransactionManager.getCurrentTransaction().get();
+        switch (event.getEventExecutionType()) {
+            case BEFORE_EXECUTE:
+                //TODO 对于批量执行的SQL需要解析成两层列表
+                transactionLogStorage.add(new TransactionLog(event.getId(), bedSoftTransaction.getTransactionId(), bedSoftTransaction.getTransactionType(), 
+                        event.getDataSource(), event.getSql(), event.getParameters(), System.currentTimeMillis(), 0));
+                return;
+            case EXECUTE_SUCCESS: 
+                transactionLogStorage.remove(event.getId());
+                return;
+            case EXECUTE_FAILURE: 
+                boolean deliverySuccess = false;
+                for (int i = 0; i < transactionConfig.getSyncMaxDeliveryTryTimes(); i++) {
+                    if (deliverySuccess) {
+                        return;
+                    }
+                    boolean isNewConnection = false;
+                    Connection conn = null;
+                    PreparedStatement preparedStatement = null;
+                    try {
+                        conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.UPDATE);
+                        if (!isValidConnection(conn)) {
+                            bedSoftTransaction.getConnection().release(conn);
+                            conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.UPDATE);
+                            isNewConnection = true;
+                        }
+                        preparedStatement = conn.prepareStatement(event.getSql());
+                        //TODO 对于批量事件需要解析成两层列表
+                        for (int parameterIndex = 0; parameterIndex < event.getParameters().size(); parameterIndex++) {
+                            preparedStatement.setObject(parameterIndex + 1, event.getParameters().get(parameterIndex));
+                        }
+                        preparedStatement.executeUpdate();
+                        deliverySuccess = true;
+                        transactionLogStorage.remove(event.getId());
+                    } catch (final SQLException ex) {
+                        log.error(String.format("Delivery times %s error, max try times is %s", i + 1, transactionConfig.getSyncMaxDeliveryTryTimes()), ex);
+                    } finally {
+                        close(isNewConnection, conn, preparedStatement);
+                    }
+                }
+                return;
+            default: 
+                throw new UnsupportedOperationException(event.getEventExecutionType().toString());
+        }
+    }
+}
+```
+
+# 666. 彩蛋
+
 
 
 
