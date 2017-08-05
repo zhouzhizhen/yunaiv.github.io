@@ -69,7 +69,9 @@ pagination_dir: page
 #theme: next
 #theme: again
 #theme: apollo
-theme: cactus-light
+#theme: cactus-light
+theme: coney
+#theme: maupassant-hexo
 #theme: maupassant
 #theme: aloha
 #theme: polarbear

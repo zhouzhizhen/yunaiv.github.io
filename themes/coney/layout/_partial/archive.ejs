@@ -1,0 +1,80 @@
+<%
+var title = '';
+var icon = '';
+if (page.category){
+  title = page.category;
+  icon = 'category';
+};
+if (page.tag){
+  title = page.tag;
+  icon = 'tag';
+};
+if (page.archive){
+  icon = 'archive';
+  if (page.year) title = page.year+  (page.month ? '/' + page.month : '');
+  else title = __('archive_a');
+};
+%>
+
+<!--<div class="archive-title" >-->
+  <!--<h2 class="<%= icon %>-icon"><%= title %></h2>-->
+  <!--<% if(page.archive){ %>-->
+  <!--<div class="archiveslist archive-float clearfix">-->
+      <!--<%- list_archives({format: 'YYYY 年 MM 月'}) %>-->
+ <!--</div>-->
+  <!--<% } %>-->
+<!--</div>-->
+
+<div class="archive-title" id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="<%= __('hidesidebar') %>"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!--<% if(theme.author_img_enable == true){ %>-->
+            <!--<div class="author-logo"></div>-->
+            <!--<% } %>-->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg" /> </div>
+
+            <div class="social-list" class="clearfix">
+                <% if(theme.author.weibo){ %>
+                <a href="http://weibo.com/<%= theme.author.weibo %>" target="_blank" title="weibo"></a>
+                <% } %>
+                <% if(theme.author.twitter){ %>
+                <a href="https://twitter.com/<%= theme.author.twitter %>" target="_blank" title="twitter"></a>
+                <% } %>
+                <% if(theme.author.github){ %>
+                <a href="https://github.com/<%= theme.author.github %>" target="_blank" title="github"></a>
+                <% } %>
+                <% if(theme.author.facebook){ %>
+                <a href="https://www.facebook.com/<%= theme.author.facebook %>" target="_blank" title="facebook"></a>
+                <% } %>
+                <% if(theme.author.zhihu){ %>
+                <a href="https://zhihu.com/people/<%= theme.author.zhihu %>" target="_blank" title="zhihu"></a>
+                <% } %>
+            </div>
+        </div>
+        <% theme.widgets.forEach(function(widget){ %>
+        <%- partial('../_widget/' + widget) %>
+        <% }); %>
+    </aside>
+</div>
+
+<div id="main" class="archive-part clearfix">
+  <div id="archive-page">
+<% page.posts.each(function(item){ 
+   if(item.top){ %>
+  <%- partial('_partial/article', {item: item, index: true,desc: false}) %>
+<% }}); %>
+<% page.posts.each(function(item){ if(!item.top){%>
+  <%- partial('_partial/article', {item: item, index: true,desc: false}) %>
+<%   }}); %>
+<% if (page.total > 1){ %>
+  <nav id="page-nav" class="clearfix archive-nav">
+    <%- paginator({
+      prev_text: '&laquo; Prev',
+      next_text: 'Next &raquo;'
+    }) %>
+  </nav>
+<% } %>
+  </div>
+</div>

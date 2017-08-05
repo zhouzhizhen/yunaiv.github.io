@@ -1,0 +1,40 @@
+<div id="footer" >
+    <% /*  %>
+    <% if(theme.author_img_enable == true){ %>
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	<% } %>
+	<% if(theme.author.intro_line1&&theme.author.intro_line2){ %>
+	<section class="info">
+		<p> <%= theme.author.intro_line1 %> <br/>
+			<%= theme.author.intro_line2 %></p>
+	</section>
+	 <% } %>
+	<div class="social-font" class="clearfix">
+		<% if(theme.author.weibo){ %>
+		<a href="http://weibo.com/<%= theme.author.weibo %>" target="_blank" title="weibo"></a>
+		<% } %>
+		<% if(theme.author.twitter){ %>
+		<a href="https://twitter.com/<%=theme.author.twitter %>" target="_blank" title="twitter"></a>
+		<% } %>
+		<% if(theme.author.github){ %>
+		<a href="https://github.com/<%=theme.author.github %>" target="_blank" title="github"></a>
+		<% } %>
+		<% if(theme.author.facebook){ %>
+		<a href="https://www.facebook.com/<%=theme.author.facebook %>" target="_blank" title="facebook"></a>
+		<% } %>
+            </div>
+            <% */ %>
+            <p class="copyright"> © <%= new Date().getFullYear() %> 
+		<% if (config.author) { %>
+		<a href="<%= config.url %>" target="_blank" title="<%= config.author %>"><%= config.author %></a>
+		<% } else {%>
+		<a href="<%= config.url %>" title="<%= config.title %>"><%= config.title %></a>
+		<% } %>
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney">coney</a>
+            </div>
