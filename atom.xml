@@ -2489,145 +2489,70 @@
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋艿的后端小屋】</strong>有福利：  </p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
 <li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<h2>为什么阅读 Sharding-JDBC 源码？</h2>
-<ol>
+<h2 id="为什么阅读-Sharding-JDBC-源码？"><a href="#为什么阅读-Sharding-JDBC-源码？" class="headerlink" title="为什么阅读 Sharding-JDBC 源码？"></a>为什么阅读 Sharding-JDBC 源码？</h2><ol>
 <li>看完大部分的 MyCAT 源码，有惊喜的地方，也有失望的地方，因而想看看 Sharding-JDBC 进行下对比。尽管，Sharding-JDBC 是 Client 端级别，MyCAT 是 Server 级别。</li>
 <li>Sharding-JDBC 经历过当当本身业务的考验，从可靠性上来说会更让人有信赖感。</li>
 <li>文档更加完善，开发体系更加健全。</li>
 <li>Sharding-JDBC 1.5.0.M3 发布。</li>
 <li><strong>最大努力送达型</strong>事务支持，想要进一步了解分布式事务的解决方案。Last But Very Importment。</li>
 </ol>
-<h2>步骤</h2>
-<ul>
-<li>
-<p>FROM MyCAT</p>
-<p><strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ul>
+<li><p>FROM MyCAT</p>
+<p>  <strong>从 MyCAT 阅读计划复制，用于对比。</strong></p>
 </li>
-<li>
-<p>[x] <s>NIO</s></p>
+<li><p>[x] <del>NIO</del></p>
 </li>
-<li>
-<p>[x] <s>分布式事务</s></p>
+<li>[x] <del>分布式事务</del></li>
+<li>[x] <del>MyCAT 主从</del></li>
+<li>[x] <del>支持prepare预编译指令</del></li>
+<li>[x] 自增序列</li>
+<li>[x] 单库任意 Join</li>
+<li>[x] <del>跨库2表 Join</del></li>
+<li>[x] <del>跨库多表 Join</del></li>
+<li>[x] SQL 解析</li>
+<li>[ ] 读写分离</li>
+<li>[x] <del>MySQL 主从</del></li>
+<li>[x] <del>自动故障切换</del></li>
+<li>[x] <del>Galera Cluster 集群</del></li>
+<li>[x] <del>MHA 集群</del></li>
+<li>[x] <del>Percona 集群</del></li>
+<li>[x] <del>服务降级</del></li>
+<li>[x] <del>多租户</del></li>
+<li>[x] 路由</li>
+<li>[x] <del>MyCAT 集群</del></li>
+<li>[x] <del>注解</del></li>
+<li>[x] <del>缓存</del></li>
+<li>[x] <del>监控</del></li>
+<li>[x] <del>Mongodb</del></li>
+<li>[ ] 内存管理</li>
+<li>[ ] 数据聚合</li>
+<li>[ ] 数据排序</li>
+<li>[x] 分表</li>
+<li>[x] 分库</li>
+<li>[x] <del>全局表</del></li>
+<li>[x] <del>E/R关系</del></li>
+<li>[x] <del>服务降级</del></li>
+<li>[x] <del>SQL 注入攻击拦截</del></li>
+<li>[x] <del>MySQL 协议</del></li>
+<li>[x] <del>PostgreSQL 协议</del></li>
+<li><p>[ ] 存储过程</p>
 </li>
-<li>
-<p>[x] <s>MyCAT 主从</s></p>
+<li><p>FROM Sharding-JDBC</p>
+<p>  <strong>从 官网 介绍获取。</strong></p>
 </li>
-<li>
-<p>[x] <s>支持prepare预编译指令</s></p>
+<li><p>[ ] 分布式事务 ：最大努力送达型事务</p>
 </li>
-<li>
-<p>[x] 自增序列</p>
-</li>
-<li>
-<p>[x] 单库任意 Join</p>
-</li>
-<li>
-<p>[x] <s>跨库2表 Join</s></p>
-</li>
-<li>
-<p>[x] <s>跨库多表 Join</s></p>
-</li>
-<li>
-<p>[x] SQL 解析</p>
-</li>
-<li>
-<p>[ ] 读写分离</p>
-</li>
-<li>
-<p>[x] <s>MySQL 主从</s></p>
-</li>
-<li>
-<p>[x] <s>自动故障切换</s></p>
-</li>
-<li>
-<p>[x] <s>Galera Cluster 集群</s></p>
-</li>
-<li>
-<p>[x] <s>MHA 集群</s></p>
-</li>
-<li>
-<p>[x] <s>Percona 集群</s></p>
-</li>
-<li>
-<p>[x] <s>服务降级</s></p>
-</li>
-<li>
-<p>[x] <s>多租户</s></p>
-</li>
-<li>
-<p>[x] 路由</p>
-</li>
-<li>
-<p>[x] <s>MyCAT 集群</s></p>
-</li>
-<li>
-<p>[x] <s>注解</s></p>
-</li>
-<li>
-<p>[x] <s>缓存</s></p>
-</li>
-<li>
-<p>[x] <s>监控</s></p>
-</li>
-<li>
-<p>[x] <s>Mongodb</s></p>
-</li>
-<li>
-<p>[ ] 内存管理</p>
-</li>
-<li>
-<p>[ ] 数据聚合</p>
-</li>
-<li>
-<p>[ ] 数据排序</p>
-</li>
-<li>
-<p>[x] 分表</p>
-</li>
-<li>
-<p>[x] 分库</p>
-</li>
-<li>
-<p>[x] <s>全局表</s></p>
-</li>
-<li>
-<p>[x] <s>E/R关系</s></p>
-</li>
-<li>
-<p>[x] <s>服务降级</s></p>
-</li>
-<li>
-<p>[x] <s>SQL 注入攻击拦截</s></p>
-</li>
-<li>
-<p>[x] <s>MySQL 协议</s></p>
-</li>
-<li>
-<p>[x] <s>PostgreSQL 协议</s></p>
-</li>
-<li>
-<p>[ ] 存储过程</p>
-</li>
-<li>
-<p>FROM Sharding-JDBC</p>
-<p><strong>从 官网 介绍获取。</strong></p>
-</li>
-<li>
-<p>[ ] 分布式事务 ：最大努力送达型事务</p>
-</li>
-<li>
-<p>[ ] 分布式事务 ：TCC型事务(TBD)</p>
-</li>
+<li>[ ] 分布式事务 ：TCC型事务(TBD)</li>
 </ul>
 ]]></content>
     
@@ -2635,8 +2560,7 @@
     
       &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
-&lt;ol
+&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋艿的后端小屋】&lt;/strong
     
     </summary>
     
