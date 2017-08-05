@@ -1,4 +1,4 @@
-title: 为什么阅读 Sharding-JDBC 源码？
+title: Sharding-JDBC 源码分析 —— 为什么阅读 Sharding-JDBC 源码？
 date: 2017-07-16
 tags:
 categories: Sharding-JDBC
