@@ -45,6 +45,13 @@ permalink: Sharding-JDBC/sql-execute
 
 **绿框部分** SQL 执行主流程。
 
+-------
+
+> **Sharding-JDBC 正在收集使用公司名单：[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)。  
+> 🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> Sharding-JDBC 也会因此，能够覆盖更多的业务场景。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
+> 登记吧，骚年！[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)**
+
 # 2. ExecutorEngine
 
 ExecutorEngine，SQL执行引擎。

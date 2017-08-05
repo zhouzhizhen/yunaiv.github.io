@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-04T18:07:37.000Z</updated>
+  <updated>2017-08-05T20:58:04.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,11 +16,184 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Sharding-JDBC 源码分析 —— 分布式事务（二）之事务补偿型</title>
+    <link href="http://www.yunai.me/Sharding-JDBC/transaction-tcc/"/>
+    <id>http://www.yunai.me/Sharding-JDBC/transaction-tcc/</id>
+    <published>2017-08-21T16:00:00.000Z</published>
+    <updated>2017-08-05T20:58:04.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<p>占坑文。关注公众号，第一时间获得更新通知。
+ps：tcc 暂时未实现，目前在 RoadMap 中</p>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
+🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
+&lt;o
+    
+    </summary>
+    
+      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Sharding-JDBC 源码分析 —— 分布式事务（一）之最大努力型</title>
+    <link href="http://www.yunai.me/Sharding-JDBC/transaction-bed/"/>
+    <id>http://www.yunai.me/Sharding-JDBC/transaction-bed/</id>
+    <published>2017-08-19T16:00:00.000Z</published>
+    <updated>2017-08-05T20:57:05.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<p>占坑文。关注公众号，第一时间获得更新通知。</p>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
+🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
+&lt;o
+    
+    </summary>
+    
+      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Sharding-JDBC 源码分析 —— JDBC 实现</title>
+    <link href="http://www.yunai.me/Sharding-JDBC/jdbc-implement/"/>
+    <id>http://www.yunai.me/Sharding-JDBC/jdbc-implement/</id>
+    <published>2017-08-17T16:00:00.000Z</published>
+    <updated>2017-08-05T20:54:55.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<p>占坑文。关注公众号，第一时间获得更新通知。</p>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
+🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
+&lt;o
+    
+    </summary>
+    
+      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Sharding-JDBC 源码分析 —— 结果归并</title>
+    <link href="http://www.yunai.me/Sharding-JDBC/result-merger/"/>
+    <id>http://www.yunai.me/Sharding-JDBC/result-merger/</id>
+    <published>2017-08-15T16:00:00.000Z</published>
+    <updated>2017-08-05T20:53:57.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<p>占坑文。关注公众号，第一时间获得更新通知。</p>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
+🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
+&lt;o
+    
+    </summary>
+    
+      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
     <link href="http://www.yunai.me/Sharding-JDBC/sql-execute/"/>
     <id>http://www.yunai.me/Sharding-JDBC/sql-execute/</id>
     <published>2017-08-13T16:00:00.000Z</published>
-    <updated>2017-08-04T18:07:37.000Z</updated>
+    <updated>2017-08-05T20:53:33.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -65,6 +238,13 @@
 <p>本文主要分享<strong>SQL 执行</strong>的过程，不包括<strong>结果聚合</strong>。<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《结果聚合》</a> <strong>东半球第二良心笔者</strong>会更新，关注微信公众号<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">【芋艿的后端小屋】</a>完稿后<strong>第一时间</strong>通知您哟。</p>
 <p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_14/06.png" alt=""></p>
 <p><strong>绿框部分</strong> SQL 执行主流程。</p>
+<hr>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
+🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
+登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
 <h1>2. ExecutorEngine</h1>
 <p>ExecutorEngine，SQL执行引擎。</p>
 <p>分表分库，需要执行的 SQL 数量从单条变成了多条，此时有两种方式执行：</p>
@@ -3147,606 +3327,6 @@ Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https:
 <li><a href="https://github.com/YunaiV/yunaiv.github.io/blob/master/source/_drafts/MyCAT/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1.xmind" rel="external nofollow noopener noreferrer" target="_blank">【分布式事务.xmind】</a> 笔者拙作</li>
 <li><a href="http://www.yunai.me/RocketMQ/message-transaction/?self">《RocketMQ 源码分析 —— 事务消息》</a> 笔者拙作</li>
 </ul>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
-&lt;ol
-    
-    </summary>
-    
-      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>MyCAT 源码分析  —— 跨库两表Join</title>
-    <link href="http://www.yunai.me/MyCAT/two-table-share-join/"/>
-    <id>http://www.yunai.me/MyCAT/two-table-share-join/</id>
-    <published>2017-07-11T16:00:00.000Z</published>
-    <updated>2017-07-31T12:30:52.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. 主流程</a></li>
-<li><a href="#">3. ShareJoin</a>
-<ul>
-<li><a href="#">3.1 JoinParser</a></li>
-<li><a href="#">3.2 ShareJoin.processSQL(...)</a></li>
-<li><a href="#">3.3 BatchSQLJob</a></li>
-<li><a href="#">3.4 ShareDBJoinHandler</a></li>
-<li><a href="#">3.5 ShareRowOutPutDataHandler</a></li>
-</ul>
-</li>
-<li><a href="#">4. 彩蛋</a></li>
-</ul>
-<hr>
-<h1>1. 概述</h1>
-<p>MyCAT 支持跨库表 Join，目前版本仅支持跨库<strong>两</strong>表 Join。虽然如此，已经能够满足我们大部分的业务场景。况且，Join 过多的表可能带来的性能问题也是很麻烦的。</p>
-<p>本文主要分享：</p>
-<ol>
-<li>整体流程、调用顺序图</li>
-<li>核心代码的分析</li>
-</ol>
-<p>前置阅读：<a href="http://www.yunai.me/MyCAT/single-db-single-table-select/?yunai">《MyCAT 源码分析 —— 【单库单表】查询》</a>。</p>
-<p>OK，Let's Go。</p>
-<h1>2. 主流程</h1>
-<p>当执行跨库两表 Join SQL 时，经历的大体流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/01.png" alt=""></p>
-<p>SQL 上，需要添加注解 <code>/*!mycat:catlet=io.mycat.catlets.ShareJoin */ ${SQL}</code> 。<code>RouteService#route(...)</code> 解析注解 <code>mycat:catlet</code> 后，路由给 <code>HintCatletHandler</code> 作进一步处理。</p>
-<p><code>HintCatletHandler</code> 获取注解对应的 <code>Catlet</code> 实现类，<code>io.mycat.catlets.ShareJoin</code> 就是其中一种实现（目前也只有这一种实现），提供了跨库两表 Join 的功能。从类命名上看，<code>ShareJoin</code> 很大可能性后续会提供<strong>完整</strong>的跨库多表的 Join 功能。</p>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// HintCatletHandler.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> RouteResultset <span class="title">route</span><span class="params">(SystemConfig sysConfig, SchemaConfig schema,</span></span></div><div class="line">                           <span class="keyword">int</span> sqlType, String realSQL, String charset, ServerConnection sc,</div><div class="line">                           LayerCachePool cachePool, String hintSQLValue, <span class="keyword">int</span> hintSqlType, Map hintMap)</div><div class="line">       <span class="keyword">throws</span> SQLNonTransientException &#123;</div><div class="line">   String cateletClass = hintSQLValue;</div><div class="line">   <span class="keyword">if</span> (LOGGER.isDebugEnabled()) &#123;</div><div class="line">       LOGGER.debug(<span class="string">"load catelet class:"</span> + hintSQLValue + <span class="string">" to run sql "</span> + realSQL);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       Catlet catlet = (Catlet) MycatServer.getInstance().getCatletClassLoader().getInstanceofClass(cateletClass);</div><div class="line">       catlet.route(sysConfig, schema, sqlType, realSQL, charset, sc, cachePool);</div><div class="line">       catlet.processSQL(realSQL, <span class="keyword">new</span> EngineCtx(sc.getSession2()));</div><div class="line">   &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">       LOGGER.warn(<span class="string">"catlet error "</span> + e);</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> SQLNonTransientException(e);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h1>3. ShareJoin</h1>
-<p>目前支持跨库<strong>两</strong>表 Join。<code>ShareJoin</code> 将 SQL 拆分成左表 SQL 和 右表 SQL，发送给各数据节点执行，汇总数据结果进行合后返回。</p>
-<p>伪代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// SELECT u.id, o.id FROM t_order o </span></div><div class="line"><span class="comment">// INNER JOIN t_user u ON o.uid = u.id</span></div><div class="line"><span class="comment">// 【顺序】查询左表</span></div><div class="line">String leftSQL = <span class="string">"SELECT o.id, u.id FROM t_order o"</span>;</div><div class="line">List leftList = dn[<span class="number">0</span>].select(leftSQL) + dn[<span class="number">1</span>].select(leftSQL) + ... + dn[n].select(leftsql);</div><div class="line"><span class="comment">// 【并行】查询右表</span></div><div class="line">String rightSQL = <span class="string">"SELECT u.id FROM t_user u WHERE u.id IN ($&#123;leftList.uid&#125;)"</span>;</div><div class="line"><span class="keyword">for</span> (dn : dns) &#123; <span class="comment">// 此处是并行执行，使用回调逻辑</span></div><div class="line">    <span class="keyword">for</span> (rightRecord : dn.select(rightSQL)) &#123; <span class="comment">// 查询右表</span></div><div class="line">        <span class="comment">// 合并结果</span></div><div class="line">        <span class="keyword">for</span> (leftRecord : leftList) &#123;</div><div class="line">            <span class="keyword">if</span> (leftRecord.uid == rightRecord.id) &#123;</div><div class="line">                write(leftRecord + leftRecord.uid 拼接结果);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>实际情况会更加复杂，我们接下来一点点往下看。</p>
-<h2>3.1 JoinParser</h2>
-<p><code>JoinParser</code> 负责对 SQL 进行解析。整体流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/02.png" alt=""></p>
-<p>举个例子，<code>/*!mycat:catlet=io.mycat.catlets.ShareJoin */ SELECT o.id, u.username from t_order o join t_user u on o.uid = u.id;</code> 解析后，<code>TableFilter</code> 结果如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/03.png" alt=""></p>
-<ul>
-<li>tName ：表名</li>
-<li>tAlia ：表自定义命名</li>
-<li>where ：过滤条件</li>
-<li>order ：排序条件</li>
-<li>parenTable ：左连接的 Join 的表名。<code>t_user</code>表 在 <code>join</code>属性 的 <code>parenTable</code> 为 &quot;o&quot;，即 <code>t_order</code>。</li>
-<li>joinParentkey ：左连接的 Join 字段</li>
-<li>joinKey ：join 字段。<code>t_user</code>表 在 <code>join</code>属性 为 <code>id</code>。</li>
-<li>join ：子 tableFilter。即，该表连接的右边的表。</li>
-<li>parent ：和 <code>join</code>属性 相对。</li>
-</ul>
-<p>看到此处，大家可能有疑问，为什么要把 SQL 解析成 <code>TableFilter</code>。<code>JoinParser</code> 根据 <code>TableFilter</code> 生成数据节点执行 SQL。代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// TableFilter.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getSQL</span><span class="params">()</span> </span>&#123;</div><div class="line">   String sql = <span class="string">""</span>;</div><div class="line">   <span class="comment">// fields</span></div><div class="line">   <span class="keyword">for</span> (Entry&lt;String, String&gt; entry : fieldAliasMap.entrySet()) &#123;</div><div class="line">       String key = entry.getKey();</div><div class="line">       String val = entry.getValue();</div><div class="line">       <span class="keyword">if</span> (val == <span class="keyword">null</span>) &#123;</div><div class="line">           sql = unionsql(sql, getFieldfrom(key), <span class="string">","</span>);</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           sql = unionsql(sql, getFieldfrom(key) + <span class="string">" as "</span> + val, <span class="string">","</span>);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// where</span></div><div class="line">   <span class="keyword">if</span> (parent == <span class="keyword">null</span>) &#123;    <span class="comment">// on/where 等于号左边的表</span></div><div class="line">       String parentJoinKey = getJoinKey(<span class="keyword">true</span>);</div><div class="line">       <span class="comment">// fix sharejoin bug：</span></div><div class="line">       <span class="comment">// (AbstractConnection.java:458) -close connection,reason:program err:java.lang.IndexOutOfBoundsException:</span></div><div class="line">       <span class="comment">// 原因是左表的select列没有包含 join 列，在获取结果时报上面的错误</span></div><div class="line">       <span class="keyword">if</span> (sql != <span class="keyword">null</span> &amp;&amp; parentJoinKey != <span class="keyword">null</span> &amp;&amp;</div><div class="line">               !sql.toUpperCase().contains(parentJoinKey.trim().toUpperCase())) &#123;</div><div class="line">           sql += <span class="string">", "</span> + parentJoinKey;</div><div class="line">       &#125;</div><div class="line">       sql = <span class="string">"select "</span> + sql + <span class="string">" from "</span> + tName;</div><div class="line">       <span class="keyword">if</span> (!(where.trim().equals(<span class="string">""</span>))) &#123;</div><div class="line">           sql += <span class="string">" where "</span> + where.trim();</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">else</span> &#123;    <span class="comment">// on/where 等于号右边边的表</span></div><div class="line">       <span class="keyword">if</span> (allField) &#123;</div><div class="line">           sql = <span class="string">"select "</span> + sql + <span class="string">" from "</span> + tName;</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           sql = unionField(<span class="string">"select "</span> + joinKey, sql, <span class="string">","</span>);</div><div class="line">           sql = sql + <span class="string">" from "</span> + tName;</div><div class="line">           <span class="comment">//sql="select "+joinKey+","+sql+" from "+tName;</span></div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (!(where.trim().equals(<span class="string">""</span>))) &#123;</div><div class="line">           sql += <span class="string">" where "</span> + where.trim() + <span class="string">" and ("</span> + joinKey + <span class="string">" in %s )"</span>;</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           sql += <span class="string">" where "</span> + joinKey + <span class="string">" in %s "</span>;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// order</span></div><div class="line">   <span class="keyword">if</span> (!(order.trim().equals(<span class="string">""</span>))) &#123;</div><div class="line">       sql += <span class="string">" order by "</span> + order.trim();</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// limit</span></div><div class="line">   <span class="keyword">if</span> (parent == <span class="keyword">null</span>) &#123;</div><div class="line">       <span class="keyword">if</span> ((rowCount &gt; <span class="number">0</span>) &amp;&amp; (offset &gt; <span class="number">0</span>)) &#123;</div><div class="line">           sql += <span class="string">" limit"</span> + offset + <span class="string">","</span> + rowCount;</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">if</span> (rowCount &gt; <span class="number">0</span>) &#123;</div><div class="line">               sql += <span class="string">" limit "</span> + rowCount;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> sql;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>当 <code>parent</code> 为空时，即<strong>on/where 等于号左边的表</strong>。例如：<code>select id, uid from t_order</code>。</li>
-<li>当 <code>parent</code>  不为空时，即<strong>on/where 等于号右边的表</strong>。例如：<code>select id, username from t_user where id in (1, 2, 3)</code>。</li>
-</ul>
-<h2>3.2 ShareJoin.processSQL(...)</h2>
-<p>当 SQL 解析完后，生成<strong>左边的表</strong>执行的 SQL，发送给对应的数据节点查询数据。大体流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/04.png" alt=""></p>
-<p>当 SQL 为 <code>/*!mycat:catlet=io.mycat.catlets.ShareJoin */ SELECT o.id, u.username from t_order o join t_user u on o.uid = u.id;</code> 时，
-<code>sql = getSql()</code> 的返回结果为 <code>select id, uid from t_order</code>。</p>
-<p>生成<strong>左边的表</strong>执行的 SQL 后，<strong>顺序顺序顺序</strong>发送给对应的数据节点查询数据。具体顺序查询是怎么实现的，我们来看下章 <strong>BatchSQLJob</strong>。</p>
-<h2>3.3 BatchSQLJob</h2>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/05.png" alt=""></p>
-<p><code>EngineCtx</code> 对 <code>BatchSQLJob</code> 封装，提供上层两个方法：</p>
-<ol>
-<li>executeNativeSQLSequnceJob ：顺序（非并发）在每个数据节点执行SQL任务</li>
-<li>executeNativeSQLParallJob ：并发在每个数据节点执行SQL任务</li>
-</ol>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// EngineCtx.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeNativeSQLSequnceJob</span><span class="params">(String[] dataNodes, String sql,</span></span></div><div class="line">		SQLJobHandler jobHandler) &#123;</div><div class="line">	<span class="keyword">for</span> (String dataNode : dataNodes) &#123;</div><div class="line">		SQLJob job = <span class="keyword">new</span> SQLJob(jobId.incrementAndGet(), sql, dataNode,</div><div class="line">				jobHandler, <span class="keyword">this</span>);</div><div class="line">		bachJob.addJob(job, <span class="keyword">false</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeNativeSQLParallJob</span><span class="params">(String[] dataNodes, String sql,</span></span></div><div class="line">		SQLJobHandler jobHandler) &#123;</div><div class="line">	<span class="keyword">for</span> (String dataNode : dataNodes) &#123;</div><div class="line">		SQLJob job = <span class="keyword">new</span> SQLJob(jobId.incrementAndGet(), sql, dataNode,</div><div class="line">				jobHandler, <span class="keyword">this</span>);</div><div class="line">		bachJob.addJob(job, <span class="keyword">true</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<hr>
-<p><code>BatchSQLJob</code> 通过<strong>执行中任务列表</strong>、<strong>待执行任务列表</strong>来实现<strong>顺序/并发</strong>执行任务。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// BatchSQLJob.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 执行中任务列表</div><div class="line">*/</div><div class="line"><span class="keyword">private</span> ConcurrentHashMap&lt;Integer, SQLJob&gt; runningJobs = <span class="keyword">new</span> ConcurrentHashMap&lt;Integer, SQLJob&gt;();</div><div class="line"><span class="comment">/**</span></div><div class="line">* 待执行任务列表</div><div class="line">*/</div><div class="line"><span class="keyword">private</span> ConcurrentLinkedQueue&lt;SQLJob&gt; waitingJobs = <span class="keyword">new</span> ConcurrentLinkedQueue&lt;SQLJob&gt;();</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addJob</span><span class="params">(SQLJob newJob, <span class="keyword">boolean</span> parallExecute)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (parallExecute) &#123;</div><div class="line">       runJob(newJob);</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       waitingJobs.offer(newJob);</div><div class="line">       <span class="keyword">if</span> (runningJobs.isEmpty()) &#123; <span class="comment">// 若无正在执行中的任务，则从等待队列里获取任务进行执行。</span></div><div class="line">           SQLJob job = waitingJobs.poll();</div><div class="line">           <span class="keyword">if</span> (job != <span class="keyword">null</span>) &#123;</div><div class="line">               runJob(job);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">jobFinished</span><span class="params">(SQLJob sqlJob)</span> </span>&#123;</div><div class="line">	runningJobs.remove(sqlJob.getId());</div><div class="line">	SQLJob job = waitingJobs.poll();</div><div class="line">	<span class="keyword">if</span> (job != <span class="keyword">null</span>) &#123;</div><div class="line">		runJob(job);</div><div class="line">		<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		<span class="keyword">if</span> (noMoreJobInput) &#123;</div><div class="line">			<span class="keyword">return</span> runningJobs.isEmpty() &amp;&amp; waitingJobs.isEmpty();</div><div class="line">		&#125; <span class="keyword">else</span> &#123;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li><strong>顺序</strong>执行时，当 <code>runningJobs</code> 存在执行中的任务时，<code>#addJob(...)</code> 时，不立即执行，添加到 <code>waitingJobs</code>。当 <code>SQLJob</code> 完成时，顺序调用下一个任务。</li>
-<li><strong>并发</strong>执行时，<code>#addJob(...)</code> 时，立即执行。</li>
-</ul>
-<hr>
-<p><code>SQLJob</code> SQL 异步执行任务。其 <code>jobHandler(SQLJobHandler)</code> 属性，在 SQL 执行有返回结果时，会进行回调，从而实现异步执行。</p>
-<p>在 <code>ShareJoin</code> 里，<code>SQLJobHandler</code> 有两个实现：<code>ShareDBJoinHandler</code>、<code>ShareRowOutPutDataHandler</code>。前者，<strong>左边的表</strong>执行的 SQL 回调；后者，<strong>右边的表</strong>执行的 SQL 回调。</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/06.png" alt=""></p>
-<h2>3.4 ShareDBJoinHandler</h2>
-<p><code>ShareDBJoinHandler</code>，<strong>左边的表</strong>执行的 SQL 回调。流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/07.png" alt=""></p>
-<ul>
-<li><code>#fieldEofResponse(...)</code> ：接收数据节点返回的 fields，放入内存。</li>
-<li><code>#rowResponse(...)</code> ：接收数据节点返回的 row，放入内存。</li>
-<li><code>#rowEofResponse(...)</code> ：接收完一个数据节点返回所有的 row。当所有数据节点都完成 SQL 执行时，提交<strong>右边的表</strong>执行的 SQL 任务，<strong>并行</strong>执行，即图中**#createQryJob(...)**。</li>
-</ul>
-<p>当 SQL 为 <code>/*!mycat:catlet=io.mycat.catlets.ShareJoin */ SELECT o.id, u.username from t_order o join t_user u on o.uid = u.id;</code> 时，
-<code>sql = getChildSQL()</code> 的返回结果为 <code>select id, username from t_user where id in (1, 2, 3)</code>。</p>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShareJoin.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">createQryJob</span><span class="params">(<span class="keyword">int</span> batchSize)</span> </span>&#123;</div><div class="line">   <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">   Map&lt;String, <span class="keyword">byte</span>[]&gt; batchRows = <span class="keyword">new</span> ConcurrentHashMap&lt;String, <span class="keyword">byte</span>[]&gt;();</div><div class="line">   String theId = <span class="keyword">null</span>;</div><div class="line">   StringBuilder sb = <span class="keyword">new</span> StringBuilder().append(<span class="string">'('</span>);</div><div class="line">   String svalue = <span class="string">""</span>;</div><div class="line">   <span class="keyword">for</span> (Map.Entry&lt;String, String&gt; e : ids.entrySet()) &#123;</div><div class="line">       theId = e.getKey();</div><div class="line">       <span class="keyword">byte</span>[] rowbyte = rows.remove(theId);</div><div class="line">       <span class="keyword">if</span> (rowbyte != <span class="keyword">null</span>) &#123;</div><div class="line">           batchRows.put(theId, rowbyte);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (!svalue.equals(e.getValue())) &#123;</div><div class="line">           <span class="keyword">if</span> (joinKeyType == Fields.FIELD_TYPE_VAR_STRING</div><div class="line">                   || joinKeyType == Fields.FIELD_TYPE_STRING) &#123; <span class="comment">// joinkey 为varchar</span></div><div class="line">               sb.append(<span class="string">"'"</span>).append(e.getValue()).append(<span class="string">"'"</span>).append(<span class="string">','</span>); <span class="comment">// ('digdeep','yuanfang')</span></div><div class="line">           &#125; <span class="keyword">else</span> &#123; <span class="comment">// 默认joinkey为int/long</span></div><div class="line">               sb.append(e.getValue()).append(<span class="string">','</span>); <span class="comment">// (1,2,3)</span></div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       svalue = e.getValue();</div><div class="line">       <span class="keyword">if</span> (count++ &gt; batchSize) &#123;</div><div class="line">           <span class="keyword">break</span>;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (count == <span class="number">0</span>) &#123;</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   jointTableIsData = <span class="keyword">true</span>;</div><div class="line">   sb.deleteCharAt(sb.length() - <span class="number">1</span>).append(<span class="string">')'</span>);</div><div class="line">   String sql = String.format(joinParser.getChildSQL(), sb);</div><div class="line">   getRoute(sql);</div><div class="line">   ctx.executeNativeSQLParallJob(getDataNodes(), sql, <span class="keyword">new</span> ShareRowOutPutDataHandler(<span class="keyword">this</span>, fields, joinindex, joinParser.getJoinRkey(), batchRows, ctx.getSession()));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2>3.5 ShareRowOutPutDataHandler</h2>
-<p><code>ShareRowOutPutDataHandler</code>，<strong>右边的表</strong>执行的 SQL 回调。流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/08.png" alt=""></p>
-<ul>
-<li><code>#fieldEofResponse(...)</code> ：接收数据节点返回的 fields，返回 header 给 MySQL Client。</li>
-<li><code>#rowResponse(...)</code> ：接收数据节点返回的 row，匹配左表的记录，返回合并后返回的 row 给 MySQL Client。</li>
-<li><code>#rowEofResponse(...)</code> ：当所有 row 都返回完后，返回 eof 给 MySQL Client。</li>
-</ul>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShareRowOutPutDataHandler.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onRowData</span><span class="params">(String dataNode, <span class="keyword">byte</span>[] rowData)</span> </span>&#123;</div><div class="line">   RowDataPacket rowDataPkgold = ResultSetUtil.parseRowData(rowData, bfields);</div><div class="line">   <span class="comment">//拷贝一份batchRows</span></div><div class="line">   Map&lt;String, <span class="keyword">byte</span>[]&gt; batchRowsCopy = <span class="keyword">new</span> ConcurrentHashMap&lt;String, <span class="keyword">byte</span>[]&gt;();</div><div class="line">   batchRowsCopy.putAll(arows);</div><div class="line">   <span class="comment">// 获取Id字段，</span></div><div class="line">   String id = ByteUtil.getString(rowDataPkgold.fieldValues.get(joinR));</div><div class="line">   <span class="comment">// 查找ID对应的A表的记录</span></div><div class="line">   <span class="keyword">byte</span>[] arow = getRow(batchRowsCopy, id, joinL);</div><div class="line">   <span class="keyword">while</span> (arow != <span class="keyword">null</span>) &#123;</div><div class="line">       RowDataPacket rowDataPkg = ResultSetUtil.parseRowData(arow, afields);<span class="comment">//ctx.getAllFields());</span></div><div class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; rowDataPkgold.fieldCount; i++) &#123;</div><div class="line">           <span class="comment">// 设置b.name 字段</span></div><div class="line">           <span class="keyword">byte</span>[] bname = rowDataPkgold.fieldValues.get(i);</div><div class="line">           rowDataPkg.add(bname);</div><div class="line">           rowDataPkg.addFieldCount(<span class="number">1</span>);</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// huangyiming add</span></div><div class="line">       MiddlerResultHandler middlerResultHandler = session.getMiddlerResultHandler();</div><div class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> == middlerResultHandler) &#123;</div><div class="line">           ctx.writeRow(rowDataPkg);</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">if</span> (middlerResultHandler <span class="keyword">instanceof</span> MiddlerQueryResultHandler) &#123;</div><div class="line">               <span class="keyword">byte</span>[] columnData = rowDataPkg.fieldValues.get(<span class="number">0</span>);</div><div class="line">               <span class="keyword">if</span> (columnData != <span class="keyword">null</span> &amp;&amp; columnData.length &gt; <span class="number">0</span>) &#123;</div><div class="line">                   String rowValue = <span class="keyword">new</span> String(columnData);</div><div class="line">                   middlerResultHandler.add(rowValue);</div><div class="line">               &#125;</div><div class="line">               <span class="comment">//&#125;</span></div><div class="line">           &#125;</div><div class="line"></div><div class="line">       &#125;</div><div class="line">       arow = getRow(batchRowsCopy, id, joinL);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h1>4. 彩蛋</h1>
-<p>如下是本文涉及到的核心类，有兴趣的同学可以翻一翻。</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_07_12/09.png" alt=""></p>
-<p><code>ShareJoin</code> 另外不支持的功能：</p>
-<ol>
-<li>只支持 inner join，不支持 left join、right join 等等连接。</li>
-<li>不支持 order by。</li>
-<li>不支持 group by 以及 相关聚合函数。</li>
-<li>即使 join 左表的字段未声明为返回 fields 也会返回。</li>
-</ol>
-<p>恩，<strong>MyCAT 弱XA</strong> 源码继续走起！</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
-&lt;ol
-    
-    </summary>
-    
-      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
-    <link href="http://www.yunai.me/MyCAT/sharding-result-merge-first/"/>
-    <id>http://www.yunai.me/MyCAT/sharding-result-merge-first/</id>
-    <published>2017-06-12T16:00:00.000Z</published>
-    <updated>2017-07-31T12:30:52.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<h1>1. 概述</h1>
-<p>相信很多同学看过 MySQL 各种优化的文章，里面 99% 会提到：单表数据量大了，需要进行分片（水平拆分 or 垂直拆分）。分片之后，业务上必然面临的场景：跨分片的数据合并。今天我们就一起来瞅瞅 MyCAT 是如何实现<strong>分片结果合并</strong>。</p>
-<p>跨分片查询大体流程如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/flow.png" alt="flow"></p>
-<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同的两个过程：</p>
-<ul>
-<li>【2】多分片执行 SQL</li>
-<li>【4】合并多分片结果</li>
-</ul>
-<p>下面，我们来逐条讲解这两个过程。</p>
-<h1>2. 多分片执行 SQL</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/execute_sql.png" alt="execute_sql"></p>
-<p>经过 SQL 解析后，计算出需要执行 SQL 的<strong>分片节点</strong>，遍历<strong>分片节点</strong>发送 SQL 进行执行。</p>
-<p><strong>核心代码</strong>：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" rel="external nofollow noopener noreferrer" target="_blank">MultiNodeQueryHandler.java#execute(...)</a></li>
-</ul>
-<p><em><strong>SQL 解析</strong> 详细过程，我们另开文章，避免内容过多，影响大家对 <strong>分片结果合并</strong> 流程和逻辑的理解。</em></p>
-<h1>3. 合并多分片结果</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/handle_response.png" alt="handle_response"></p>
-<p>和 <a href="http://www.yunai.me/Mycat/single-db-single-table-select/">《【单库单表】查询》</a> 不同，多个<strong>分片节点</strong>都会<strong>分别</strong>响应 <em>记录头(header)</em> 和 <em>记录行(row)</em> 。在开始分析 MyCAT 是怎么合并多分片结果之前，我们先来回想下 SQL 的执行顺序。</p>
-<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">FROM       // [1] 选择表</div><div class="line">WHERE      // [2] 过滤表</div><div class="line">GROUP BY   // [3] 分组</div><div class="line"><span class="keyword">SELECT</span>     // [<span class="number">4</span>] 普通字段，<span class="keyword">max</span> / <span class="keyword">min</span> / <span class="keyword">avg</span> / <span class="keyword">sum</span> / <span class="keyword">count</span> 等函数，<span class="keyword">distinct</span></div><div class="line"><span class="keyword">HAVING</span>     // [<span class="number">5</span>] 再过滤表</div><div class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>   // [<span class="number">6</span>] 排序</div><div class="line"><span class="keyword">LIMIT</span>      // [<span class="number">7</span>] 分页</div></pre></td></tr></table></figure></p>
-<h2>3.1 记录头(header)</h2>
-<p>多个<strong>分片节点</strong>响应时，会响应多次 <em>记录头(header)</em> 。MyCAT 在实际处理时，只处理第一个返回的 <em>记录头(header)</em> 。因此，在使用时要保证表的 Schema 相同。</p>
-<p><strong>分片节点</strong>响应的 <em>记录头(header)</em> 可以直接返回 MySQL Client 吗？答案是不可以。<code>AVG</code>函数 是特殊情况，MyCAT 需要将 <code>AVG</code> 拆成 <code>SUM</code> + <code>COUNT</code> 进行计算。举个例子：</p>
-<p><figure class="highlight"><table><tr><td class="code"><pre><div class="line">// [1] MySQL Client =&gt; MyCAT ：</div><div class="line">SELECT AVG(age) FROM student;</div><div class="line"></div><div class="line">// [2] MyCAT =&gt; MySQL Server ：</div><div class="line">SELECT SUM(age) AS AVG0SUM, COUNT(age) AS AVG0COUNT FROM student;</div><div class="line"></div><div class="line">// [3] 最终：AVG(age) = SUM(age) AS AVG0SUM / COUNT(age)</div></pre></td></tr></table></figure></p>
-<p><strong>核心代码</strong>：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/backend/mysql/nio/handler/MultiNodeQueryHandler.java" rel="external nofollow noopener noreferrer" target="_blank">MultiNodeQueryHandler.java#fieldEofResponse(...)</a>。</li>
-</ul>
-<h2>3.2 记录行(row)</h2>
-<h3>3.1 AbstractDataNodeMerge</h3>
-<p>MyCAT 对分片结果合并通过 <code>AbstractDataNodeMerge</code> 子类来完成。</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/merge_service.png" alt="merge_service"></p>
-<p><code>AbstractDataNodeMerge</code> ：</p>
-<ul>
-<li>-packs ：待合并记录行(row)队列。队列尾部插入 <code>END_FLAG_PACK</code> 表示队列已结束。</li>
-<li>-running ：合并逻辑是否正在执行中的标记。</li>
-<li>~onRowMetaData(...) ：根据**记录列信息(ColMeta)**构建对应的排序组件和聚合组件。需要子类进行实现。</li>
-<li>~onNewRecord(...) ：插入记录行(row) 到 <code>packs</code>。</li>
-<li>~outputMergeResult(...) ：插入 <code>END_FLAG_PACK</code> 到 <code>packs</code>。</li>
-<li>~run(...) ：执行<strong>合并</strong>分片结果逻辑，并将合并结果返回给 MySQL Client。需要子类进行实现。</li>
-</ul>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/AbstractDataNodeMerge_run.png" alt="AbstractDataNodeMerge_run.png"></p>
-<p><em><em>通过 <code>running</code> 标记保证同一条 SQL 同时只有一个线程正在执行，并且不需要等到每个分片结果都返回就可以执行</em>聚合</em>逻辑。当然，<em>排序</em>逻辑需要等到所有分片结果都返回才可以执行。**</p>
-<p><strong>核心代码</strong>：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/AbstractDataNodeMerge.java" rel="external nofollow noopener noreferrer" target="_blank">AbstractDataNodeMerge.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/DataNodeMergeManager.java" rel="external nofollow noopener noreferrer" target="_blank">DataNodeMergeManager.java#run(...)</a></li>
-</ul>
-<h3>3.2 DataNodeMergeManager</h3>
-<p><code>AbstractDataNodeMerge</code> 有两种子类实现：</p>
-<ul>
-<li><code>DataMergeService</code> ：基于<strong>堆内内存</strong>合并分片结果。</li>
-<li><code>DataNodeMergeManager</code> ：基于<strong>堆外内存</strong>合并分片结果。</li>
-</ul>
-<p>目前官方默认配置使用 <code>DataNodeMergeManager</code>。主要有如下优点：</p>
-<ol>
-<li>可以使用更大的内存空间。当并发量大或者数据量大时，更大的内存空间意味着更好的性能。</li>
-<li>减少 GC 暂停时间。记录行(row)对象小且重用性很低，需要能够进行类似 C / C++ 的自主内存释放。</li>
-<li>更快的内存复制和读取速度，对排序和聚合带来很好的提速。</li>
-</ol>
-<p>如果对<strong>堆外内存</strong>不太了解，推荐阅读如下文章：</p>
-<ol>
-<li><a href="http://www.jianshu.com/p/50be08b54bee" rel="external nofollow noopener noreferrer" target="_blank">《从0到1起步-跟我进入堆外内存的奇妙世界》</a></li>
-<li><a href="http://www.infoq.com/cn/news/2014/12/external-memory-heap-memory" rel="external nofollow noopener noreferrer" target="_blank">《堆内内存还是堆外内存？》</a></li>
-<li><a href="http://www.cnblogs.com/moonandstar08/p/5107648.html" rel="external nofollow noopener noreferrer" target="_blank">《JAVA堆外内存》</a></li>
-<li><a href="https://yq.aliyun.com/articles/2948?spm=5176.100239.blogcont62539.11.a3HdFE" rel="external nofollow noopener noreferrer" target="_blank">《JVM源码分析之堆外内存完全解读》</a></li>
-</ol>
-<p>本文主要分析 <code>DataNodeMergeManager</code> 实现，<code>DataMergeService</code> 可以自己阅读或者等待后续文章（😈<strong>欢迎订阅我的公众号噢</strong>）。</p>
-<p><code>DataNodeMergeManager</code> 有三个组件：</p>
-<ul>
-<li><code>globalSorter</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并并排序</strong>逻辑。</li>
-<li><code>globalMergeResult</code> ：<code>UnsafeExternalRowSorter</code> =&gt; 实现记录行(row)<strong>合并不排序</strong>逻辑。</li>
-<li><code>unsafeRowGrouper</code> ： <code>UnsafeRowGrouper</code> =&gt; 实现记录行(row)<strong>聚合</strong>逻辑。</li>
-</ul>
-<p><code>DataNodeMergeManager#run(...)</code> 逻辑如下：</p>
-<ul>
-<li>[1] 写入记录行(row)到 <code>UnsafeRow</code>。</li>
-<li>[2] 根据情况将 <code>UnsafeRow</code> 插入对应组件。</li>
-<li>[3] 当所有 <code>UnsafeRow</code> 插入完后，根据情况使用组件聚合、排序。</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>是否排序</th>
-<th>是否聚合</th>
-<th>依赖组件</th>
-<th>[2]</th>
-<th>[3]</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>否</td>
-<td>否</td>
-<td><code>globalSorter</code></td>
-<td>插入 <code>globalSorter</code></td>
-<td>使用 <code>globalSorter</code> 合并并排序</td>
-</tr>
-<tr>
-<td>是</td>
-<td>否</td>
-<td><code>globalMergeResult</code></td>
-<td>插入 <code>globalMergeResult</code></td>
-<td>使用 <code>globalMergeResult</code> 合并不排序</td>
-</tr>
-<tr>
-<td>否</td>
-<td>是</td>
-<td><code>unsafeRowGrouper</code> + <code>globalSorter</code></td>
-<td>插入 <code>unsafeRowGrouper</code> 进行聚合</td>
-<td>使用 <code>globalSorter</code> 合并并排序</td>
-</tr>
-<tr>
-<td>是</td>
-<td>是</td>
-<td><code>unsafeRowGrouper</code> + <code>globalMergeResult</code></td>
-<td>插入 <code>unsafeRowGrouper</code> 进行聚合</td>
-<td>使用 <code>globalMergeResult</code> 合并不排序</td>
-</tr>
-</tbody>
-</table>
-<p><strong>核心代码</strong>：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/sqlengine/mpp/DataNodeMergeManager.java" rel="external nofollow noopener noreferrer" target="_blank">DataNodeMergeManager.java</a>。</li>
-</ul>
-<p>🙃看到这里，可能很多同学都有点懵逼，问题不大，我们继续往下瞅。</p>
-<h3>3.3 UnsafeRow</h3>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row.png" alt="unsafe_row"></p>
-<p>记录行(row)写到 <code>UnsafeRow</code> 的 <code>baseObject</code> 属性，结构如下：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_object.png" alt="unsafe_row_object">
-<img src="http://www.yunai.me/images/MyCAT/2017_06_13/unsafe_row_2.png" alt="unsafe_row_2.png"></p>
-<ul>
-<li>拆分成三个区域，<strong>每个区域按照格子记录信息，每个格子 64bits(8 Bytes)</strong>。</li>
-<li>记录行(row)按照字段顺序位置记录到 <code>baseObject</code>。</li>
-<li>[1] 空标记位区域 ：标记字段对应的值是否为 NULL。
-<ul>
-<li>当字段对应的值为 NULL 时，其对应的字段顺序对应的 bit 设置为 1。举个例子，第 0 个位置字段为 NULL，则第一个格子对应的 64 bits 从右边第一个 bit 设置为 1。</li>
-<li>因为每个格子是 64 bits，每 64 个字段占用一个格子，不满一个格子，按照一个格子计算。因此，该区域的长度(<code>bitSetWidthInBytes</code>) = 字段占用的格子数 * 64 bits。</li>
-</ul>
-</li>
-<li>[2] 位置长度区域 ：记录字段对应的值在<code>[3]区域</code>所在的位置和长度。
-<ul>
-<li>每个字段记录<code>[2]区域</code>的位置 = <code>baseOffset</code> + <code>bitSetWidthInBytes</code> + 8 Bytes * 字段顺序。</li>
-<li>占用一个格子，前 32 bits 为<code>[3]区域</code>的位置，后 32 bits 为字段对应的值长度。</li>
-</ul>
-</li>
-<li>[3] 值区域 ：记录字段对应的值。
-<ul>
-<li>每个字段对应的值占用格子数 = 字段对应的值长度 / 8 Byte，如果无法整除再 + 1。</li>
-<li>因为字段对应的值可能无法刚好占满每个格子，未使用的 bit 用 0 占位。</li>
-</ul>
-</li>
-</ul>
-<p><strong>写入 <code>UnsafeRow</code>，MyCAT 可以顺序访问每个字段，而不需要在记录行(row)进行遍历。</strong></p>
-<p>🙃日常开发使用位操作的机会比较少，可能较为难理解，需要反复理解下，相信会获得很大启发。恩，该部分代码引用自开源运算框架 <code>Spark</code>，是不是更加有动力列😈。</p>
-<p><strong>核心代码</strong>：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/row/UnsafeRow.java" rel="external nofollow noopener noreferrer" target="_blank">UnsafeRow.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/row/BufferHolder.java" rel="external nofollow noopener noreferrer" target="_blank">BufferHolder.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/row/UnsafeRowWriter.java" rel="external nofollow noopener noreferrer" target="_blank">UnsafeRowWriter.java</a></li>
-</ul>
-<h3>3.4 UnsafeExternalRowSorter</h3>
-<p>如果使用 Java 实现 <code>SELECT * FROM student ORDER BY age desc, nickname asc</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Collections.sort(students, <span class="keyword">new</span> Comparator&lt;Comparable&gt;() &#123;</div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Student o1, Student o2)</span> </span>&#123;</div><div class="line">           <span class="keyword">int</span> cmp = compare(o2.age, o1.age);</div><div class="line">           <span class="keyword">return</span> cmp != <span class="number">0</span> ? cmp : compare(o1.nickname, o2.nickname);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
-<p>从功能上，<code>UnsafeExternalRowSorter</code> 是这么实现排序逻辑。当然肯定的是，不是这么“简单”的实现。</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_06_13/sorter_write.jpeg" alt="sorter_write"></p>
-<p><code>UnsafeRow</code> 会写入到两个地方：</p>
-<ol>
-<li><code>List&lt;MemoryBlock&gt;</code> ：内存块数组。当前 <code>MemoryBlock</code> 无法容纳写入的 <code>UnsafeRow</code> 时，生成新的 <code>MemoryBlock</code> 提供写入。每条 <code>UnsafeRow</code> 存储在 <code>MemoryBlock</code> 由 长度 + 字节内容 组成。</li>
-<li><code>LongArray</code> ：每条 <code>UnsafeRow</code> 存储在 <code>LongArray</code> 由两部分组成：address + prefix。
-<ul>
-<li><code>address</code> ：<code>UnsafeRow</code> 存储在 <code>List&lt;MemoryBlock&gt;</code> 的位置。前 13 bits 记录所在 <code>MemoryBlock</code> 的 index，后 51 bit 记录在 <code>MemoryBlock</code> 的 offset。</li>
-<li><code>prefix</code> ：<code>UnsafeRow</code> 第一个排序字段<strong>值</strong>前 64 bits 计算的值。</li>
-</ul>
-</li>
-</ol>
-<p><strong><code>UnsafeExternalRowSorter</code> 排序实现方式</strong> ：提供 <strong><a href="http://blog.csdn.net/yangzhongblog/article/details/8184707" rel="external nofollow noopener noreferrer" target="_blank">TimSort</a></strong> 和 <strong>RadixSort</strong> 两种排序算法，前者为默认实现。<strong>TimSort</strong> 折半查找时，使用 <code>LongArray</code>，先比较 <code>prefix</code>，若相等，则顺序对比每个排序字段直到不等，提升计算效率。插入操作在 <code>LongArray</code> 操作，<code>List&lt;MemoryBlock&gt;</code> 只作为原始数据。</p>
-<p>另外，当需要排序特别大的数据量时，会使用存储数据到文件进行排序。限于笔者暂时未阅读该处源码，后续会另开文章分析。🙂</p>
-<p>核心源码：</p>
-<ul>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/utils/sort/UnsafeExternalRowSorter.java" rel="external nofollow noopener noreferrer" target="_blank">UnsafeExternalRowSorter.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/utils/sort/UnsafeExternalRowSorter.java" rel="external nofollow noopener noreferrer" target="_blank">UnsafeExternalRowSorter.java</a></li>
-<li><a href="https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/memory/unsafe/utils/sort/TimSort.java" rel="external nofollow noopener noreferrer" target="_blank">TimSort.java</a></li>
-</ul>
-<h3>3.5 UnsafeRowGrouper</h3>
-<p>如果使用 Java 实现 <code>SELECT nickname, COUNT(*) FROM student group by nickname</code>，不考虑算法优化的情况下，我们可以简单如下实现：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line">Map&lt;String, List&lt;Object&gt;&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"><span class="comment">// 聚合</span></div><div class="line"><span class="keyword">for</span> (student : students) &#123;</div><div class="line">    <span class="keyword">if</span> (map.contains(student.nickname)) &#123;</div><div class="line">        map.put(student.nickname, map.get(student.nickname).get(<span class="number">1</span>) + <span class="number">1</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        List&lt;Object&gt; value = <span class="keyword">new</span> Array&lt;&gt;();</div><div class="line">        value.add(nickname);</div><div class="line">        value.add(<span class="number">1</span>);</div><div class="line">        map.put(student.nickname, value);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">// 输出</span></div><div class="line"><span class="keyword">for</span> (value : map.values) &#123;</div><div class="line">    System.out.println(value);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>从功能上，<code>UnsafeRowGrouper</code> 是这么实现排序逻辑。当然肯定的是，也不是这么“简单”的实现。</p>
-<p>😈具体怎么实现的呢？我们在《MyCAT 源码解析 —— 分片结果合并（二）》继续分析。</p>
-<h1>4. 救护中心</h1>
-<p>看到此处的应该是真爱吧？！如果内容上有什么错误或者难懂的地方，可以关注我的微信公众号给我留言，我会很认真的逐条解答的。“万一”觉得本文还可以，希望转发到朋友圈让更多的人看到。</p>
-<p>最后的最后，感谢耐心阅读本文的同学。</p>
-<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt="wechat_mp"></p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
-&lt;ol
-    
-    </summary>
-    
-      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>MyCAT 源码分析 —— 【单库单表】查询</title>
-    <link href="http://www.yunai.me/MyCAT/single-db-single-table-select/"/>
-    <id>http://www.yunai.me/MyCAT/single-db-single-table-select/</id>
-    <published>2017-05-29T16:00:00.000Z</published>
-    <updated>2017-07-31T12:30:52.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. 接收请求，解析 SQL</a></li>
-<li><a href="#">3. 获得路由结果</a></li>
-<li><a href="#">4. 获得 MySQL 连接，执行 SQL</a></li>
-<li><a href="#">5. 响应执行 SQL 结果</a></li>
-<li><a href="#">6. 其他 ：更新 / 删除</a></li>
-</ul>
-<h1>1. 概述</h1>
-<blockquote>
-<p>内容形态以 顺序图 + 核心代码 为主。<br>
-如果有地方表述不错误或者不清晰，欢迎留言。<br>
-对于内容形态，非常纠结，如果有建议，特别特别特别欢迎您提出。<br>
-微信号：wangwenbin-server。</p>
-</blockquote>
-<p>本文讲解 【单库单表】查询 所涉及到的代码。</p>
-<p>😂内容和 <a href="http://www.yunai.me/Mycat/single-db-single-table-insert/">《MyCAT 源码分析 —— 【单库单表】插入》</a> 超级相似，一方面本身流程基本相同，另外一方面文章结构没拆分好。我们使用 🚀 标记差异的逻辑。</p>
-<p>交互如下图：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_30/01.png" alt="单库单表查询简图"></p>
-<p>整个过程，MyCAT Server 流程如下：</p>
-<ol>
-<li>接收 MySQL Client 请求，解析 SQL。</li>
-<li>获得路由结果，进行路由。</li>
-<li>获得 MySQL 连接，执行 SQL。</li>
-<li>响应执行结果，发送结果给 MySQL Client。</li>
-</ol>
-<p>我们逐个步骤分析，一起来看看源码。</p>
-<h1>2. 接收请求，解析 SQL</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_30/02.png" alt="【单库单表】查询（01主流程）"></p>
-<h2>【1 - 2】</h2>
-<p>接收<strong>一条</strong> MySQL 命令。在【1】之前，还有请求数据读取、拆成单条 MySQL SQL。</p>
-<h2>【3】</h2>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【FrontendCommandHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FrontendCommandHandler</span> <span class="keyword">implements</span> <span class="title">NIOHandler</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: </div><div class="line"> <span class="number">4</span>:     <span class="meta">@Override</span></div><div class="line"> <span class="number">5</span>:     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(<span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line"> <span class="number">6</span>:     </div><div class="line"> <span class="number">7</span>:         <span class="comment">// .... 省略部分代码</span></div><div class="line"> <span class="number">8</span>:         <span class="keyword">switch</span> (data[<span class="number">4</span>]) <span class="comment">// </span></div><div class="line"> <span class="number">9</span>:         &#123;</div><div class="line"><span class="number">10</span>:             <span class="keyword">case</span> MySQLPacket.COM_INIT_DB:</div><div class="line"><span class="number">11</span>:                 commands.doInitDB();</div><div class="line"><span class="number">12</span>:                 source.initDB(data);</div><div class="line"><span class="number">13</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">14</span>:             <span class="keyword">case</span> MySQLPacket.COM_QUERY: <span class="comment">// 查询命令</span></div><div class="line"><span class="number">15</span>:                 <span class="comment">// 计数查询命令</span></div><div class="line"><span class="number">16</span>:                 commands.doQuery();</div><div class="line"><span class="number">17</span>:                 <span class="comment">// 执行查询命令</span></div><div class="line"><span class="number">18</span>:                 source.query(data);</div><div class="line"><span class="number">19</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">20</span>:             <span class="keyword">case</span> MySQLPacket.COM_PING:</div><div class="line"><span class="number">21</span>:                 commands.doPing();</div><div class="line"><span class="number">22</span>:                 source.ping();</div><div class="line"><span class="number">23</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">24</span>:             <span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">25</span>:         &#125;</div><div class="line"><span class="number">26</span>:     &#125;</div><div class="line"><span class="number">27</span>: </div><div class="line"><span class="number">28</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p><code>INSERT</code>/<code>SELECT</code>/<code>UPDATE</code>/<code>DELETE</code> 等 SQL 归属于 <code>MySQLPacket.COM_QUERY</code>，详细可见：<a href="http://hutaow.com/blog/2013/11/06/mysql-protocol-analysis/#42-" rel="external nofollow noopener noreferrer" target="_blank">《MySQL协议分析#4.2 客户端命令请求报文（客户端 -&gt; 服务器）》</a>。</p>
-<h2>【4】</h2>
-<p>将 二进制数组 解析成 SQL。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【FrontendConnection.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">query</span><span class="params">(<span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: 	<span class="comment">// 取得语句</span></div><div class="line"> <span class="number">4</span>: 	String sql = <span class="keyword">null</span>;		</div><div class="line"> <span class="number">5</span>: 	<span class="keyword">try</span> &#123;</div><div class="line"> <span class="number">6</span>: 		MySQLMessage mm = <span class="keyword">new</span> MySQLMessage(data);</div><div class="line"> <span class="number">7</span>: 		mm.position(<span class="number">5</span>);</div><div class="line"> <span class="number">8</span>: 		sql = mm.readString(charset);</div><div class="line"> <span class="number">9</span>: 	&#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</div><div class="line"><span class="number">10</span>: 		writeErrMessage(ErrorCode.ER_UNKNOWN_CHARACTER_SET, <span class="string">"Unknown charset '"</span> + charset + <span class="string">"'"</span>);</div><div class="line"><span class="number">11</span>: 		<span class="keyword">return</span>;</div><div class="line"><span class="number">12</span>: 	&#125;		</div><div class="line"><span class="number">13</span>: 	<span class="comment">// 执行语句</span></div><div class="line"><span class="number">14</span>: 	<span class="keyword">this</span>.query( sql );</div><div class="line"><span class="number">15</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h2>【5】</h2>
-<p>解析 SQL 类型。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【ServerQueryHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="meta">@Override</span></div><div class="line"> <span class="number">3</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">query</span><span class="params">(String sql)</span> </span>&#123;</div><div class="line"> <span class="number">4</span>: 	<span class="comment">// 解析 SQL 类型</span></div><div class="line"> <span class="number">5</span>: 	<span class="keyword">int</span> rs = ServerParse.parse(sql);</div><div class="line"> <span class="number">6</span>: 	<span class="keyword">int</span> sqlType = rs &amp; <span class="number">0xff</span>;</div><div class="line"> <span class="number">7</span>: 	</div><div class="line"> <span class="number">8</span>: 	<span class="keyword">switch</span> (sqlType) &#123;</div><div class="line"> <span class="number">9</span>: 	<span class="comment">//explain sql</span></div><div class="line"><span class="number">10</span>: 	<span class="keyword">case</span> ServerParse.EXPLAIN:</div><div class="line"><span class="number">11</span>: 		ExplainHandler.handle(sql, c, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line"><span class="number">12</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">13</span>: 	<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">14</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">15</span>: 	<span class="keyword">case</span> ServerParse.SELECT:</div><div class="line"><span class="number">16</span>: 		SelectHandler.handle(sql, c, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line"><span class="number">17</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">18</span>: 	<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">19</span>: 	<span class="keyword">default</span>:</div><div class="line"><span class="number">20</span>: 		<span class="keyword">if</span>(readOnly)&#123;</div><div class="line"><span class="number">21</span>: 			LOGGER.warn(<span class="keyword">new</span> StringBuilder().append(<span class="string">"User readonly:"</span>).append(sql).toString());</div><div class="line"><span class="number">22</span>: 			c.writeErrMessage(ErrorCode.ER_USER_READ_ONLY, <span class="string">"User readonly"</span>);</div><div class="line"><span class="number">23</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">24</span>: 		&#125;</div><div class="line"><span class="number">25</span>: 		c.execute(sql, rs &amp; <span class="number">0xff</span>);</div><div class="line"><span class="number">26</span>: 	&#125;</div><div class="line"><span class="number">27</span>: &#125;</div><div class="line"><span class="number">28</span>: </div><div class="line"><span class="number">29</span>:</div><div class="line"><span class="number">30</span>: <span class="comment">// ⬇️⬇️⬇️【ServerParse.java】</span></div><div class="line"><span class="number">31</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">parse</span><span class="params">(String stmt)</span> </span>&#123;</div><div class="line"><span class="number">32</span>: 	<span class="keyword">int</span> length = stmt.length();</div><div class="line"><span class="number">33</span>: 	<span class="comment">//FIX BUG FOR SQL SUCH AS /XXXX/SQL</span></div><div class="line"><span class="number">34</span>: 	<span class="keyword">int</span> rt = -<span class="number">1</span>;</div><div class="line"><span class="number">35</span>: 	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; length; ++i) &#123;</div><div class="line"><span class="number">36</span>: 		<span class="keyword">switch</span> (stmt.charAt(i)) &#123;</div><div class="line"><span class="number">37</span>: 		<span class="comment">// .... 省略部分case			case 'I':</span></div><div class="line"><span class="number">38</span>: 		<span class="keyword">case</span> <span class="string">'i'</span>:</div><div class="line"><span class="number">39</span>: 			rt = insertCheck(stmt, i);</div><div class="line"><span class="number">40</span>: 			<span class="keyword">if</span> (rt != OTHER) &#123;</div><div class="line"><span class="number">41</span>: 				<span class="keyword">return</span> rt;</div><div class="line"><span class="number">42</span>: 			&#125;</div><div class="line"><span class="number">43</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">44</span>: 			<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">45</span>: 		<span class="keyword">case</span> <span class="string">'S'</span>:</div><div class="line"><span class="number">46</span>: 		<span class="keyword">case</span> <span class="string">'s'</span>:</div><div class="line"><span class="number">47</span>: 			rt = sCheck(stmt, i);</div><div class="line"><span class="number">48</span>: 			<span class="keyword">if</span> (rt != OTHER) &#123;</div><div class="line"><span class="number">49</span>: 				<span class="keyword">return</span> rt;</div><div class="line"><span class="number">50</span>: 			&#125;</div><div class="line"><span class="number">51</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">52</span>: 			<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">53</span>: 		<span class="keyword">default</span>:</div><div class="line"><span class="number">54</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">55</span>: 		&#125;</div><div class="line"><span class="number">56</span>: 	&#125;</div><div class="line"><span class="number">57</span>: 	<span class="keyword">return</span> OTHER;</div><div class="line"><span class="number">58</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h2>🚀【6】【7】</h2>
-<p>解析 Select SQL 类型，分发到对应的逻辑。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【SelectHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(String stmt, ServerConnection c, <span class="keyword">int</span> offs)</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: 	<span class="keyword">int</span> offset = offs;</div><div class="line"> <span class="number">4</span>: 	<span class="keyword">switch</span> (ServerParseSelect.parse(stmt, offs)) &#123; <span class="comment">// 解析 Select SQL 类型</span></div><div class="line"> <span class="number">5</span>: 	<span class="keyword">case</span> ServerParseSelect.VERSION_COMMENT: <span class="comment">// select @@VERSION_COMMENT;</span></div><div class="line"> <span class="number">6</span>: 		SelectVersionComment.response(c);</div><div class="line"> <span class="number">7</span>: 		<span class="keyword">break</span>;</div><div class="line"> <span class="number">8</span>: 	<span class="keyword">case</span> ServerParseSelect.DATABASE: <span class="comment">// select DATABASE();</span></div><div class="line"> <span class="number">9</span>: 		SelectDatabase.response(c);</div><div class="line"><span class="number">10</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">11</span>: 	<span class="keyword">case</span> ServerParseSelect.USER: <span class="comment">// select CURRENT_USER();</span></div><div class="line"><span class="number">12</span>:         SelectUser.response(c);</div><div class="line"><span class="number">13</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">14</span>: 	<span class="keyword">case</span> ServerParseSelect.VERSION: <span class="comment">// select VERSION();</span></div><div class="line"><span class="number">15</span>: 		SelectVersion.response(c);</div><div class="line"><span class="number">16</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">17</span>: 	<span class="keyword">case</span> ServerParseSelect.SESSION_INCREMENT: <span class="comment">// select @@session.auto_increment_increment;</span></div><div class="line"><span class="number">18</span>: 		SessionIncrement.response(c);</div><div class="line"><span class="number">19</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">20</span>: 	<span class="keyword">case</span> ServerParseSelect.SESSION_ISOLATION: <span class="comment">// select @@session.tx_isolation;</span></div><div class="line"><span class="number">21</span>: 		SessionIsolation.response(c);</div><div class="line"><span class="number">22</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">23</span>: 	<span class="keyword">case</span> ServerParseSelect.LAST_INSERT_ID: <span class="comment">// select LAST_INSERT_ID();</span></div><div class="line"><span class="number">24</span>: 		<span class="comment">// ....省略代码</span></div><div class="line"><span class="number">25</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">26</span>: 	<span class="keyword">case</span> ServerParseSelect.IDENTITY: <span class="comment">// select @@identity</span></div><div class="line"><span class="number">27</span>: 		<span class="comment">// ....省略代码</span></div><div class="line"><span class="number">28</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">29</span>:     <span class="keyword">case</span> ServerParseSelect.SELECT_VAR_ALL: <span class="comment">//</span></div><div class="line"><span class="number">30</span>:         SelectVariables.execute(c,stmt);</div><div class="line"><span class="number">31</span>:             <span class="keyword">break</span>;</div><div class="line"><span class="number">32</span>:     <span class="keyword">case</span> ServerParseSelect.SESSION_TX_READ_ONLY: <span class="comment">//</span></div><div class="line"><span class="number">33</span>:         SelectTxReadOnly.response(c);</div><div class="line"><span class="number">34</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">35</span>: 	<span class="keyword">default</span>: <span class="comment">// 其他，例如 select * from table</span></div><div class="line"><span class="number">36</span>: 		c.execute(stmt, ServerParse.SELECT);</div><div class="line"><span class="number">37</span>: 	&#125;</div><div class="line"><span class="number">38</span>: &#125;</div><div class="line"><span class="number">39</span>: <span class="comment">// ⬇️⬇️⬇️【ServerParseSelect.java】</span></div><div class="line"><span class="number">40</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">parse</span><span class="params">(String stmt, <span class="keyword">int</span> offset)</span> </span>&#123;</div><div class="line"><span class="number">41</span>: 	<span class="keyword">int</span> i = offset;</div><div class="line"><span class="number">42</span>: 	<span class="keyword">for</span> (; i &lt; stmt.length(); ++i) &#123;</div><div class="line"><span class="number">43</span>: 		<span class="keyword">switch</span> (stmt.charAt(i)) &#123;</div><div class="line"><span class="number">44</span>: 		<span class="keyword">case</span> <span class="string">' '</span>:</div><div class="line"><span class="number">45</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">46</span>: 		<span class="keyword">case</span> <span class="string">'/'</span>:</div><div class="line"><span class="number">47</span>: 		<span class="keyword">case</span> <span class="string">'#'</span>:</div><div class="line"><span class="number">48</span>: 			i = ParseUtil.comment(stmt, i);</div><div class="line"><span class="number">49</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">50</span>: 		<span class="keyword">case</span> <span class="string">'@'</span>:</div><div class="line"><span class="number">51</span>: 			<span class="keyword">return</span> select2Check(stmt, i);</div><div class="line"><span class="number">52</span>: 		<span class="keyword">case</span> <span class="string">'D'</span>:</div><div class="line"><span class="number">53</span>: 		<span class="keyword">case</span> <span class="string">'d'</span>:</div><div class="line"><span class="number">54</span>: 			<span class="keyword">return</span> databaseCheck(stmt, i);</div><div class="line"><span class="number">55</span>: 		<span class="keyword">case</span> <span class="string">'L'</span>:</div><div class="line"><span class="number">56</span>: 		<span class="keyword">case</span> <span class="string">'l'</span>:</div><div class="line"><span class="number">57</span>: 			<span class="keyword">return</span> lastInsertCheck(stmt, i);</div><div class="line"><span class="number">58</span>: 		<span class="keyword">case</span> <span class="string">'U'</span>:</div><div class="line"><span class="number">59</span>: 		<span class="keyword">case</span> <span class="string">'u'</span>:</div><div class="line"><span class="number">60</span>: 			<span class="keyword">return</span> userCheck(stmt, i);</div><div class="line"><span class="number">61</span>: 		<span class="keyword">case</span> <span class="string">'C'</span>:</div><div class="line"><span class="number">62</span>: 		<span class="keyword">case</span> <span class="string">'c'</span>:</div><div class="line"><span class="number">63</span>: 			<span class="keyword">return</span> currentUserCheck(stmt, i);</div><div class="line"><span class="number">64</span>: 		<span class="keyword">case</span> <span class="string">'V'</span>:</div><div class="line"><span class="number">65</span>: 		<span class="keyword">case</span> <span class="string">'v'</span>:</div><div class="line"><span class="number">66</span>: 			<span class="keyword">return</span> versionCheck(stmt, i);</div><div class="line"><span class="number">67</span>: 		<span class="keyword">default</span>:</div><div class="line"><span class="number">68</span>: 			<span class="keyword">return</span> OTHER;</div><div class="line"><span class="number">69</span>: 		&#125;</div><div class="line"><span class="number">70</span>: 	&#125;</div><div class="line"><span class="number">71</span>: 	<span class="keyword">return</span> OTHER;</div><div class="line"><span class="number">72</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h2>【8】</h2>
-<p>执行 SQL，详细解析见下文，核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【ServerConnection.java】</span></div><div class="line"> <span class="number">2</span>: <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerConnection</span> <span class="keyword">extends</span> <span class="title">FrontendConnection</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: 	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(String sql, <span class="keyword">int</span> type)</span> </span>&#123;</div><div class="line"> <span class="number">4</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"> <span class="number">5</span>: 		SchemaConfig schema = MycatServer.getInstance().getConfig().getSchemas().get(db);</div><div class="line"> <span class="number">6</span>: 		<span class="keyword">if</span> (schema == <span class="keyword">null</span>) &#123;</div><div class="line"> <span class="number">7</span>: 			writeErrMessage(ErrorCode.ERR_BAD_LOGICDB,</div><div class="line"> <span class="number">8</span>: 					<span class="string">"Unknown MyCAT Database '"</span> + db + <span class="string">"'"</span>);</div><div class="line"> <span class="number">9</span>: 			<span class="keyword">return</span>;</div><div class="line"><span class="number">10</span>: 		&#125;</div><div class="line"><span class="number">11</span>: </div><div class="line"><span class="number">12</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">13</span>: </div><div class="line"><span class="number">14</span>: 		<span class="comment">// 路由到后端数据库，执行 SQL</span></div><div class="line"><span class="number">15</span>: 		routeEndExecuteSQL(sql, type, schema);</div><div class="line"><span class="number">16</span>: 	&#125;</div><div class="line"><span class="number">17</span>: 	</div><div class="line"><span class="number">18</span>:     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">routeEndExecuteSQL</span><span class="params">(String sql, <span class="keyword">final</span> <span class="keyword">int</span> type, <span class="keyword">final</span> SchemaConfig schema)</span> </span>&#123;</div><div class="line"><span class="number">19</span>: 		<span class="comment">// 路由计算</span></div><div class="line"><span class="number">20</span>: 		RouteResultset rrs = <span class="keyword">null</span>;</div><div class="line"><span class="number">21</span>: 		<span class="keyword">try</span> &#123;</div><div class="line"><span class="number">22</span>: 			rrs = MycatServer</div><div class="line"><span class="number">23</span>: 					.getInstance()</div><div class="line"><span class="number">24</span>: 					.getRouterservice()</div><div class="line"><span class="number">25</span>: 					.route(MycatServer.getInstance().getConfig().getSystem(),</div><div class="line"><span class="number">26</span>: 							schema, type, sql, <span class="keyword">this</span>.charset, <span class="keyword">this</span>);</div><div class="line"><span class="number">27</span>: </div><div class="line"><span class="number">28</span>: 		&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"><span class="number">29</span>: 			StringBuilder s = <span class="keyword">new</span> StringBuilder();</div><div class="line"><span class="number">30</span>: 			LOGGER.warn(s.append(<span class="keyword">this</span>).append(sql).toString() + <span class="string">" err:"</span> + e.toString(),e);</div><div class="line"><span class="number">31</span>: 			String msg = e.getMessage();</div><div class="line"><span class="number">32</span>: 			writeErrMessage(ErrorCode.ER_PARSE_ERROR, msg == <span class="keyword">null</span> ? e.getClass().getSimpleName() : msg);</div><div class="line"><span class="number">33</span>: 			<span class="keyword">return</span>;</div><div class="line"><span class="number">34</span>: 		&#125;</div><div class="line"><span class="number">35</span>: </div><div class="line"><span class="number">36</span>: 		<span class="comment">// 执行 SQL</span></div><div class="line"><span class="number">37</span>: 		<span class="keyword">if</span> (rrs != <span class="keyword">null</span>) &#123;</div><div class="line"><span class="number">38</span>: 			<span class="comment">// session执行</span></div><div class="line"><span class="number">39</span>: 			session.execute(rrs, rrs.isSelectForUpdate() ? ServerParse.UPDATE : type);</div><div class="line"><span class="number">40</span>: 		&#125;</div><div class="line"><span class="number">41</span>: 		</div><div class="line"><span class="number">42</span>:  	&#125;</div><div class="line"><span class="number">43</span>: </div><div class="line"><span class="number">44</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h1>3. 获得路由结果</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_30/03.png" alt="【单库单表】插入（02获取路由）"></p>
-<h2>【 1 -  5 】</h2>
-<p>获得路由主流程。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【SelectHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> RouteResultset <span class="title">route</span><span class="params">(SystemConfig sysconf, SchemaConfig schema,</span></span></div><div class="line"> <span class="number">3</span>: 		<span class="keyword">int</span> sqlType, String stmt, String charset, ServerConnection sc)</div><div class="line"> 4: 		<span class="keyword">throws</span> SQLNonTransientException &#123;</div><div class="line"> <span class="number">5</span>: 	RouteResultset rrs = <span class="keyword">null</span>;</div><div class="line"> <span class="number">6</span>: </div><div class="line"> <span class="number">7</span>: 	<span class="comment">// SELECT 类型的SQL, 检测缓存是否存在</span></div><div class="line"> <span class="number">8</span>: 	<span class="keyword">if</span> (sqlType == ServerParse.SELECT) &#123;</div><div class="line"> <span class="number">9</span>: 		cacheKey = schema.getName() + stmt;			</div><div class="line"><span class="number">10</span>: 		rrs = (RouteResultset) sqlRouteCache.get(cacheKey);</div><div class="line"><span class="number">11</span>: 		<span class="keyword">if</span> (rrs != <span class="keyword">null</span>) &#123;</div><div class="line"><span class="number">12</span>: 			checkMigrateRule(schema.getName(),rrs,sqlType);</div><div class="line"><span class="number">13</span>: 			<span class="keyword">return</span> rrs;</div><div class="line"><span class="number">14</span>: 			&#125;</div><div class="line"><span class="number">15</span>: 		&#125;</div><div class="line"><span class="number">16</span>: 	&#125;</div><div class="line"><span class="number">17</span>: </div><div class="line"><span class="number">18</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">19</span>: 	<span class="keyword">int</span> hintLength = RouteService.isHintSql(stmt);</div><div class="line"><span class="number">20</span>: 	<span class="keyword">if</span>(hintLength != -<span class="number">1</span>)&#123; <span class="comment">// TODO 待读：hint</span></div><div class="line"><span class="number">21</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">22</span>: 		&#125;</div><div class="line"><span class="number">23</span>: 	&#125; <span class="keyword">else</span> &#123;</div><div class="line"><span class="number">24</span>: 		stmt = stmt.trim();</div><div class="line"><span class="number">25</span>: 		rrs = RouteStrategyFactory.getRouteStrategy().route(sysconf, schema, sqlType, stmt,</div><div class="line"><span class="number">26</span>: 				charset, sc, tableId2DataNodeCache);</div><div class="line"><span class="number">27</span>: 	&#125;</div><div class="line"><span class="number">28</span>: </div><div class="line"><span class="number">29</span>: 	<span class="comment">// 记录查询命令路由结果缓存</span></div><div class="line"><span class="number">30</span>: 	<span class="keyword">if</span> (rrs != <span class="keyword">null</span> &amp;&amp; sqlType == ServerParse.SELECT &amp;&amp; rrs.isCacheAble()) &#123;</div><div class="line"><span class="number">31</span>: 		sqlRouteCache.putIfAbsent(cacheKey, rrs);</div><div class="line"><span class="number">32</span>: 	&#125;</div><div class="line"><span class="number">33</span>: 	<span class="comment">// .... 省略代码		return rrs;</span></div><div class="line"><span class="number">34</span>: &#125;</div><div class="line"><span class="number">35</span>: <span class="comment">// ⬇️⬇️⬇️【AbstractRouteStrategy.java】</span></div><div class="line"><span class="number">36</span>: <span class="meta">@Override</span></div><div class="line"><span class="number">37</span>: <span class="function"><span class="keyword">public</span> RouteResultset <span class="title">route</span><span class="params">(SystemConfig sysConfig, SchemaConfig schema, <span class="keyword">int</span> sqlType, String origSQL,</span></span></div><div class="line"><span class="number">38</span>: 		String charset, ServerConnection sc, LayerCachePool cachePool) <span class="keyword">throws</span> SQLNonTransientException &#123;</div><div class="line"><span class="number">39</span>: </div><div class="line"><span class="number">40</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">41</span>: </div><div class="line"><span class="number">42</span>: 	<span class="comment">// 处理一些路由之前的逻辑;全局序列号，父子表插入</span></div><div class="line"><span class="number">43</span>: 	<span class="keyword">if</span> (beforeRouteProcess(schema, sqlType, origSQL, sc) ) &#123;</div><div class="line"><span class="number">44</span>: 		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line"><span class="number">45</span>: 	&#125;</div><div class="line"><span class="number">46</span>: </div><div class="line"><span class="number">47</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">48</span>: </div><div class="line"><span class="number">49</span>: 	<span class="comment">// 检查是否有分片</span></div><div class="line"><span class="number">50</span>: 	<span class="keyword">if</span> (schema.isNoSharding() &amp;&amp; ServerParse.SHOW != sqlType) &#123;</div><div class="line"><span class="number">51</span>: 		rrs = RouterUtil.routeToSingleNode(rrs, schema.getDataNode(), stmt);</div><div class="line"><span class="number">52</span>: 	&#125; <span class="keyword">else</span> &#123;</div><div class="line"><span class="number">53</span>: 		RouteResultset returnedSet = routeSystemInfo(schema, sqlType, stmt, rrs);</div><div class="line"><span class="number">54</span>: 		<span class="keyword">if</span> (returnedSet == <span class="keyword">null</span>) &#123;</div><div class="line"><span class="number">55</span>: 			rrs = routeNormalSqlWithAST(schema, stmt, rrs, charset, cachePool,sqlType,sc);</div><div class="line"><span class="number">56</span>: 		&#125;</div><div class="line"><span class="number">57</span>: 	&#125;</div><div class="line"><span class="number">58</span>: </div><div class="line"><span class="number">59</span>: 	<span class="keyword">return</span> rrs;</div><div class="line"><span class="number">60</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p>🚀【3】第 7 至 16 行 ：当 Select SQL 存在路由结果缓存时，直接返回缓存。
-🚀【6】第 29 至 32 行 ：记录 Select SQL 路由结果到缓存。</p>
-<p><em><strong>路由</strong> 详细解析，我们另开文章，避免内容过多，影响大家对【插入】流程和逻辑的理解。</em></p>
-<h1>4. 获得 MySQL 连接，执行 SQL</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/03.png" alt="【单库单表】查询（03执行 SQL）"></p>
-<h2>【 1 - 8 】</h2>
-<p>获得 MySQL 连接。</p>
-<ul>
-<li>PhysicalDBNode ：物理数据库节点。</li>
-<li>PhysicalDatasource ：物理数据库数据源。</li>
-</ul>
-<h2>【 9 - 13 】</h2>
-<p>发送 SQL 到 MySQL Server，执行 SQL。</p>
-<h1>🚀 5. 响应执行 SQL 结果</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_30/04.png" alt="【单库单表】查询（04执行响应）"></p>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【MySQLConnectionHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="meta">@Override</span></div><div class="line"> <span class="number">3</span>: <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">handleData</span><span class="params">(<span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line"> <span class="number">4</span>: 	<span class="keyword">switch</span> (resultStatus) &#123;</div><div class="line"> <span class="number">5</span>: 	<span class="keyword">case</span> RESULT_STATUS_INIT:</div><div class="line"> <span class="number">6</span>: 		<span class="keyword">switch</span> (data[<span class="number">4</span>]) &#123;</div><div class="line"> <span class="number">7</span>: 		<span class="keyword">case</span> OkPacket.FIELD_COUNT:</div><div class="line"> <span class="number">8</span>: 			handleOkPacket(data);</div><div class="line"> <span class="number">9</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">10</span>: 		<span class="keyword">case</span> ErrorPacket.FIELD_COUNT:</div><div class="line"><span class="number">11</span>: 			handleErrorPacket(data);</div><div class="line"><span class="number">12</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">13</span>: 		<span class="keyword">case</span> RequestFilePacket.FIELD_COUNT:</div><div class="line"><span class="number">14</span>: 			handleRequestPacket(data);</div><div class="line"><span class="number">15</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">16</span>: 		<span class="keyword">default</span>: <span class="comment">// 初始化 header fields</span></div><div class="line"><span class="number">17</span>: 			resultStatus = RESULT_STATUS_HEADER;</div><div class="line"><span class="number">18</span>: 			header = data;</div><div class="line"><span class="number">19</span>: 			fields = <span class="keyword">new</span> ArrayList&lt;<span class="keyword">byte</span>[]&gt;((<span class="keyword">int</span>) ByteUtil.readLength(data,</div><div class="line"><span class="number">20</span>: 					<span class="number">4</span>));</div><div class="line"><span class="number">21</span>: 		&#125;</div><div class="line"><span class="number">22</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">23</span>: 	<span class="keyword">case</span> RESULT_STATUS_HEADER:</div><div class="line"><span class="number">24</span>: 		<span class="keyword">switch</span> (data[<span class="number">4</span>]) &#123;</div><div class="line"><span class="number">25</span>: 		<span class="keyword">case</span> ErrorPacket.FIELD_COUNT:</div><div class="line"><span class="number">26</span>: 			resultStatus = RESULT_STATUS_INIT;</div><div class="line"><span class="number">27</span>: 			handleErrorPacket(data);</div><div class="line"><span class="number">28</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">29</span>: 		<span class="keyword">case</span> EOFPacket.FIELD_COUNT: <span class="comment">// 解析 fields 结束</span></div><div class="line"><span class="number">30</span>: 			resultStatus = RESULT_STATUS_FIELD_EOF;</div><div class="line"><span class="number">31</span>: 			handleFieldEofPacket(data);</div><div class="line"><span class="number">32</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">33</span>: 		<span class="keyword">default</span>: <span class="comment">// 解析 fields</span></div><div class="line"><span class="number">34</span>: 			fields.add(data);</div><div class="line"><span class="number">35</span>: 		&#125;</div><div class="line"><span class="number">36</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">37</span>: 	<span class="keyword">case</span> RESULT_STATUS_FIELD_EOF:</div><div class="line"><span class="number">38</span>: 		<span class="keyword">switch</span> (data[<span class="number">4</span>]) &#123;</div><div class="line"><span class="number">39</span>: 		<span class="keyword">case</span> ErrorPacket.FIELD_COUNT:</div><div class="line"><span class="number">40</span>: 			resultStatus = RESULT_STATUS_INIT;</div><div class="line"><span class="number">41</span>: 			handleErrorPacket(data);</div><div class="line"><span class="number">42</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">43</span>: 		<span class="keyword">case</span> EOFPacket.FIELD_COUNT: <span class="comment">// 解析 每行记录 结束</span></div><div class="line"><span class="number">44</span>: 			resultStatus = RESULT_STATUS_INIT;</div><div class="line"><span class="number">45</span>: 			handleRowEofPacket(data);</div><div class="line"><span class="number">46</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">47</span>: 		<span class="keyword">default</span>: <span class="comment">// 每行记录</span></div><div class="line"><span class="number">48</span>: 			handleRowPacket(data);</div><div class="line"><span class="number">49</span>: 		&#125;</div><div class="line"><span class="number">50</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">51</span>: 	<span class="keyword">default</span>:</div><div class="line"><span class="number">52</span>: 		<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"unknown status!"</span>);</div><div class="line"><span class="number">53</span>: 	&#125;</div><div class="line"><span class="number">54</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h1>6. 其他 ：更新 / 删除</h1>
-<p>流程基本和 <a href="http://www.yunai.me/Mycat/single-db-single-table-insert/">《MyCAT源码分析：【单库单表】插入》</a> 相同。我们就不另外文章解析。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：&lt;/p&gt;
-&lt;ol
-    
-    </summary>
-    
-      <category term="MyCAT" scheme="http://www.yunai.me/categories/MyCAT/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>MyCAT 源码分析 —— 【单库单表】插入</title>
-    <link href="http://www.yunai.me/MyCAT/single-db-single-table-insert/"/>
-    <id>http://www.yunai.me/MyCAT/single-db-single-table-insert/</id>
-    <published>2017-05-28T16:00:00.000Z</published>
-    <updated>2017-07-31T12:30:52.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. 接收请求，解析 SQL</a></li>
-<li><a href="#">3. 获得路由结果</a></li>
-<li><a href="#">4. 获得 MySQL 连接，执行 SQL</a></li>
-<li><a href="#">5. 响应执行 SQL 结果</a></li>
-</ul>
-<h1>1. 概述</h1>
-<blockquote>
-<p>内容形态以 顺序图 + 核心代码 为主。<br>
-如果有地方表述不错误或者不清晰，欢迎留言。<br>
-对于内容形态，非常纠结，如果有建议，特别特别特别欢迎您提出。<br>
-微信号：wangwenbin-server。</p>
-</blockquote>
-<p>本文讲解 【单库单表】插入 所涉及到的代码。交互如下图：</p>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/05.png" alt="单库单表插入简图"></p>
-<p>整个过程，MyCAT Server 流程如下：</p>
-<ol>
-<li>接收 MySQL Client 请求，解析 SQL。</li>
-<li>获得路由结果，进行路由。</li>
-<li>获得 MySQL 连接，执行 SQL。</li>
-<li>响应执行结果，发送结果给 MySQL Client。</li>
-</ol>
-<p>我们逐个步骤分析，一起来看看源码。</p>
-<h1>2. 接收请求，解析 SQL</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/01.png" alt="【单库单表】插入（01主流程）"></p>
-<h2>【 1 - 2 】</h2>
-<p>接收<strong>一条</strong> MySQL 命令。在【1】之前，还有请求数据读取、拆成单条 MySQL SQL。</p>
-<h2>【 3 】</h2>
-<p>不同 MySQL 命令，分发到不同的方法执行。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【FrontendCommandHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FrontendCommandHandler</span> <span class="keyword">implements</span> <span class="title">NIOHandler</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: </div><div class="line"> <span class="number">4</span>:     <span class="meta">@Override</span></div><div class="line"> <span class="number">5</span>:     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(<span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line"> <span class="number">6</span>:     </div><div class="line"> <span class="number">7</span>:         <span class="comment">// .... 省略部分代码</span></div><div class="line"> <span class="number">8</span>:         <span class="keyword">switch</span> (data[<span class="number">4</span>]) <span class="comment">// </span></div><div class="line"> <span class="number">9</span>:         &#123;</div><div class="line"><span class="number">10</span>:             <span class="keyword">case</span> MySQLPacket.COM_INIT_DB:</div><div class="line"><span class="number">11</span>:                 commands.doInitDB();</div><div class="line"><span class="number">12</span>:                 source.initDB(data);</div><div class="line"><span class="number">13</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">14</span>:             <span class="keyword">case</span> MySQLPacket.COM_QUERY: <span class="comment">// 查询命令</span></div><div class="line"><span class="number">15</span>:                 <span class="comment">// 计数查询命令</span></div><div class="line"><span class="number">16</span>:                 commands.doQuery();</div><div class="line"><span class="number">17</span>:                 <span class="comment">// 执行查询命令</span></div><div class="line"><span class="number">18</span>:                 source.query(data);</div><div class="line"><span class="number">19</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">20</span>:             <span class="keyword">case</span> MySQLPacket.COM_PING:</div><div class="line"><span class="number">21</span>:                 commands.doPing();</div><div class="line"><span class="number">22</span>:                 source.ping();</div><div class="line"><span class="number">23</span>:                 <span class="keyword">break</span>;</div><div class="line"><span class="number">24</span>:             <span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">25</span>:         &#125;</div><div class="line"><span class="number">26</span>:     &#125;</div><div class="line"><span class="number">27</span>: </div><div class="line"><span class="number">28</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p><code>INSERT</code>/<code>SELECT</code>/<code>UPDATE</code>/<code>DELETE</code> 等 SQL 归属于 <code>MySQLPacket.COM_QUERY</code>，详细可见：<a href="http://hutaow.com/blog/2013/11/06/mysql-protocol-analysis/#42-" rel="external nofollow noopener noreferrer" target="_blank">《MySQL协议分析#4.2 客户端命令请求报文（客户端 -&gt; 服务器）》</a>。</p>
-<p>##【 4 】</p>
-<p>将 二进制数组 解析成 SQL。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【FrontendConnection.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">query</span><span class="params">(<span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: 	<span class="comment">// 取得语句</span></div><div class="line"> <span class="number">4</span>: 	String sql = <span class="keyword">null</span>;		</div><div class="line"> <span class="number">5</span>: 	<span class="keyword">try</span> &#123;</div><div class="line"> <span class="number">6</span>: 		MySQLMessage mm = <span class="keyword">new</span> MySQLMessage(data);</div><div class="line"> <span class="number">7</span>: 		mm.position(<span class="number">5</span>);</div><div class="line"> <span class="number">8</span>: 		sql = mm.readString(charset);</div><div class="line"> <span class="number">9</span>: 	&#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</div><div class="line"><span class="number">10</span>: 		writeErrMessage(ErrorCode.ER_UNKNOWN_CHARACTER_SET, <span class="string">"Unknown charset '"</span> + charset + <span class="string">"'"</span>);</div><div class="line"><span class="number">11</span>: 		<span class="keyword">return</span>;</div><div class="line"><span class="number">12</span>: 	&#125;		</div><div class="line"><span class="number">13</span>: 	<span class="comment">// 执行语句</span></div><div class="line"><span class="number">14</span>: 	<span class="keyword">this</span>.query( sql );</div><div class="line"><span class="number">15</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p>##【 5 】</p>
-<p>解析 SQL 类型。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【ServerQueryHandler.java】</span></div><div class="line"> <span class="number">2</span>: <span class="meta">@Override</span></div><div class="line"> <span class="number">3</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">query</span><span class="params">(String sql)</span> </span>&#123;</div><div class="line"> <span class="number">4</span>: 	<span class="comment">// 解析 SQL 类型</span></div><div class="line"> <span class="number">5</span>: 	<span class="keyword">int</span> rs = ServerParse.parse(sql);</div><div class="line"> <span class="number">6</span>: 	<span class="keyword">int</span> sqlType = rs &amp; <span class="number">0xff</span>;</div><div class="line"> <span class="number">7</span>: 	</div><div class="line"> <span class="number">8</span>: 	<span class="keyword">switch</span> (sqlType) &#123;</div><div class="line"> <span class="number">9</span>: 	<span class="comment">//explain sql</span></div><div class="line"><span class="number">10</span>: 	<span class="keyword">case</span> ServerParse.EXPLAIN:</div><div class="line"><span class="number">11</span>: 		ExplainHandler.handle(sql, c, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line"><span class="number">12</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">13</span>: 	<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">14</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">15</span>: 	<span class="keyword">case</span> ServerParse.SELECT:</div><div class="line"><span class="number">16</span>: 		SelectHandler.handle(sql, c, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line"><span class="number">17</span>: 		<span class="keyword">break</span>;</div><div class="line"><span class="number">18</span>: 	<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">19</span>: 	<span class="keyword">default</span>:</div><div class="line"><span class="number">20</span>: 		<span class="keyword">if</span>(readOnly)&#123;</div><div class="line"><span class="number">21</span>: 			LOGGER.warn(<span class="keyword">new</span> StringBuilder().append(<span class="string">"User readonly:"</span>).append(sql).toString());</div><div class="line"><span class="number">22</span>: 			c.writeErrMessage(ErrorCode.ER_USER_READ_ONLY, <span class="string">"User readonly"</span>);</div><div class="line"><span class="number">23</span>: 			<span class="keyword">break</span>;</div><div class="line"><span class="number">24</span>: 		&#125;</div><div class="line"><span class="number">25</span>: 		c.execute(sql, rs &amp; <span class="number">0xff</span>);</div><div class="line"><span class="number">26</span>: 	&#125;</div><div class="line"><span class="number">27</span>: &#125;</div><div class="line"><span class="number">28</span>: </div><div class="line"><span class="number">29</span>:</div><div class="line"><span class="number">30</span>: <span class="comment">// ⬇️⬇️⬇️【ServerParse.java】</span></div><div class="line"><span class="number">31</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">parse</span><span class="params">(String stmt)</span> </span>&#123;</div><div class="line"><span class="number">32</span>: 	<span class="keyword">int</span> length = stmt.length();</div><div class="line"><span class="number">33</span>: 	<span class="comment">//FIX BUG FOR SQL SUCH AS /XXXX/SQL</span></div><div class="line"><span class="number">34</span>: 	<span class="keyword">int</span> rt = -<span class="number">1</span>;</div><div class="line"><span class="number">35</span>: 	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; length; ++i) &#123;</div><div class="line"><span class="number">36</span>: 		<span class="keyword">switch</span> (stmt.charAt(i)) &#123;</div><div class="line"><span class="number">37</span>: 		<span class="comment">// .... 省略部分case			case 'I':</span></div><div class="line"><span class="number">38</span>: 		<span class="keyword">case</span> <span class="string">'i'</span>:</div><div class="line"><span class="number">39</span>: 			rt = insertCheck(stmt, i);</div><div class="line"><span class="number">40</span>: 			<span class="keyword">if</span> (rt != OTHER) &#123;</div><div class="line"><span class="number">41</span>: 				<span class="keyword">return</span> rt;</div><div class="line"><span class="number">42</span>: 			&#125;</div><div class="line"><span class="number">43</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">44</span>: 			<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">45</span>: 		<span class="keyword">case</span> <span class="string">'S'</span>:</div><div class="line"><span class="number">46</span>: 		<span class="keyword">case</span> <span class="string">'s'</span>:</div><div class="line"><span class="number">47</span>: 			rt = sCheck(stmt, i);</div><div class="line"><span class="number">48</span>: 			<span class="keyword">if</span> (rt != OTHER) &#123;</div><div class="line"><span class="number">49</span>: 				<span class="keyword">return</span> rt;</div><div class="line"><span class="number">50</span>: 			&#125;</div><div class="line"><span class="number">51</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">52</span>: 			<span class="comment">// .... 省略部分case</span></div><div class="line"><span class="number">53</span>: 		<span class="keyword">default</span>:</div><div class="line"><span class="number">54</span>: 			<span class="keyword">continue</span>;</div><div class="line"><span class="number">55</span>: 		&#125;</div><div class="line"><span class="number">56</span>: 	&#125;</div><div class="line"><span class="number">57</span>: 	<span class="keyword">return</span> OTHER;</div><div class="line"><span class="number">58</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p>##【 6 】</p>
-<p>执行 SQL，详细解析见下文，核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【ServerConnection.java】</span></div><div class="line"> <span class="number">2</span>: <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerConnection</span> <span class="keyword">extends</span> <span class="title">FrontendConnection</span> </span>&#123;</div><div class="line"> <span class="number">3</span>: 	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(String sql, <span class="keyword">int</span> type)</span> </span>&#123;</div><div class="line"> <span class="number">4</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"> <span class="number">5</span>: 		SchemaConfig schema = MycatServer.getInstance().getConfig().getSchemas().get(db);</div><div class="line"> <span class="number">6</span>: 		<span class="keyword">if</span> (schema == <span class="keyword">null</span>) &#123;</div><div class="line"> <span class="number">7</span>: 			writeErrMessage(ErrorCode.ERR_BAD_LOGICDB,</div><div class="line"> <span class="number">8</span>: 					<span class="string">"Unknown MyCAT Database '"</span> + db + <span class="string">"'"</span>);</div><div class="line"> <span class="number">9</span>: 			<span class="keyword">return</span>;</div><div class="line"><span class="number">10</span>: 		&#125;</div><div class="line"><span class="number">11</span>: </div><div class="line"><span class="number">12</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">13</span>: </div><div class="line"><span class="number">14</span>: 		<span class="comment">// 路由到后端数据库，执行 SQL</span></div><div class="line"><span class="number">15</span>: 		routeEndExecuteSQL(sql, type, schema);</div><div class="line"><span class="number">16</span>: 	&#125;</div><div class="line"><span class="number">17</span>: 	</div><div class="line"><span class="number">18</span>:     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">routeEndExecuteSQL</span><span class="params">(String sql, <span class="keyword">final</span> <span class="keyword">int</span> type, <span class="keyword">final</span> SchemaConfig schema)</span> </span>&#123;</div><div class="line"><span class="number">19</span>: 		<span class="comment">// 路由计算</span></div><div class="line"><span class="number">20</span>: 		RouteResultset rrs = <span class="keyword">null</span>;</div><div class="line"><span class="number">21</span>: 		<span class="keyword">try</span> &#123;</div><div class="line"><span class="number">22</span>: 			rrs = MycatServer</div><div class="line"><span class="number">23</span>: 					.getInstance()</div><div class="line"><span class="number">24</span>: 					.getRouterservice()</div><div class="line"><span class="number">25</span>: 					.route(MycatServer.getInstance().getConfig().getSystem(),</div><div class="line"><span class="number">26</span>: 							schema, type, sql, <span class="keyword">this</span>.charset, <span class="keyword">this</span>);</div><div class="line"><span class="number">27</span>: </div><div class="line"><span class="number">28</span>: 		&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"><span class="number">29</span>: 			StringBuilder s = <span class="keyword">new</span> StringBuilder();</div><div class="line"><span class="number">30</span>: 			LOGGER.warn(s.append(<span class="keyword">this</span>).append(sql).toString() + <span class="string">" err:"</span> + e.toString(),e);</div><div class="line"><span class="number">31</span>: 			String msg = e.getMessage();</div><div class="line"><span class="number">32</span>: 			writeErrMessage(ErrorCode.ER_PARSE_ERROR, msg == <span class="keyword">null</span> ? e.getClass().getSimpleName() : msg);</div><div class="line"><span class="number">33</span>: 			<span class="keyword">return</span>;</div><div class="line"><span class="number">34</span>: 		&#125;</div><div class="line"><span class="number">35</span>: </div><div class="line"><span class="number">36</span>: 		<span class="comment">// 执行 SQL</span></div><div class="line"><span class="number">37</span>: 		<span class="keyword">if</span> (rrs != <span class="keyword">null</span>) &#123;</div><div class="line"><span class="number">38</span>: 			<span class="comment">// session执行</span></div><div class="line"><span class="number">39</span>: 			session.execute(rrs, rrs.isSelectForUpdate() ? ServerParse.UPDATE : type);</div><div class="line"><span class="number">40</span>: 		&#125;</div><div class="line"><span class="number">41</span>: 		</div><div class="line"><span class="number">42</span>:  	&#125;</div><div class="line"><span class="number">43</span>: </div><div class="line"><span class="number">44</span>: &#125;</div></pre></td></tr></table></figure></p>
-<h1>3. 获得路由结果</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/02.png" alt="【单库单表】插入（02获取路由）"></p>
-<h2>【 1 - 2 】【 12 】</h2>
-<p>获得路由主流程。核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【RouteService.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> RouteResultset <span class="title">route</span><span class="params">(SystemConfig sysconf, SchemaConfig schema,</span></span></div><div class="line"> <span class="number">3</span>: 		<span class="keyword">int</span> sqlType, String stmt, String charset, ServerConnection sc)</div><div class="line"> 4: 		<span class="keyword">throws</span> SQLNonTransientException &#123;</div><div class="line"> <span class="number">5</span>: 	RouteResultset rrs = <span class="keyword">null</span>;</div><div class="line"> <span class="number">6</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"> <span class="number">7</span>: 	<span class="keyword">int</span> hintLength = RouteService.isHintSql(stmt);</div><div class="line"> <span class="number">8</span>: 	<span class="keyword">if</span>(hintLength != -<span class="number">1</span>)&#123; <span class="comment">// TODO 待读：hint</span></div><div class="line"> <span class="number">9</span>: 		<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">10</span>: 		&#125;</div><div class="line"><span class="number">11</span>: 	&#125; <span class="keyword">else</span> &#123;</div><div class="line"><span class="number">12</span>: 		stmt = stmt.trim();</div><div class="line"><span class="number">13</span>: 		rrs = RouteStrategyFactory.getRouteStrategy().route(sysconf, schema, sqlType, stmt,</div><div class="line"><span class="number">14</span>: 				charset, sc, tableId2DataNodeCache);</div><div class="line"><span class="number">15</span>: 	&#125;</div><div class="line"><span class="number">16</span>: </div><div class="line"><span class="number">17</span>: 	<span class="comment">// .... 省略代码		return rrs;</span></div><div class="line"><span class="number">18</span>: &#125;</div><div class="line"><span class="number">19</span>: <span class="comment">// ⬇️⬇️⬇️【AbstractRouteStrategy.java】</span></div><div class="line"><span class="number">20</span>: <span class="meta">@Override</span></div><div class="line"><span class="number">21</span>: <span class="function"><span class="keyword">public</span> RouteResultset <span class="title">route</span><span class="params">(SystemConfig sysConfig, SchemaConfig schema, <span class="keyword">int</span> sqlType, String origSQL,</span></span></div><div class="line"><span class="number">22</span>: 		String charset, ServerConnection sc, LayerCachePool cachePool) <span class="keyword">throws</span> SQLNonTransientException &#123;</div><div class="line"><span class="number">23</span>: </div><div class="line"><span class="number">24</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">25</span>: </div><div class="line"><span class="number">26</span>: 	<span class="comment">// 处理一些路由之前的逻辑;全局序列号，父子表插入</span></div><div class="line"><span class="number">27</span>: 	<span class="keyword">if</span> (beforeRouteProcess(schema, sqlType, origSQL, sc) ) &#123;</div><div class="line"><span class="number">28</span>: 		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line"><span class="number">29</span>: 	&#125;</div><div class="line"><span class="number">30</span>: </div><div class="line"><span class="number">31</span>: 	<span class="comment">// .... 省略代码</span></div><div class="line"><span class="number">32</span>: </div><div class="line"><span class="number">33</span>: 	<span class="comment">// 检查是否有分片</span></div><div class="line"><span class="number">34</span>: 	<span class="keyword">if</span> (schema.isNoSharding() &amp;&amp; ServerParse.SHOW != sqlType) &#123;</div><div class="line"><span class="number">35</span>: 		rrs = RouterUtil.routeToSingleNode(rrs, schema.getDataNode(), stmt);</div><div class="line"><span class="number">36</span>: 	&#125; <span class="keyword">else</span> &#123;</div><div class="line"><span class="number">37</span>: 		RouteResultset returnedSet = routeSystemInfo(schema, sqlType, stmt, rrs);</div><div class="line"><span class="number">38</span>: 		<span class="keyword">if</span> (returnedSet == <span class="keyword">null</span>) &#123;</div><div class="line"><span class="number">39</span>: 			rrs = routeNormalSqlWithAST(schema, stmt, rrs, charset, cachePool,sqlType,sc);</div><div class="line"><span class="number">40</span>: 		&#125;</div><div class="line"><span class="number">41</span>: 	&#125;</div><div class="line"><span class="number">42</span>: </div><div class="line"><span class="number">43</span>: 	<span class="keyword">return</span> rrs;</div><div class="line"><span class="number">44</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p><em><strong>路由</strong> 详细解析，我们另开文章，避免内容过多，影响大家对【插入】流程和逻辑的理解。</em></p>
-<h2>【 3 - 6 】</h2>
-<p>路由<strong>前置</strong>处理。当符合如下三种情况下，进行处理：</p>
-<p>{ 1 } 使用<strong>全局序列号</strong>：</p>
-<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">table</span> (<span class="keyword">id</span>, <span class="keyword">name</span>) <span class="keyword">values</span> (<span class="keyword">NEXT</span> <span class="keyword">VALUE</span> <span class="keyword">FOR</span> MYCATSEQ_ID, <span class="string">'name'</span>)</div></pre></td></tr></table></figure></p>
-<p>{ 2 } ER 子表插入<br>
-{ 3 } 主键使用自增 ID 插入：</p>
-<p><figure class="highlight"><table><tr><td class="code"><pre><div class="line">insert into table (name) values ('name')</div><div class="line">===&gt;</div><div class="line">insert into table (id, name) values (NEXT VALUE FOR MYCATSEQ_ID, 'name')</div><div class="line">```  </div><div class="line"></div><div class="line">情况 &#123; 1 &#125; &#123; 3 &#125; 情况类似，使用全局序列号。</div><div class="line"></div><div class="line">核心代码如下：</div><div class="line"></div><div class="line">```Java</div><div class="line">  1: // ⬇️⬇️⬇️【AbstractRouteStrategy.java】</div><div class="line">  2: private boolean beforeRouteProcess(SchemaConfig schema, int sqlType, String origSQL, ServerConnection sc)</div><div class="line">  3: 		throws SQLNonTransientException &#123;</div><div class="line">  4: 	return  // 处理 id 使用 全局序列号</div><div class="line">  5:             RouterUtil.processWithMycatSeq(schema, sqlType, origSQL, sc)</div><div class="line">  6:             // 处理 ER 子表</div><div class="line">  7: 			|| (sqlType == ServerParse.INSERT &amp;&amp; RouterUtil.processERChildTable(schema, origSQL, sc))</div><div class="line">  8:             // 处理 id 自增长</div><div class="line">  9: 			|| (sqlType == ServerParse.INSERT &amp;&amp; RouterUtil.processInsert(schema, sqlType, origSQL, sc));</div><div class="line"> 10: &#125;</div></pre></td></tr></table></figure></p>
-<p><code>RouterUtil.java</code> 处理 SQL 考虑性能，实现会比较 C-style，代码咱就不贴了，传送门：https://github.com/YunaiV/Mycat-Server/blob/1.6/src/main/java/io/mycat/route/util/RouterUtil.java。 （😈该仓库从官方 Fork，逐步完善中文注释，欢迎 Star）</p>
-<h2>【 7 - 11 】</h2>
-<p>当<strong>前置</strong>路由处理<strong>全局序列号</strong>时，添加到全局序列处理器（<code>MyCATSequnceProcessor</code>）。该处理器会异步生成 ID，替换 SQL 内的 <code>NEXT VALUE FOR MYCATSEQ_</code> 正则。例如：</p>
-<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">table</span> (<span class="keyword">id</span>, <span class="keyword">name</span>) <span class="keyword">values</span> (<span class="keyword">NEXT</span> <span class="keyword">VALUE</span> <span class="keyword">FOR</span> MYCATSEQ_ID, <span class="string">'name'</span>)</div><div class="line">===&gt;</div><div class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">table</span> (<span class="keyword">id</span>, <span class="keyword">name</span>) <span class="keyword">values</span> (<span class="number">868348974560579584</span>, <span class="string">'name'</span>)</div></pre></td></tr></table></figure></p>
-<p>异步处理完后，调用 <code>ServerConnection#routeEndExecuteSQL(sql, type, schema)</code> 方法重新执行 SQL。</p>
-<p>核心代码如下：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"> <span class="number">1</span>: <span class="comment">// ⬇️⬇️⬇️【RouterUtil.java】</span></div><div class="line"> <span class="number">2</span>: <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">processSQL</span><span class="params">(ServerConnection sc,SchemaConfig schema,String sql,<span class="keyword">int</span> sqlType)</span></span>&#123;</div><div class="line"> <span class="number">3</span>: 	SessionSQLPair sessionSQLPair = <span class="keyword">new</span> SessionSQLPair(sc.getSession2(), schema, sql, sqlType);</div><div class="line"> <span class="number">4</span>: 	MycatServer.getInstance().getSequnceProcessor().addNewSql(sessionSQLPair);</div><div class="line"> <span class="number">5</span>: &#125;</div><div class="line"> <span class="number">6</span>: <span class="comment">// ⬇️⬇️⬇️【MyCATSequnceProcessor.java】</span></div><div class="line"> <span class="number">7</span>: <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyCATSequnceProcessor</span> </span>&#123;</div><div class="line"> <span class="number">8</span>: 	<span class="keyword">private</span> LinkedBlockingQueue&lt;SessionSQLPair&gt; seqSQLQueue = <span class="keyword">new</span> LinkedBlockingQueue&lt;SessionSQLPair&gt;();</div><div class="line"> <span class="number">9</span>: 	<span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> running=<span class="keyword">true</span>;</div><div class="line"><span class="number">10</span>: 	</div><div class="line"><span class="number">11</span>: 	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addNewSql</span><span class="params">(SessionSQLPair pair)</span> </span>&#123;</div><div class="line"><span class="number">12</span>: 		seqSQLQueue.add(pair);</div><div class="line"><span class="number">13</span>: 	&#125;</div><div class="line"><span class="number">14</span>: </div><div class="line"><span class="number">15</span>: 	<span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">executeSeq</span><span class="params">(SessionSQLPair pair)</span> </span>&#123;</div><div class="line"><span class="number">16</span>: 		<span class="keyword">try</span> &#123;</div><div class="line"><span class="number">17</span>: 			</div><div class="line"><span class="number">18</span>: 			<span class="comment">// 使用Druid解析器实现sequence处理  @兵临城下</span></div><div class="line"><span class="number">19</span>: 			DruidSequenceHandler sequenceHandler = <span class="keyword">new</span> DruidSequenceHandler(MycatServer</div><div class="line"><span class="number">20</span>: 					.getInstance().getConfig().getSystem().getSequnceHandlerType());</div><div class="line"><span class="number">21</span>: </div><div class="line"><span class="number">22</span>: 			<span class="comment">// 生成可执行 SQL ：目前主要是生成 id</span></div><div class="line"><span class="number">23</span>: 			String charset = pair.session.getSource().getCharset();</div><div class="line"><span class="number">24</span>: 			String executeSql = sequenceHandler.getExecuteSql(pair.sql,charset == <span class="keyword">null</span> ? <span class="string">"utf-8"</span>:charset);</div><div class="line"><span class="number">25</span>: </div><div class="line"><span class="number">26</span>: 			<span class="comment">// 执行 SQL</span></div><div class="line"><span class="number">27</span>: 			pair.session.getSource().routeEndExecuteSQL(executeSql, pair.type,pair.schema);</div><div class="line"><span class="number">28</span>: 		&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"><span class="number">29</span>: 			LOGGER.error(<span class="string">"MyCATSequenceProcessor.executeSeq(SesionSQLPair)"</span>,e);</div><div class="line"><span class="number">30</span>: 			pair.session.getSource().writeErrMessage(ErrorCode.ER_YES,<span class="string">"mycat sequnce err."</span> + e);</div><div class="line"><span class="number">31</span>: 			<span class="keyword">return</span>;</div><div class="line"><span class="number">32</span>: 		&#125;</div><div class="line"><span class="number">33</span>: 	&#125;</div><div class="line"><span class="number">34</span>: 	</div><div class="line"><span class="number">35</span>: 	<span class="class"><span class="keyword">class</span> <span class="title">ExecuteThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</div><div class="line"><span class="number">36</span>: 		</div><div class="line"><span class="number">37</span>: 		<span class="function"><span class="keyword">public</span> <span class="title">ExecuteThread</span><span class="params">()</span> </span>&#123;</div><div class="line"><span class="number">38</span>: 			setDaemon(<span class="keyword">true</span>); <span class="comment">// 设置为后台线程,防止throw RuntimeExecption进程仍然存在的问题</span></div><div class="line"><span class="number">39</span>: 		&#125;</div><div class="line"><span class="number">40</span>: 		</div><div class="line"><span class="number">41</span>: 		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line"><span class="number">42</span>: 			<span class="keyword">while</span> (running) &#123;</div><div class="line"><span class="number">43</span>: 				<span class="keyword">try</span> &#123;</div><div class="line"><span class="number">44</span>: 					SessionSQLPair pair=seqSQLQueue.poll(<span class="number">100</span>,TimeUnit.MILLISECONDS);</div><div class="line"><span class="number">45</span>: 					<span class="keyword">if</span>(pair!=<span class="keyword">null</span>)&#123;</div><div class="line"><span class="number">46</span>:                         executeSeq(pair);</div><div class="line"><span class="number">47</span>: 					&#125;</div><div class="line"><span class="number">48</span>: 				&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"><span class="number">49</span>: 					LOGGER.warn(<span class="string">"MyCATSequenceProcessor$ExecutorThread"</span>,e);</div><div class="line"><span class="number">50</span>: 				&#125;</div><div class="line"><span class="number">51</span>: 			&#125;</div><div class="line"><span class="number">52</span>: 		&#125;</div><div class="line"><span class="number">53</span>: 	&#125;</div><div class="line"><span class="number">54</span>: &#125;</div></pre></td></tr></table></figure></p>
-<p>❓此处有个疑问：<code>MyCATSequnceProcessor</code> 是单线程，会不会插入性能有一定的影响？后续咱做下性能测试。</p>
-<h1>4. 获得 MySQL 连接，执行 SQL</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/03.png" alt="【单库单表】插入（03执行 SQL）"></p>
-<h2>【 1 - 8 】</h2>
-<p>获得 MySQL 连接。</p>
-<ul>
-<li>PhysicalDBNode ：物理数据库节点。</li>
-<li>PhysicalDatasource ：物理数据库数据源。</li>
-</ul>
-<h2>【 9 - 13 】</h2>
-<p>发送 SQL 到 MySQL Server，执行 SQL。</p>
-<h1>5. 响应执行 SQL 结果</h1>
-<p><img src="http://www.yunai.me/images/MyCAT/2017_05_29/04.png" alt="【单库单表】插入（04执行响应）"></p>
-<h2>【 1 - 4 】</h2>
-<p>处理 MySQL Server 响应数据包。</p>
-<h2>【 5 - 8 】</h2>
-<p>发送插入成功结果给 MySQL Client。</p>
 ]]></content>
     
     <summary type="html">
