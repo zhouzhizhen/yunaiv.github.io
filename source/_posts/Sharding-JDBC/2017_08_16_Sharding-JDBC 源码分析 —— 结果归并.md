@@ -31,7 +31,7 @@ TODO 目录
 SELECT * FROM t_order ORDER BY create_time
 ```
 
-在各分片排序完后，Sharding-JDBC 获取到结果后，仍然需要再进一步排序。目前有 **分页**、**分组**、**排序**、**AVG聚合计算**、**迭代** 五种场景需要做进一步处理。当然，如果单分片**SQL执行**结果是无需合并的。在[《SQL 执行》](http://www.yunai.me/Sharding-JDBC/sql-execute/?self)不知不觉已经分享了插入、更新、删除操作的结果合并，所以下面我们一起看看**查询结果归并**的实现。
+在各分片排序完后，Sharding-JDBC 获取到结果后，仍然需要再进一步排序。目前有 **分页**、**分组**、**排序**、**聚合列**、**迭代** 五种场景需要做进一步处理。当然，如果单分片**SQL执行**结果是无需合并的。在[《SQL 执行》](http://www.yunai.me/Sharding-JDBC/sql-execute/?self)不知不觉已经分享了插入、更新、删除操作的结果合并，所以下面我们一起看看**查询结果归并**的实现。
 
 -------
 
@@ -145,15 +145,15 @@ public void setIndexForItems(final Map<String, Integer> columnLabelIndexMap) {
  
     ```Java
     private void setIndexForOrderItem(final Map<String, Integer> columnLabelIndexMap, final List<OrderItem> orderItems) {
-    for (OrderItem each : orderItems) {
-      if (-1 != each.getIndex()) {
-          continue;
-      }
-      Preconditions.checkState(columnLabelIndexMap.containsKey(each.getColumnLabel()), String.format("Can't find index: %s", each));
-      if (columnLabelIndexMap.containsKey(each.getColumnLabel())) {
-          each.setIndex(columnLabelIndexMap.get(each.getColumnLabel()));
-      }
-    }
+        for (OrderItem each : orderItems) {
+          if (-1 != each.getIndex()) {
+              continue;
+          }
+          Preconditions.checkState(columnLabelIndexMap.containsKey(each.getColumnLabel()), String.format("Can't find index: %s", each));
+          if (columnLabelIndexMap.containsKey(each.getColumnLabel())) {
+              each.setIndex(columnLabelIndexMap.get(each.getColumnLabel()));
+          }
+        }
     }
     ```
 
@@ -163,10 +163,163 @@ ResultSetMerger，归并结果集接口。
 
 我们先来看看整体的类结构关系：
 
+![](../../../images/Sharding-JDBC/2017_08_16/04.png)
 
+从 **功能** 上分成四种：
 
-AbstractStreamResultSetMerger：next时加载
-AbstractMemoryResultSetMerger：加载完所有记录
+* 分组：GroupByMemoryResultSetMerger、GroupByStreamResultSetMerger；包含**聚合列**
+* 排序：OrderByStreamResultSetMerger
+* 迭代：IteratorStreamResultSetMerger
+* 分页：LimitDecoratorResultSetMerger
+
+从 **实现方式** 上分成三种：
+
+* Stream 流式：AbstractStreamResultSetMerger
+* Memory 内存：AbstractMemoryResultSetMerger
+* Decorator 装饰者：AbstractDecoratorResultSetMerger
+
+**什么时候该用什么实现方式？**
+
+![](../../../images/Sharding-JDBC/2017_08_16/06.png)
+
+* Stream 流式：将数据游标与结果集的游标保持一致，顺序的从结果集中一条条的获取正确的数据。看完下文*第三节* OrderByStreamResultSetMerger 可以形象的理解。
+* Memory 内存：需要将结果集的所有数据都遍历并存储在内存中，再通过内存归并后，将内存中的数据伪装成结果集返回。看完下文*第五节* GroupByMemoryResultSetMerger 可以形象的理解。
+* Decorator 装饰者：可以和前二者任意组合
+
+### 2.2.1 AbstractStreamResultSetMerger
+
+AbstractStreamResultSetMerger，**流式**归并结果集抽象类，提供从**当前结果集**获得行数据。
+
+```Java
+public abstract class AbstractStreamResultSetMerger implements ResultSetMerger {
+    
+    /**
+     * 当前结果集
+     */
+    private ResultSet currentResultSet;
+    
+    protected ResultSet getCurrentResultSet() throws SQLException {
+        if (null == currentResultSet) {
+            throw new SQLException("Current ResultSet is null, ResultSet perhaps end of next.");
+        }
+        return currentResultSet;
+    }
+    
+    @Override
+    public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
+        if (Object.class == type) {
+            return getCurrentResultSet().getObject(columnIndex);
+        }
+        if (int.class == type) {
+            return getCurrentResultSet().getInt(columnIndex);
+        }
+        if (String.class == type) {
+            return getCurrentResultSet().getString(columnIndex);
+        }
+        // .... 省略其他数据类型读取类似代码
+        return getCurrentResultSet().getObject(columnIndex);
+    }
+}
+```
+
+### 2.2.2 AbstractMemoryResultSetMerger
+
+AbstractMemoryResultSetMerger，**内存**归并结果集抽象类，提供从**内存数据行对象( MemoryResultSetRow )** 获得行数据。
+
+```Java
+public abstract class AbstractMemoryResultSetMerger implements ResultSetMerger {
+    
+    private final Map<String, Integer> labelAndIndexMap;
+    /**
+     * 内存数据行对象
+     */
+    @Setter
+    private MemoryResultSetRow currentResultSetRow;
+    
+    @Override
+    public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
+        if (Blob.class == type || Clob.class == type || Reader.class == type || InputStream.class == type || SQLXML.class == type) {
+            throw new SQLFeatureNotSupportedException();
+        }
+        return currentResultSetRow.getCell(columnIndex);
+    }
+}
+```
+
+* 和 AbstractStreamResultSetMerger 对比，貌似区别不大？！确实，从抽象父类上看，两种实现方式差不多。抽象父类提供给实现子类的是**数据读取**的功能，真正的流式归并、内存归并是在子类提现。
+
+```Java
+public class MemoryResultSetRow {
+
+    /**
+     * 行数据
+     */
+    private final Object[] data;
+    
+    public MemoryResultSetRow(final ResultSet resultSet) throws SQLException {
+        data = load(resultSet);
+    }
+
+    /**
+     * 加载 ResultSet 当前行数据到内存
+     * @param resultSet 结果集
+     * @return 行数据
+     * @throws SQLException 当结果集关闭
+     */
+    private Object[] load(final ResultSet resultSet) throws SQLException {
+        int columnCount = resultSet.getMetaData().getColumnCount();
+        Object[] result = new Object[columnCount];
+        for (int i = 0; i < columnCount; i++) {
+            result[i] = resultSet.getObject(i + 1);
+        }
+        return result;
+    }
+    
+    /**
+     * 获取数据.
+     * 
+     * @param columnIndex 列索引
+     * @return 数据
+     */
+    public Object getCell(final int columnIndex) {
+        Preconditions.checkArgument(columnIndex > 0 && columnIndex < data.length + 1);
+        return data[columnIndex - 1];
+    }
+    
+    /**
+     * 设置数据.
+     *
+     * @param columnIndex 列索引
+     * @param value 值
+     */
+    public void setCell(final int columnIndex, final Object value) {
+        Preconditions.checkArgument(columnIndex > 0 && columnIndex < data.length + 1);
+        data[columnIndex - 1] = value;
+    }
+}
+
+```
+
+* 调用 `#load()` 方法，将当前结果集的一条行数据加载到内存。
+
+### 2.2.3 AbstractDecoratorResultSetMerger
+
+AbstractDecoratorResultSetMerger，装饰结果集归并抽象类，通过调用**其装饰的归并对象**获得行数据。
+
+```Java
+public abstract class AbstractDecoratorResultSetMerger implements ResultSetMerger {
+
+    /**
+     * 装饰的归并对象
+     */
+    private final ResultSetMerger resultSetMerger;
+        
+    @Override
+    public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
+        return resultSetMerger.getValue(columnIndex, type);
+    }
+}
+```
 
 # 3. OrderByStreamResultSetMerger
 
@@ -359,7 +512,9 @@ public boolean next() throws SQLException {
     }
     ```
 
-TODO Stream
+-------
+
+在看下，我们上文 Stream 方式归并的定义：**将数据游标与结果集的游标保持一致，顺序的从结果集中一条条的获取正确的数据。**是不是能够清晰的对上了？！🙂
 
 # 4. GroupByStreamResultSetMerger
 
@@ -408,15 +563,6 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
         return currentRow.get(labelAndIndexMap.get(columnLabel) - 1);
     }
     
-    @Override
-    public Object getCalendarValue(final int columnIndex, final Class<?> type, final Calendar calendar) throws SQLException {
-        return currentRow.get(columnIndex - 1);
-    }
-    @Override
-    public Object getCalendarValue(final String columnLabel, final Class<?> type, final Calendar calendar) throws SQLException {
-        Preconditions.checkState(labelAndIndexMap.containsKey(columnLabel), String.format("Can't find columnLabel: %s", columnLabel));
-        return currentRow.get(labelAndIndexMap.get(columnLabel) - 1);
-    }
 }
 ``` 
 
@@ -452,6 +598,7 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
         }
     }
     ```
+    
     * 例如，`GROUP BY user_id, order_status` 返回的某条记录结果为 `userId = 1, order_status = 3`，对应的 `groupValues = [1, 3]`。
 
 * GroupByStreamResultSetMerger 在创建时，当前结果记录**实际未合并**，需要先调用 `#next()`，在使用 `#getValue()` 等方法获取值，这个和 OrderByStreamResultSetMerger 不同，可能是个 BUG。
@@ -564,6 +711,8 @@ private void setAggregationValueToCurrentRow(final Map<AggregationSelectItem, Ag
 # 5. GroupByMemoryResultSetMerger
 
 GroupByMemoryResultSetMerger，基于 **内存** 分组归并结果集实现。
+
+区别于 GroupByStreamResultSetMerger，其无法使用每个分片结果集的有序的特点，只能在内存中合并后，进行**整个**排序。因而，性能和内存都比 GroupByStreamResultSetMerger 差。
 
 # 6. IteratorStreamResultSetMerger
 
