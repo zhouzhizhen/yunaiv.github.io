@@ -17,7 +17,24 @@ permalink: Sharding-JDBC/result-merger
 
 -------
 
-TODO 目录
+- [1. 概述](#)
+- [2. MergeEngine](#)
+	- [2.1 SelectStatement#setIndexForItems()](#)
+	- [2.2 ResultSetMerger](#)
+		- [2.2.1 AbstractStreamResultSetMerger](#)
+		- [2.2.2 AbstractMemoryResultSetMerger](#)
+		- [2.2.3 AbstractDecoratorResultSetMerger](#)
+- [3. OrderByStreamResultSetMerger](#)
+	- [3.1 归并算法](#)
+	- [3.2 #next()](#)
+- [4. GroupByStreamResultSetMerger](#)
+	- [4.1 AggregationUnit](#)
+	- [4.2 #next()](#)
+- [5. GroupByMemoryResultSetMerger](#)
+	- [5.1 #next()](#)
+- [6. IteratorStreamResultSetMerger](#)
+- [7. LimitDecoratorResultSetMerger](#)
+- [666. 彩蛋](#)
 
 -------
 
