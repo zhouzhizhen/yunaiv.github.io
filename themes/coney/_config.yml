@@ -70,7 +70,7 @@ author:
 
 #### Comment
 duoshuo: 
-  enable: true  ## duoshuo.com
+  enable: false  ## duoshuo.com
   short_name:  ## e.g. coney,duoshuo short name.
 
 #### Share button
@@ -86,7 +86,7 @@ baidu_analytics:
 
 ####Baidu Share
 baidu_share:
-  enable: true
+  enable: false
   color: 4
 
 theme_color:

@@ -180,7 +180,7 @@ ResultSetMerger，归并结果集接口。
 
 我们先来看看整体的类结构关系：
 
-![](../../../images/Sharding-JDBC/2017_08_16/04.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/04.png)
 
 从 **功能** 上分成四种：
 
@@ -197,7 +197,7 @@ ResultSetMerger，归并结果集接口。
 
 **什么时候该用什么实现方式？**
 
-![](../../../images/Sharding-JDBC/2017_08_16/06.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/06.png)
 
 * Stream 流式：将数据游标与结果集的游标保持一致，顺序的从结果集中一条条的获取正确的数据。看完下文*第三节* OrderByStreamResultSetMerger 可以形象的理解。
 * Memory 内存：需要将结果集的所有数据都遍历并存储在内存中，再通过内存归并后，将内存中的数据伪装成结果集返回。看完下文*第五节* GroupByMemoryResultSetMerger 可以形象的理解。
@@ -299,7 +299,7 @@ public abstract class AbstractMemoryResultSetMerger implements ResultSetMerger {
 }
 ```
 
-* 和 AbstractStreamResultSetMerger 对比，貌似区别不大？！确实，从抽象父类上看，两种实现方式差不多。抽象父类提供给实现子类的是**数据读取**的功能，真正的流式归并、内存归并是在子类提现。
+* 和 AbstractStreamResultSetMerger 对比，貌似区别不大？！确实，从抽象父类上看，两种实现方式差不多。抽象父类提供给实现子类的是**数据读取**的功能，真正的流式归并、内存归并是在子类实现上体现。
 
 ```Java
 public class MemoryResultSetRow {
@@ -357,7 +357,7 @@ public class MemoryResultSetRow {
 
 ### 2.2.3 AbstractDecoratorResultSetMerger
 
-AbstractDecoratorResultSetMerger，装饰结果集归并抽象类，通过调用**其装饰的归并对象**获得行数据。
+AbstractDecoratorResultSetMerger，装饰结果集归并抽象类，通过调用**其装饰的归并对象** `#getValue()` 方法获得行数据。
 
 ```Java
 public abstract class AbstractDecoratorResultSetMerger implements ResultSetMerger {
@@ -394,7 +394,7 @@ OrderByStreamResultSetMerger，基于 **Stream** 方式排序归并结果集实�
 
 从定义上看，是不是超级符合我们这个场景。😈 此时此刻，你是不是捂着胸口，感叹：“大学怎么没好好学数据结构与算法呢”？反正我是捂着了，都是眼泪。
 
-![](../../../images/Sharding-JDBC/2017_08_16/01.jpg)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/01.jpg)
 
 ```Java
 public class OrderByStreamResultSetMerger extends AbstractStreamResultSetMerger {
@@ -520,7 +520,7 @@ public class OrderByStreamResultSetMerger extends AbstractStreamResultSetMerger 
 
 通过调用 `OrderByStreamResultSetMerger#next()` 不断获得当前排在第一的记录。`#next()` 每次调用后，实际做的是当前 ResultSet 的替换，以及当前的 ResultSet 的记录指向下一条。这样说起来可能比较绕，我们来看一张图：
 
-![](../../../images/Sharding-JDBC/2017_08_16/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/02.png)
 
 * 白色向下箭头：OrderByStreamResultSetMerger 对 ResultSet 的指向。
 * 黑色箭头：ResultSet 对当前记录的指向。
@@ -573,7 +573,7 @@ public boolean next() throws SQLException {
 
 GroupByStreamResultSetMerger，基于 **Stream** 方式分组归并结果集实现。 它继承自 OrderByStreamResultSetMerger，在**排序**的逻辑上，实现分组功能。实现原理也较为简单：
 
-![](../../../images/Sharding-JDBC/2017_08_16/03.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/03.png)
 
 ```Java
 public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMerger {
@@ -605,7 +605,6 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
         currentGroupByValues = getOrderByValuesQueue().isEmpty() ? Collections.emptyList() : new GroupByValue(getCurrentResultSet(), selectStatement.getGroupByItems()).getGroupValues();
     }
     
-        
     @Override
     public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
         return currentRow.get(columnIndex - 1);
@@ -615,9 +614,8 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
         Preconditions.checkState(labelAndIndexMap.containsKey(columnLabel), String.format("Can't find columnLabel: %s", columnLabel));
         return currentRow.get(labelAndIndexMap.get(columnLabel) - 1);
     }
-    
 }
-``` 
+```
 
 * `currentRow` 为当前结果记录，使用 `#getValue()`、`#getCalendarValue()` 方法获得当前结果记录的查询列值。
 * `currentGroupByValues` 为**下一条**结果记录 GROUP BY 条件，通过 GroupByValue 生成：
@@ -636,7 +634,7 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
     
         /**
          * 获得分组条件值数组
-         *
+         * 例如，`GROUP BY user_id, order_status` 返回的某条记录结果为 `userId = 1, order_status = 3`，对应的 `groupValues = [1, 3]`
          * @param resultSet 结果集（单分片）
          * @param groupByItems 分组列
          * @return 分组条件值数组
@@ -651,8 +649,6 @@ public final class GroupByStreamResultSetMerger extends OrderByStreamResultSetMe
         }
     }
     ```
-    
-    * 例如，`GROUP BY user_id, order_status` 返回的某条记录结果为 `userId = 1, order_status = 3`，对应的 `groupValues = [1, 3]`。
 
 * GroupByStreamResultSetMerger 在创建时，当前结果记录**实际未合并**，需要先调用 `#next()`，在使用 `#getValue()` 等方法获取值，这个和 OrderByStreamResultSetMerger 不同，可能是个 BUG。
 
@@ -666,16 +662,16 @@ AggregationUnit，归并计算单元接口，有两个接口方法：
 一共有三个实现类：
 
 * [AccumulationAggregationUnit](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/merger/groupby/aggregation/AccumulationAggregationUnit.java)：累加聚合单元，解决 COUNT、SUM 聚合列 
-* [ComparableAggregationUnit](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/merger/groupby/aggregation/ComparableAggregationUnit)：比较聚合单元，解决 MAX、MIN 聚合列
-* [AverageAggregationUnit](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/merger/groupby/aggregation/AverageAggregationUnit)：平均值聚合单元，解决 AVG 聚合列
+* [ComparableAggregationUnit](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/merger/groupby/aggregation/ComparableAggregationUnit.java)：比较聚合单元，解决 MAX、MIN 聚合列
+* [AverageAggregationUnit](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/merger/groupby/aggregation/AverageAggregationUnit.java)：平均值聚合单元，解决 AVG 聚合列
 
-实现都比较简单易懂，直接点击链接查看源码，我们就不浪费篇幅贴代码啦。
+实现都比较易懂，直接点击链接查看源码，我们就不浪费篇幅贴代码啦。
 
 ## 4.2 #next()
 
 我们先看看大体的调用流程：
 
-![](../../../images/Sharding-JDBC/2017_08_16/05.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/05.png)
 
 😈 看起来代码比较多，逻辑其实比较清晰，对照着顺序图顺序往下读即可。
 
@@ -765,11 +761,11 @@ private void setAggregationValueToCurrentRow(final Map<AggregationSelectItem, Ag
 
 GroupByMemoryResultSetMerger，基于 **内存** 分组归并结果集实现。
 
-区别于 GroupByStreamResultSetMerger，其无法使用每个分片结果集的**有序**的特点，只能在内存中合并后，进行**整个**排序。因而，性能和内存都比 GroupByStreamResultSetMerger 差。
+区别于 GroupByStreamResultSetMerger，其无法使用每个分片结果集的**有序**的特点，只能在内存中合并后，进行**整个**重新排序。因而，性能和内存都较 GroupByStreamResultSetMerger 会差。
 
 主流程如下：
 
-![](../../../images/Sharding-JDBC/2017_08_16/07.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_16/07.png)
 
 ```Java
 public final class GroupByMemoryResultSetMerger extends AbstractMemoryResultSetMerger {
@@ -998,5 +994,23 @@ public final class LimitDecoratorResultSetMerger extends AbstractDecoratorResult
 * LimitDecoratorResultSetMerger 可以对其他 ResultSetMerger 进行装饰，调用其他 ResultSetMerger 的 `#next()` 不断获得下一条记录。
 
 # 666. 彩蛋
+
+诶？应该是有蛮多地方解释的不是很清晰，如果让您阅读误解或是阻塞，非常抱歉。代码读起来比较易懂，使用文字来解释，对表述能力较差的自己，可能就绞尽脑汁，一脸懵逼。
+
+恩，如果可以，还烦请把读起来不太爽的地方告诉我，谢谢。
+
+厚着脸皮，道友，分享一波朋友圈可好？
+
+如下是小礼包，嘿嘿
+
+
+| 归并结果集接口 | SQL |
+| --- | --- |
+| OrderByStreamResultSetMerger | `SELECT * FROM t_order ORDER BY id` |
+| GroupByStreamResultSetMerger | `SELECT uid, AVG(id) FROM t_order GROUP BY uid` |
+| GroupByMemoryResultSetMerger | `SELECT uid FROM t_order GROUP BY id ORDER BY id DESC` |
+| IteratorStreamResultSetMerger | `SELECT * FROM t_order` |
+| LimitDecoratorResultSetMerger | `SELECT * FROM t_order ORDER BY id LIMIT 10` |
+
 
 
