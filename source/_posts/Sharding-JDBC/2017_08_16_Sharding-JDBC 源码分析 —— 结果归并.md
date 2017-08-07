@@ -186,6 +186,42 @@ ResultSetMerger，归并结果集接口。
 * Memory 内存：需要将结果集的所有数据都遍历并存储在内存中，再通过内存归并后，将内存中的数据伪装成结果集返回。看完下文*第五节* GroupByMemoryResultSetMerger 可以形象的理解。
 * Decorator 装饰者：可以和前二者任意组合
 
+```Java
+// MergeEngine.java
+/**
+* 合并结果集.
+*
+* @return 归并完毕后的结果集
+* @throws SQLException SQL异常
+*/
+public ResultSetMerger merge() throws SQLException {
+   selectStatement.setIndexForItems(columnLabelIndexMap);
+   return decorate(build());
+}
+    
+private ResultSetMerger build() throws SQLException {
+   if (!selectStatement.getGroupByItems().isEmpty() || !selectStatement.getAggregationSelectItems().isEmpty()) { // 分组 或 聚合列
+       if (selectStatement.isSameGroupByAndOrderByItems()) {
+           return new GroupByStreamResultSetMerger(columnLabelIndexMap, resultSets, selectStatement, getNullOrderType());
+       } else {
+           return new GroupByMemoryResultSetMerger(columnLabelIndexMap, resultSets, selectStatement, getNullOrderType());
+       }
+   }
+   if (!selectStatement.getOrderByItems().isEmpty()) {
+       return new OrderByStreamResultSetMerger(resultSets, selectStatement.getOrderByItems(), getNullOrderType());
+   }
+   return new IteratorStreamResultSetMerger(resultSets);
+}
+    
+private ResultSetMerger decorate(final ResultSetMerger resultSetMerger) throws SQLException {
+   ResultSetMerger result = resultSetMerger;
+   if (null != selectStatement.getLimit()) {
+       result = new LimitDecoratorResultSetMerger(result, selectStatement.getLimit());
+   }
+   return result;
+}
+```
+
 ### 2.2.1 AbstractStreamResultSetMerger
 
 AbstractStreamResultSetMerger，**流式**归并结果集抽象类，提供从**当前结果集**获得行数据。
@@ -712,7 +748,139 @@ private void setAggregationValueToCurrentRow(final Map<AggregationSelectItem, Ag
 
 GroupByMemoryResultSetMerger，基于 **内存** 分组归并结果集实现。
 
-区别于 GroupByStreamResultSetMerger，其无法使用每个分片结果集的有序的特点，只能在内存中合并后，进行**整个**排序。因而，性能和内存都比 GroupByStreamResultSetMerger 差。
+区别于 GroupByStreamResultSetMerger，其无法使用每个分片结果集的**有序**的特点，只能在内存中合并后，进行**整个**排序。因而，性能和内存都比 GroupByStreamResultSetMerger 差。
+
+主流程如下：
+
+![](../../../images/Sharding-JDBC/2017_08_16/07.png)
+
+```Java
+public final class GroupByMemoryResultSetMerger extends AbstractMemoryResultSetMerger {
+
+    /**
+     * Select SQL语句对象
+     */
+    private final SelectStatement selectStatement;
+    /**
+     * 默认排序类型
+     */
+    private final OrderType nullOrderType;
+    /**
+     * 内存结果集
+     */
+    private final Iterator<MemoryResultSetRow> memoryResultSetRows;
+    
+    public GroupByMemoryResultSetMerger(
+            final Map<String, Integer> labelAndIndexMap, final List<ResultSet> resultSets, final SelectStatement selectStatement, final OrderType nullOrderType) throws SQLException {
+        super(labelAndIndexMap);
+        this.selectStatement = selectStatement;
+        this.nullOrderType = nullOrderType;
+        memoryResultSetRows = init(resultSets);
+    }
+    
+    private Iterator<MemoryResultSetRow> init(final List<ResultSet> resultSets) throws SQLException {
+        Map<GroupByValue, MemoryResultSetRow> dataMap = new HashMap<>(1024); // 分组条件值与内存记录映射
+        Map<GroupByValue, Map<AggregationSelectItem, AggregationUnit>> aggregationMap = new HashMap<>(1024); // 分组条件值与聚合列映射
+        // 遍历结果集
+        for (ResultSet each : resultSets) {
+            while (each.next()) {
+                // 生成分组条件
+                GroupByValue groupByValue = new GroupByValue(each, selectStatement.getGroupByItems());
+                // 初始化分组条件到 dataMap、aggregationMap 映射
+                initForFirstGroupByValue(each, groupByValue, dataMap, aggregationMap);
+                // 归并聚合值
+                aggregate(each, groupByValue, aggregationMap);
+            }
+        }
+        // 设置聚合列结果到内存记录
+        setAggregationValueToMemoryRow(dataMap, aggregationMap);
+        // 内存排序
+        List<MemoryResultSetRow> result = getMemoryResultSetRows(dataMap);
+        // 设置当前 ResultSet，这样 #getValue() 能拿到记录
+        if (!result.isEmpty()) {
+            setCurrentResultSetRow(result.get(0));
+        }
+        return result.iterator();
+    }
+}
+```
+
+* `#initForFirstGroupByValue()` 初始化**分组条件**到 `dataMap`，`aggregationMap` 映射中，这样可以调用 `#aggregate()` 将聚合值归并到 `aggregationMap` 里的该分组条件。
+    
+    ```Java
+   private void initForFirstGroupByValue(final ResultSet resultSet, final GroupByValue groupByValue, final Map<GroupByValue, MemoryResultSetRow> dataMap, 
+                                          final Map<GroupByValue, Map<AggregationSelectItem, AggregationUnit>> aggregationMap) throws SQLException {
+        // 初始化分组条件到 dataMap
+        if (!dataMap.containsKey(groupByValue)) {
+            dataMap.put(groupByValue, new MemoryResultSetRow(resultSet));
+        }
+        // 初始化分组条件到 aggregationMap
+        if (!aggregationMap.containsKey(groupByValue)) {
+            Map<AggregationSelectItem, AggregationUnit> map = Maps.toMap(selectStatement.getAggregationSelectItems(), new Function<AggregationSelectItem, AggregationUnit>() {
+                
+                @Override
+                public AggregationUnit apply(final AggregationSelectItem input) {
+                    return AggregationUnitFactory.create(input.getType());
+                }
+            });
+            aggregationMap.put(groupByValue, map);
+        }
+    }
+    ``` 
+* 聚合完每个分组条件后，将聚合列结果 `aggregationMap` 合并到 `dataMap`。
+
+    ```Java
+    private void setAggregationValueToMemoryRow(final Map<GroupByValue, MemoryResultSetRow> dataMap, final Map<GroupByValue, Map<AggregationSelectItem, AggregationUnit>> aggregationMap) {
+       for (Entry<GroupByValue, MemoryResultSetRow> entry : dataMap.entrySet()) { // 遍 历内存记录
+           for (AggregationSelectItem each : selectStatement.getAggregationSelectItems()) { // 遍历 每个聚合列
+               entry.getValue().setCell(each.getIndex(), aggregationMap.get(entry.getKey()).get(each).getResult());
+           }
+       }
+    }
+    ```
+
+* 调用 `#getMemoryResultSetRows()` 方法对内存记录进行**内存排序**。
+
+```Java
+// GroupByMemoryResultSetMerger.java
+private List<MemoryResultSetRow> getMemoryResultSetRows(final Map<GroupByValue, MemoryResultSetRow> dataMap) {
+   List<MemoryResultSetRow> result = new ArrayList<>(dataMap.values());
+   Collections.sort(result, new GroupByRowComparator(selectStatement, nullOrderType)); // 内存排序
+   return result;
+}
+
+// GroupByRowComparator.java
+private int compare(final MemoryResultSetRow o1, final MemoryResultSetRow o2, final List<OrderItem> orderItems) {
+   for (OrderItem each : orderItems) {
+       Object orderValue1 = o1.getCell(each.getIndex());
+       Preconditions.checkState(null == orderValue1 || orderValue1 instanceof Comparable, "Order by value must implements Comparable");
+       Object orderValue2 = o2.getCell(each.getIndex());
+       Preconditions.checkState(null == orderValue2 || orderValue2 instanceof Comparable, "Order by value must implements Comparable");
+       int result = ResultSetUtil.compareTo((Comparable) orderValue1, (Comparable) orderValue2, each.getType(), nullOrderType);
+       if (0 != result) {
+           return result;
+       }
+   }
+   return 0;
+}
+```
+
+* 总的来说，GROUP BY 内存归并和我们日常使用 Map 计算用户订单数是比较相似的。
+
+## 5.1 #next()
+
+```Java
+@Override
+public boolean next() throws SQLException {
+   if (memoryResultSetRows.hasNext()) {
+       setCurrentResultSetRow(memoryResultSetRows.next());
+       return true;
+   }
+   return false;
+}
+```
+
+* 内存归并完成后，使用 `memoryResultSetRows` 不断获得下一条记录。
 
 # 6. IteratorStreamResultSetMerger
 
@@ -760,11 +928,58 @@ public final class IteratorStreamResultSetMerger extends AbstractStreamResultSet
 
 LimitDecoratorResultSetMerger，基于 **Decorator** 分页结果集归并实现。
 
+```Java
+public final class LimitDecoratorResultSetMerger extends AbstractDecoratorResultSetMerger {
 
+    /**
+     * 分页条件
+     */
+    private final Limit limit;
+    /**
+     * 是否全部记录都跳过了，即无符合条件记录
+     */
+    private final boolean skipAll;
+    /**
+     * 当前已返回行数
+     */
+    private int rowNumber;
+    
+    public LimitDecoratorResultSetMerger(final ResultSetMerger resultSetMerger, final Limit limit) throws SQLException {
+        super(resultSetMerger);
+        this.limit = limit;
+        skipAll = skipOffset();
+    }
+    
+    private boolean skipOffset() throws SQLException {
+        // 跳过 skip 记录
+        for (int i = 0; i < limit.getOffsetValue(); i++) {
+            if (!getResultSetMerger().next()) {
+                return true;
+            }
+        }
+        // 行数
+        rowNumber = limit.isRowCountRewriteFlag() ? 0 : limit.getOffsetValue();
+        return false;
+    }
+    
+    @Override
+    public boolean next() throws SQLException {
+        if (skipAll) {
+            return false;
+        }
+        // 获得下一条记录
+        if (limit.getRowCountValue() > -1) {
+            return ++rowNumber <= limit.getRowCountValue() && getResultSetMerger().next();
+        }
+        // 部分db 可以直 offset，不写 limit 行数，例如 oracle
+        return getResultSetMerger().next();
+    }
+
+}
+```
+
+* LimitDecoratorResultSetMerger 可以对其他 ResultSetMerger 进行装饰，调用其他 ResultSetMerger 的 `#next()` 不断获得下一条记录。
 
 # 666. 彩蛋
-
-
--------
 
 
