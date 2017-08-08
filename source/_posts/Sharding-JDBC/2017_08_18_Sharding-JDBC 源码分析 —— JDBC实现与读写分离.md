@@ -107,7 +107,9 @@ public abstract class AbstractUnsupportedOperationConnection extends WrapperAdap
 
 # 3. adapter 包
 
-`adapter` 包内的**抽象**类，实现和分库分表相关的方法。
+`adapter` 包内的**抽象**类，实现和分库分表**无关**的方法。
+
+**考虑到第4、5两小节更容易理解，本小节贴的代码会相对多**
 
 ## 3.1 WrapperAdapter
 
@@ -229,12 +231,291 @@ protected void throwSQLExceptionIfNecessary(final Collection<SQLException> excep
 }
 ```
 
+## 3.2 AbstractDataSourceAdapter
+
+[AbstractDataSourceAdapter](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/jdbc/adapter/AbstractDataSourceAdapter.java)，数据源适配类。
+
+直接点击链接查看源码。
+
+## 3.3 AbstractConnectionAdapter
+
+[AbstractConnectionAdapter](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/jdbc/adapter/AbstractConnectionAdapter.java)，数据库连接适配类。
+
+我们来瞅瞅大家最关心的**事务**相关方法的实现。
+
+```Java
+/**
+* 是否自动提交
+*/
+private boolean autoCommit = true;
+
+/**
+* 获得链接
+*
+* @return 链接
+*/
+protected abstract Collection<Connection> getConnections();
+    
+@Override
+public final boolean getAutoCommit() throws SQLException {
+   return autoCommit;
+}
+    
+@Override
+public final void setAutoCommit(final boolean autoCommit) throws SQLException {
+   this.autoCommit = autoCommit;
+   if (getConnections().isEmpty()) { // 无数据连接时，记录方法调用
+       recordMethodInvocation(Connection.class, "setAutoCommit", new Class[] {boolean.class}, new Object[] {autoCommit});
+       return;
+   }
+   for (Connection each : getConnections()) {
+       each.setAutoCommit(autoCommit);
+   }
+}
+```
+
+* `#setAutoCommit()` 调用时，实际会设置其所持有的 Connection 的 `autoCommit` 属性
+* `#getConnections()` 和分库分表相关，因而仅抽象该方法，留给子类实现
+
+```Java
+@Override
+public final void commit() throws SQLException {
+   for (Connection each : getConnections()) {
+       each.commit();
+   }
+}
+    
+@Override
+public final void rollback() throws SQLException {
+   Collection<SQLException> exceptions = new LinkedList<>();
+   for (Connection each : getConnections()) {
+       try {
+           each.rollback();
+       } catch (final SQLException ex) {
+           exceptions.add(ex);
+       }
+   }
+   throwSQLExceptionIfNecessary(exceptions);
+}
+```
+
+* `#commit()`、`#rollback()` 调用时，实际调用其所持有的 Connection 的方法
+* 异常情况下，`#commit()` 和 `#rollback()` 处理方式不同，笔者暂时不知道答案，求证后会进行更新 
+
+```Java
+/**
+* 只读
+*/
+private boolean readOnly = true;
+/**
+* 事务级别
+*/
+private int transactionIsolation = TRANSACTION_READ_UNCOMMITTED;
+
+@Override
+public final void setReadOnly(final boolean readOnly) throws SQLException {
+   this.readOnly = readOnly;
+   if (getConnections().isEmpty()) {
+       recordMethodInvocation(Connection.class, "setReadOnly", new Class[] {boolean.class}, new Object[] {readOnly});
+       return;
+   }
+   for (Connection each : getConnections()) {
+       each.setReadOnly(readOnly);
+   }
+}
+    
+@Override
+public final void setTransactionIsolation(final int level) throws SQLException {
+   transactionIsolation = level;
+   if (getConnections().isEmpty()) {
+       recordMethodInvocation(Connection.class, "setTransactionIsolation", new Class[] {int.class}, new Object[] {level});
+       return;
+   }
+   for (Connection each : getConnections()) {
+       each.setTransactionIsolation(level);
+   }
+}
+```
+
+## 3.4 AbstractStatementAdapter
+
+[AbstractStatementAdapter](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/jdbc/adapter/AbstractStatementAdapter.java)，静态语句对象适配类。
+
+```Java
+@Override
+public final int getUpdateCount() throws SQLException {
+   long result = 0;
+   boolean hasResult = false;
+   for (Statement each : getRoutedStatements()) {
+       if (each.getUpdateCount() > -1) {
+           hasResult = true;
+       }
+       result += each.getUpdateCount();
+   }
+   if (result > Integer.MAX_VALUE) {
+       result = Integer.MAX_VALUE;
+   }
+   return hasResult ? Long.valueOf(result).intValue() : -1;
+}
+
+/**
+* 获取路由的静态语句对象集合.
+* 
+* @return 路由的静态语句对象集合
+*/
+protected abstract Collection<? extends Statement> getRoutedStatements();
+```
+
+* `#getUpdateCount()` 调用持有的 Statement 计算更新数量
+* `#getRoutedStatements()` 和分库分表相关，因而仅抽象该方法，留给子类实现
+
+## 3.5 AbstractPreparedStatementAdapter
+
+[AbstractPreparedStatementAdapter](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/jdbc/adapter/AbstractPreparedStatementAdapter.java)，预编译语句对象的适配类。
+
+**`#recordSetParameter()`实现对占位符参数的设置**：
+
+```Java
+/**
+* 记录的设置参数方法数组
+*/
+private final List<SetParameterMethodInvocation> setParameterMethodInvocations = new LinkedList<>();
+/**
+* 参数
+*/
+@Getter
+private final List<Object> parameters = new ArrayList<>();
+
+@Override
+public final void setInt(final int parameterIndex, final int x) throws SQLException {
+   setParameter(parameterIndex, x);
+   recordSetParameter("setInt", new Class[]{int.class, int.class}, parameterIndex, x);
+}
+
+/**
+* 记录占位符参数
+*
+* @param parameterIndex 占位符参数位置
+* @param value 参数
+*/
+private void setParameter(final int parameterIndex, final Object value) {
+   if (parameters.size() == parameterIndex - 1) {
+       parameters.add(value);
+       return;
+   }
+   for (int i = parameters.size(); i <= parameterIndex - 1; i++) { // 用 null 填充前面未设置的位置
+       parameters.add(null);
+   }
+   parameters.set(parameterIndex - 1, value);
+}
+
+/**
+* 记录设置参数方法调用
+*
+* @param methodName 方法名，例如 setInt、setLong 等
+* @param argumentTypes 参数类型
+* @param arguments 参数
+*/
+private void recordSetParameter(final String methodName, final Class[] argumentTypes, final Object... arguments) {
+   try {
+       setParameterMethodInvocations.add(new SetParameterMethodInvocation(PreparedStatement.class.getMethod(methodName, argumentTypes), arguments, arguments[1]));
+   } catch (final NoSuchMethodException ex) {
+       throw new ShardingJdbcException(ex);
+   }
+}
+
+/**
+* 回放记录的设置参数方法调用
+*
+* @param preparedStatement 预编译语句对象
+*/
+protected void replaySetParameter(final PreparedStatement preparedStatement) {
+   addParameters();
+   for (SetParameterMethodInvocation each : setParameterMethodInvocations) {
+       updateParameterValues(each, parameters.get(each.getIndex() - 1)); // 同一个位置多次设置，值可能不一样，需要更新下
+       each.invoke(preparedStatement);
+   }
+}
+
+/**
+* 当使用分布式主键时，生成后会添加到 parameters，此时 parameters 数量多于 setParameterMethodInvocations，需要生成该分布式主键的 SetParameterMethodInvocation
+*/
+private void addParameters() {
+   for (int i = setParameterMethodInvocations.size(); i < parameters.size(); i++) {
+       recordSetParameter("setObject", new Class[]{int.class, Object.class}, i + 1, parameters.get(i));
+   }
+}
+    
+private void updateParameterValues(final SetParameterMethodInvocation setParameterMethodInvocation, final Object value) {
+   if (!Objects.equals(setParameterMethodInvocation.getValue(), value)) {
+       setParameterMethodInvocation.changeValueArgument(value); // 修改占位符参数
+   }
+}
+```
+
+* 逻辑类似 `WrapperAdapter` 的 `#recordMethodInvocation()`，`#replayMethodsInvocation()`，请**认真**阅读代码注释
+
+* SetParameterMethodInvocation，继承 JdbcMethodInvocation，反射调用参数设置方法的工具类：
+
+    ```Java
+    public final class SetParameterMethodInvocation extends JdbcMethodInvocation {
+    
+        /**
+         * 位置
+         */
+        @Getter
+        private final int index;
+        /**
+         * 参数值
+         */
+        @Getter
+        private final Object value;
+        
+        /**
+         * 设置参数值.
+         * 
+         * @param value 参数值
+         */
+        public void changeValueArgument(final Object value) {
+            getArguments()[1] = value;
+        }
+    }
+    ```
+
+## 3.6 AbstractResultSetAdapter
+
+[AbstractResultSetAdapter](https://github.com/dangdangdotcom/sharding-jdbc/blob/d6ac50704f5e45beeeded09a4f0b160c7320b993/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/jdbc/adapter/AbstractResultSetAdapter.java)，代理结果集适配器。
+
+```Java
+public abstract class AbstractResultSetAdapter extends AbstractUnsupportedOperationResultSet {
+    /**
+     * 结果集集合
+     */
+    @Getter
+    private final List<ResultSet> resultSets;
+    
+    @Override
+    // TODO should return sharding statement in future
+    public final Statement getStatement() throws SQLException {
+        return getResultSets().get(0).getStatement();
+    }
+    
+    @Override
+    public final ResultSetMetaData getMetaData() throws SQLException {
+        return getResultSets().get(0).getMetaData();
+    }
+    
+    @Override
+    public int findColumn(final String columnLabel) throws SQLException {
+        return getResultSets().get(0).findColumn(columnLabel);
+    }
+    
+    // .... 省略其它方法
+}
+```
+
 # 4. 插入流程
 
 # 5. 读写分离
 
-> **Sharding-JDBC 正在收集使用公司名单：[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)。  
-> 🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
-> Sharding-JDBC 也会因此，能够覆盖更多的业务场景。[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)  
-> 登记吧，骚年！[传送门](https://github.com/dangdangdotcom/sharding-jdbc/issues/234)**
 
