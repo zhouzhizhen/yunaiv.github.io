@@ -1,6 +1,6 @@
 http://www.yunai.me/Sharding-JDBC/transaction-tcc/
 http://www.yunai.me/Sharding-JDBC/transaction-bed/
-http://www.yunai.me/Sharding-JDBC/jdbc-implement/
+http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/
 http://www.yunai.me/Sharding-JDBC/result-merger/
 http://www.yunai.me/Sharding-JDBC/sql-execute/
 http://www.yunai.me/Sharding-JDBC/distributed-id/

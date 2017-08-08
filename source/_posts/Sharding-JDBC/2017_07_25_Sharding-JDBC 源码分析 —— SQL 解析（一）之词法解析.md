@@ -17,6 +17,8 @@ permalink: Sharding-JDBC/sql-parse-1
 
 -------
 
+**本文主要基于 Sharding-JDBC 1.5.0 正式版**  
+
 - [1. 概述](#)
 - [2. Lexer 词法解析器](#)
 - [3. Token 词法标记](#)

@@ -17,6 +17,8 @@ permalink: Sharding-JDBC/sql-execute
 
 -------
 
+**本文主要基于 Sharding-JDBC 1.5.0 正式版**  
+
 - [1. 概述](#)
 - [2. ExecutorEngine](#)
 	- [2.1 ListeningExecutorService](#)

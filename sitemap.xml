@@ -2,9 +2,93 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    
+    <lastmod>2017-08-08T17:03:43.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/Sharding-JDBC/result-merger/</loc>
     
-    <lastmod>2017-08-07T17:55:03.000Z</lastmod>
+    <lastmod>2017-08-08T08:46:49.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-execute/</loc>
+    
+    <lastmod>2017-08-08T08:46:44.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/distributed-id/</loc>
+    
+    <lastmod>2017-08-08T08:46:41.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-rewrite/</loc>
+    
+    <lastmod>2017-08-08T08:46:36.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-route-2/</loc>
+    
+    <lastmod>2017-08-08T08:46:30.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-route-1/</loc>
+    
+    <lastmod>2017-08-08T08:46:24.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-6/</loc>
+    
+    <lastmod>2017-08-08T08:46:20.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-5/</loc>
+    
+    <lastmod>2017-08-08T08:46:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-4/</loc>
+    
+    <lastmod>2017-08-08T08:46:13.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-3/</loc>
+    
+    <lastmod>2017-08-08T08:46:09.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-2/</loc>
+    
+    <lastmod>2017-08-08T08:46:05.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-1/</loc>
+    
+    <lastmod>2017-08-08T08:45:51.000Z</lastmod>
     
   </url>
   
@@ -19,20 +103,6 @@
     <loc>http://www.yunai.me/Sharding-JDBC/transaction-bed/</loc>
     
     <lastmod>2017-08-05T20:57:05.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement/</loc>
-    
-    <lastmod>2017-08-05T20:54:55.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-execute/</loc>
-    
-    <lastmod>2017-08-05T20:53:33.000Z</lastmod>
     
   </url>
   
@@ -58,20 +128,6 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/distributed-id/</loc>
-    
-    <lastmod>2017-08-04T18:10:59.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-rewrite/</loc>
-    
-    <lastmod>2017-08-03T13:12:30.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
     
     <lastmod>2017-08-03T09:40:22.000Z</lastmod>
@@ -79,65 +135,9 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-route-1/</loc>
-    
-    <lastmod>2017-08-02T14:39:47.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-route-2/</loc>
-    
-    <lastmod>2017-08-02T09:39:24.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/Sharding-JDBC/sql-route-3/</loc>
     
     <lastmod>2017-08-02T08:27:19.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/MyCAT/connect-mongodb/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
     
   </url>
   
@@ -170,27 +170,6 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-1/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-5/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-2/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/Architecture/talk-about-global-id/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
@@ -199,20 +178,6 @@
   
   <url>
     <loc>http://www.yunai.me/MyCAT/build-debugging-environment/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-4/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-6/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
     
@@ -234,13 +199,6 @@
   
   <url>
     <loc>http://www.yunai.me/MyCAT/what-is-PreparedStatement/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-3/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
     
@@ -275,13 +233,6 @@
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
-    
-    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.yunai.me/RocketMQ/topic/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
@@ -290,6 +241,48 @@
   
   <url>
     <loc>http://www.yunai.me/MyCAT/xa-distributed-transaction/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/store-init-and-shutdown/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/MyCAT/connect-mongodb/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-consume-orderly/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/message-send-and-receive/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
     
@@ -311,6 +304,13 @@
   
   <url>
     <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    
+    <lastmod>2017-07-31T12:30:52.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
     
     <lastmod>2017-07-31T12:30:52.000Z</lastmod>
     
