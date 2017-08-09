@@ -98,7 +98,7 @@
     <link href="http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/"/>
     <id>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</id>
     <published>2017-08-17T16:00:00.000Z</published>
-    <updated>2017-08-09T14:16:58.000Z</updated>
+    <updated>2017-08-09T14:32:03.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -128,15 +128,15 @@
 <li><a href="#">4. 插入流程</a></li>
 <li><a href="#">5. 查询流程</a></li>
 <li><a href="#">6. 读写分离</a></li>
-<li><a href="#">666. 敏感词</a></li>
+<li><a href="#">666. <del>彩蛋</del></a></li>
 </ul>
 <hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>JDBC</strong> 与 <strong>读写分离</strong> 的实现。为什么会把这两个东西放在一起讲呢？客户端直连数据库的读写分离主要通过获取读库和写库的不同连接来实现，和 JDBC Connectin 刚好放在一块。</p>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>JDBC</strong> 与 <strong>读写分离</strong> 的实现。为什么会把这两个东西放在一起讲呢？客户端直连数据库的读写分离主要通过获取读库和写库的不同连接来实现，和 JDBC Connection 刚好放在一块。</p>
 <p>OK，我们先来看一段 Sharding-JDBC 官方对自己的定义和定位</p>
 <blockquote>
 <p>Sharding-JDBC定位为轻量级java框架，使用客户端直连数据库，以jar包形式提供服务，未使用中间层，无需额外部署，无其他依赖，DBA也无需改变原有的运维方式，可理解为<strong>增强版的JDBC驱动</strong>，旧代码迁移成本几乎为零。</p>
 </blockquote>
-<p>可以看出，Sharding-JDBC 通过实现 <strong>JDBC规范</strong>，对上层提供透明化数据库分库分表的访问。😈 黑科技？实际我们使用的<strong>数据库连接池</strong>也是通过这种方式实现对上层无感知的使用连接池。甚至还可以通过这种方式实现对 Lucene、<a href="http://www.yunai.me/MyCAT/connect-mongodb/?self">MongoDB</a> 等等的访问。</p>
+<p>可以看出，Sharding-JDBC 通过实现 <strong>JDBC规范</strong>，对上层提供透明化数据库分库分表的访问。😈 黑科技？实际我们使用的<strong>数据库连接池</strong>也是通过这种方式实现对上层无感知的提供连接池。甚至还可以通过这种方式实现对 Lucene、<a href="http://www.yunai.me/MyCAT/connect-mongodb/?self">MongoDB</a> 等等的访问。</p>
 <p>扯远了，下面来看看 Sharding-JDBC <code>jdbc</code> 包的结构：</p>
 <p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_18/01.png" alt=""></p>
 <ul>
@@ -144,7 +144,7 @@
 <li><code>adapter</code>：适配类，实现和分库分表<strong>无关</strong>的方法</li>
 <li><code>core</code>：核心类，实现和分库分表<strong>相关</strong>的方法</li>
 </ul>
-<p>根据 <code>core</code> 包，可以看出分成四种我们<strong>超级熟悉</strong>的对象  </p>
+<p>根据 <code>core</code> 包，可以看出分到四种我们<strong>超级熟悉</strong>的对象  </p>
 <ul>
 <li><p>Datasource</p>
 <p>  <img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_18/02.png" alt="-w640"></p>
@@ -196,7 +196,7 @@
 <p><strong>提供子类 <code>#recordMethodInvocation()</code> 记录方法调用，<code>#replayMethodsInvocation()</code> 回放记录的方法调用</strong>：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">* 记录的方法数组</div><div class="line">*/</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Collection&lt;JdbcMethodInvocation&gt; jdbcMethodInvocations = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">* 记录方法调用.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> targetClass 目标类</div><div class="line">* <span class="doctag">@param</span> methodName 方法名称</div><div class="line">* <span class="doctag">@param</span> argumentTypes 参数类型</div><div class="line">* <span class="doctag">@param</span> arguments 参数</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">recordMethodInvocation</span><span class="params">(<span class="keyword">final</span> Class&lt;?&gt; targetClass, <span class="keyword">final</span> String methodName, <span class="keyword">final</span> Class&lt;?&gt;[] argumentTypes, <span class="keyword">final</span> Object[] arguments)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       jdbcMethodInvocations.add(<span class="keyword">new</span> JdbcMethodInvocation(targetClass.getMethod(methodName, argumentTypes), arguments));</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> NoSuchMethodException ex) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> ShardingJdbcException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 回放记录的方法调用.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> target 目标对象</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">replayMethodsInvocation</span><span class="params">(<span class="keyword">final</span> Object target)</span> </span>&#123;</div><div class="line">   <span class="keyword">for</span> (JdbcMethodInvocation each : jdbcMethodInvocations) &#123;</div><div class="line">       each.invoke(target);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
-<li><p>这两个方法有什么用途呢？例如下文会提到的 AbstractConnectionAdapter 的 <code>#setAutoCommit()</code>，当它无数据库连接时，先记录；等到那到数据连接后，再回放：</p>
+<li><p>这两个方法有什么用途呢？例如下文会提到的 AbstractConnectionAdapter 的 <code>#setAutoCommit()</code>，当它无数据库连接时，先记录；等获得到数据连接后，再回放：</p>
   <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractConnectionAdapter.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">setAutoCommit</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> autoCommit)</span> <span class="keyword">throws</span> SQLException </span>&#123;</div><div class="line">   <span class="keyword">this</span>.autoCommit = autoCommit;</div><div class="line">   <span class="keyword">if</span> (getConnections().isEmpty()) &#123; <span class="comment">// 无数据连接时，记录方法调用</span></div><div class="line">       recordMethodInvocation(Connection.class, <span class="string">"setAutoCommit"</span>, <span class="keyword">new</span> Class[] &#123;<span class="keyword">boolean</span>.class&#125;, <span class="keyword">new</span> Object[] &#123;autoCommit&#125;);</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">for</span> (Connection each : getConnections()) &#123;</div><div class="line">       each.setAutoCommit(autoCommit);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ul>

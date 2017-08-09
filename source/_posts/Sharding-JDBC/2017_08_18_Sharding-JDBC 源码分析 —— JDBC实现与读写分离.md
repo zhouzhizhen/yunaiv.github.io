@@ -31,19 +31,19 @@ permalink: Sharding-JDBC/jdbc-implement-and-read-write-splitting
 - [4. 插入流程](#)
 - [5. 查询流程](#)
 - [6. 读写分离](#)
-- [666. 敏感词](#)
+- [666. ~~彩蛋~~](#)
 
 -------
 
 # 1. 概述
 
-本文主要分享 **JDBC** 与 **读写分离** 的实现。为什么会把这两个东西放在一起讲呢？客户端直连数据库的读写分离主要通过获取读库和写库的不同连接来实现，和 JDBC Connectin 刚好放在一块。
+本文主要分享 **JDBC** 与 **读写分离** 的实现。为什么会把这两个东西放在一起讲呢？客户端直连数据库的读写分离主要通过获取读库和写库的不同连接来实现，和 JDBC Connection 刚好放在一块。
 
 OK，我们先来看一段 Sharding-JDBC 官方对自己的定义和定位
 
 > Sharding-JDBC定位为轻量级java框架，使用客户端直连数据库，以jar包形式提供服务，未使用中间层，无需额外部署，无其他依赖，DBA也无需改变原有的运维方式，可理解为**增强版的JDBC驱动**，旧代码迁移成本几乎为零。
 
-可以看出，Sharding-JDBC 通过实现 **JDBC规范**，对上层提供透明化数据库分库分表的访问。😈 黑科技？实际我们使用的**数据库连接池**也是通过这种方式实现对上层无感知的使用连接池。甚至还可以通过这种方式实现对 Lucene、[MongoDB](http://www.yunai.me/MyCAT/connect-mongodb/?self) 等等的访问。
+可以看出，Sharding-JDBC 通过实现 **JDBC规范**，对上层提供透明化数据库分库分表的访问。😈 黑科技？实际我们使用的**数据库连接池**也是通过这种方式实现对上层无感知的提供连接池。甚至还可以通过这种方式实现对 Lucene、[MongoDB](http://www.yunai.me/MyCAT/connect-mongodb/?self) 等等的访问。
 
 扯远了，下面来看看 Sharding-JDBC `jdbc` 包的结构：
 
@@ -53,7 +53,7 @@ OK，我们先来看一段 Sharding-JDBC 官方对自己的定义和定位
 * `adapter`：适配类，实现和分库分表**无关**的方法
 * `core`：核心类，实现和分库分表**相关**的方法
 
-根据 `core` 包，可以看出分成四种我们**超级熟悉**的对象  
+根据 `core` 包，可以看出分到四种我们**超级熟悉**的对象  
 
 * Datasource
 
@@ -187,7 +187,7 @@ public final void replayMethodsInvocation(final Object target) {
 }
 ```
 
-* 这两个方法有什么用途呢？例如下文会提到的 AbstractConnectionAdapter 的 `#setAutoCommit()`，当它无数据库连接时，先记录；等到那到数据连接后，再回放：
+* 这两个方法有什么用途呢？例如下文会提到的 AbstractConnectionAdapter 的 `#setAutoCommit()`，当它无数据库连接时，先记录；等获得到数据连接后，再回放：
 
     ```Java
     // AbstractConnectionAdapter.java
