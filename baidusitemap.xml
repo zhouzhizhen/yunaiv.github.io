@@ -5,10 +5,10 @@
     
   <url>
     <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
-    <lastmod>2017-08-08T18:38:04.000Z</lastmod>
+    <lastmod>2017-08-09T14:16:58.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— JDBC 实现</title>
+        <title>Sharding-JDBC 源码分析 —— JDBC实现与读写分离</title>
         <pubTime>2017-08-17T16:00:00.000Z</pubTime>
         
          
