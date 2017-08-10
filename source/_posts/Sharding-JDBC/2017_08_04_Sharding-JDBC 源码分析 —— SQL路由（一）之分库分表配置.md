@@ -3,6 +3,7 @@ date: 2017-08-04
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/sql-route-1
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,SQL 路由,路由,路由配置
 
 -------
 

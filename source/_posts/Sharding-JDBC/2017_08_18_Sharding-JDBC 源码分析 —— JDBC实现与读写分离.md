@@ -3,6 +3,7 @@ date: 2017-08-18
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/jdbc-implement-and-read-write-splitting
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,JDBC,读写分离
 
 -------
 

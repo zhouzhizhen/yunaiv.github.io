@@ -3,6 +3,7 @@ date: 2017-08-14
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/sql-execute
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,SQL 执行
 
 -------
 

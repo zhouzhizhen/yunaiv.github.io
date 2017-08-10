@@ -3,6 +3,7 @@ date: 2017-08-10
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/sql-rewrite
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,SQL 改写,SQL 优化
 
 -------
 

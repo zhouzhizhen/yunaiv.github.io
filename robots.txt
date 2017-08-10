@@ -5,6 +5,8 @@ Allow: /categories/
 Allow: /RocketMQ/
 Allow: /MyCAT/
 Allow: /Architecture/
+Allow: /Sharding-JDBC/
+Allow: /Elastic-Job/
 Disallow: /css/
 Disallow: /js/
 Disallow: /lib/

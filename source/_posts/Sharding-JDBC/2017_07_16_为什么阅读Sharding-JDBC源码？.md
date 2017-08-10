@@ -26,6 +26,14 @@ permalink: Sharding-JDBC/why-read-Sharding-JDBC-source-code
 4. Sharding-JDBC 1.5.0.M3 发布。
 5. **最大努力送达型**事务支持，想要进一步了解分布式事务的解决方案。Last But Very Importment。
 
+## 使用公司
+
+1. 京东 ( FROM 民间 )
+1. 唯品会 ( FROM 民间 )
+1. 转转 ( FROM https://github.com/dangdangdotcom/sharding-jdbc/issues/234 )
+1. 足记 ( FROM https://github.com/dangdangdotcom/sharding-jdbc/issues/234 )
+1. **不定义更新** ( FROM https://github.com/dangdangdotcom/sharding-jdbc/issues/234 )
+
 ## 步骤
 
 * FROM MyCAT
@@ -74,3 +82,5 @@ permalink: Sharding-JDBC/why-read-Sharding-JDBC-source-code
     
 * [ ] 分布式事务 ：最大努力送达型事务
 * [ ] 分布式事务 ：TCC型事务(TBD)
+
+

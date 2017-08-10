@@ -9,7 +9,7 @@ description: 愿编码半生，好奇如初识！
 author: 王文斌
 language: zh-CN
 timezone:
-keywords: Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客
+keywords: Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -96,6 +96,11 @@ nofollow:
 	enable: true
 	exclude:
       github.com:
+
+sitemap:
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html

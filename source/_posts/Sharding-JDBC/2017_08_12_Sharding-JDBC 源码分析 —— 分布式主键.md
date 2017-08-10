@@ -3,6 +3,7 @@ date: 2017-08-12
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/distributed-id
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,分布式主键
 
 -------
 
