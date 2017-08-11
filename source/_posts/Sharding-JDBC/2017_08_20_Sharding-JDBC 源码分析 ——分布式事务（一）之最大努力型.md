@@ -3,6 +3,7 @@ date: 2017-08-20
 tags:
 categories: Sharding-JDBC
 permalink: Sharding-JDBC/transaction-bed
+keywords: Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,JDBC,事务,分布式事务,柔性事务
 
 -------
 
@@ -45,7 +46,7 @@ permalink: Sharding-JDBC/transaction-bed
 
 数据库表**分库**后，业务场景下的**单库本地事务**可能变成**跨库分布式事务**。虽然我们可以通过合适的**分库规则**让操作的数据在同库下，继续保证**单库本地事务**，这也是非常推崇的，但不是所有场景下都能适用。如果这些场景对事务的一致性有要求，我们就不得不解决分布式事务的“麻烦”。
 
-**分布式事务**是个很大的话题，我们来看看 Sharding-JDBC 对她的解答：
+**分布式事务**是个很大的话题，我们来看看 Sharding-JDBC 对她的权衡：
 
 > Sharding-JDBC由于性能方面的考量，决定不支持强一致性分布式事务。我们已明确规划线路图，未来会支持最终一致性的柔性事务。
 
@@ -71,7 +72,7 @@ Sharding-JDBC 提供了两种 **柔性事务**：
 
 **架构图**
 
-> ![](../../../images/Sharding-JDBC/2017_08_20/01.jpeg)
+> ![](http://www.yunai.me/images/Sharding-JDBC/2017_08_20/01.jpeg)
 
 执行过程有 **四种** 情况：
 
@@ -82,7 +83,7 @@ Sharding-JDBC 提供了两种 **柔性事务**：
 
 整体成漏斗倒三角，上一个阶段失败，交给下一个阶段重试：
 
-![](../../../images/Sharding-JDBC/2017_08_20/02.png)
+![](http://www.yunai.me/images/Sharding-JDBC/2017_08_20/02.png)
 
 整个过程通过如下 **组件** 完成：
 
@@ -110,7 +111,7 @@ Sharding-JDBC 提供了两种 **柔性事务**：
 * 柔性事务配置对象
 */
 @Getter
-private final SoftTransactionConfiguration transactionConfig;
+private final SoftTransactionConfiguration transactionConfig;  
 
 // SoftTransactionManager.java
 /**
@@ -130,6 +131,7 @@ public void init() throws SQLException {
    }
 }
 ```
+
 * 将最大努力送达型事务监听器( BestEffortsDeliveryListener )注册到事务总线 ( EventBus )。在『最大努力送达型事务监听器』小节会详细分享
 * 当使用**数据库**存储事务日志( TransactionLog ) 时，若**事务日志表( `transaction_log` )**不存在则进行创建。在『事务日志存储器』小节会详细分享
 * 当配置使用**内嵌的**最大努力送达型异步作业( NestedBestEffortsDeliveryJob ) 时，进行初始化。在『最大努力送达型异步作业』小节会详细分享
@@ -200,6 +202,8 @@ public abstract class AbstractSoftTransaction {
 }
 ```
 
+
+
 AbstractSoftTransaction 实现了开启柔性事务、关闭柔性事务两个方法提供给子类调用：
 
 * `#beginInternal()`
@@ -227,13 +231,16 @@ AbstractSoftTransaction 实现了开启柔性事务、关闭柔性事务两个�
        transactionId = UUID.randomUUID().toString();
     }
     ```
-    
+
+
     * 调用 `ExecutorExceptionHandler.setExceptionThrown(false)` 设置执行 SQL 错误时，也不抛出异常。
         * 对异常处理的代码：[ExecutorExceptionHandler#setExceptionThrown()](https://github.com/dangdangdotcom/sharding-jdbc/blob/884b38f4c2402e31464d15b444f4b405e07fe211/sharding-jdbc-core/src/main/java/com/dangdang/ddframe/rdb/sharding/executor/threadlocal/ExecutorExceptionHandler.java#L59) 
         * 对于其他 SQL，不会因为 SQL 错误不执行，会继续执行
         * 对于上层业务，不会因为 SQL 错误终止逻辑，会继续执行。这里有一点要注意下，上层业务不能对该 SQL 执行结果有强依赖，因为 SQL 错误需要重试达到数据最终一致性
         * 对于**最大努力型事务**( TCC暂未实现 )，会对执行错误的 SQL 进行重试
-   * 调用 `connection.setAutoCommit(true);`，设置执行自动提交。**使用最大努力型事务时，上层业务执行 SQL 会马上提交，即使调用  `Connection#rollback()` 也是无法回滚的，这点一定要注意。**
+
+    * 调用 `connection.setAutoCommit(true);`，设置执行自动提交。**使用最大努力型事务时，上层业务执行 SQL 会马上提交，即使调用  `Connection#rollback()` 也是无法回滚的，这点一定要注意。**
+   
 * `#end()`
 
     ```Java
@@ -241,23 +248,23 @@ AbstractSoftTransaction 实现了开启柔性事务、关闭柔性事务两个�
     * 结束柔性事务.
     */
     public final void end() throws SQLException {
-       if (connection != null) {
-           ExecutorExceptionHandler.setExceptionThrown(true);
-           connection.setAutoCommit(previousAutoCommit);
-           SoftTransactionManager.closeCurrentTransactionManager();
-       }
+      if (connection != null) {
+          ExecutorExceptionHandler.setExceptionThrown(true);
+          connection.setAutoCommit(previousAutoCommit);
+          SoftTransactionManager.closeCurrentTransactionManager();
+      }
     }
-    
+        
     // SoftTransactionManager.java
     /**
-     * 关闭当前的柔性事务管理器.
-     */
+    * 关闭当前的柔性事务管理器.
+    */
     static void closeCurrentTransactionManager() {
-        ExecutorDataMap.getDataMap().put(TRANSACTION, null);
-        ExecutorDataMap.getDataMap().put(TRANSACTION_CONFIG, null);
+       ExecutorDataMap.getDataMap().put(TRANSACTION, null);
+       ExecutorDataMap.getDataMap().put(TRANSACTION_CONFIG, null);
     }
     ```
-    
+
     * 事务结束后，一定要记得调用 `#end()` 清理线程变量。否则，下次请求使用到该线程，会继续在这个柔性事务内。
 
     
@@ -702,7 +709,7 @@ public class BestEffortsDeliveryJob extends AbstractIndividualThroughputDataFlow
 
 * 调用 `#fetchData()` 方法获取需要处理的事务日志 (TransactionLog)，内部调用了 `TransactionLogStorage#findEligibleTransactionLogs()` 方法
 * 调用 `#processData()` 方法处理事务日志，重试执行失败的 SQL，内部调用了 `TransactionLogStorage#processData()`
-* `#fetchData()` 和 `#processData()` 调用是 Elastic-Job 控制的。每一轮定时调度，只执行**一次**。当**超过**最大异步调用次数后，该条事务日志不再处理，所以**生产使用时，最好增加下相应监控**。
+* `#fetchData()` 和 `#processData()` 调用是 Elastic-Job 控制的。每一轮定时调度，**每条**事务日志只执行**一次**。当**超过**最大异步调用次数后，该条事务日志不再处理，所以**生产使用时，最好增加下相应监控超过最大异步重试次数的事务日志**。
 
 ## 6.2 AsyncSoftTransactionJobConfiguration
 
@@ -758,9 +765,20 @@ for (TransactionLog transactionLog : transactionLogs) {
 
 # 7. 适用场景
 
+TODO
+
 # 8. 开发指南 & 开发示例
 
 见[《官方文档 - 事务支持》](http://dangdangdotcom.github.io/sharding-jdbc/02-guide/transaction/)。
 
 # 666. 彩蛋
+
+哈哈哈
+
+算是坚持把这个系列写完了，给自己 32 個赞。
+
+满足！
+
+[《Elastic-Job 源码分析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg) 走起！不 High 不结束！
+
 
