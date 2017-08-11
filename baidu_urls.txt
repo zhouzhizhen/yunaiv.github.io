@@ -1,3 +1,4 @@
+http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/
 http://www.yunai.me/Sharding-JDBC/transaction-tcc/
 http://www.yunai.me/Sharding-JDBC/transaction-bed/
 http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/
