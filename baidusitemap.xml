@@ -5,7 +5,7 @@
     
   <url>
     <loc>http://www.yunai.me/Sharding-JDBC/transaction-bed/</loc>
-    <lastmod>2017-08-11T10:39:17.000Z</lastmod>
+    <lastmod>2017-08-11T13:10:33.000Z</lastmod>
     <data>
         <display>
         <title>Sharding-JDBC 源码分析 —— 分布式事务（一）之最大努力型</title>

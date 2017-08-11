@@ -510,11 +510,237 @@ public boolean processData(final Connection connection, final TransactionLog tra
 
 # 5. 最大努力送达型事务监听器
 
+最大努力送达型事务监听器，BestEffortsDeliveryListener，负责记录事务日志、同步重试执行失败 SQL。
+
+```Java
+// BestEffortsDeliveryListener.java
+@Subscribe
+@AllowConcurrentEvents
+public void listen(final DMLExecutionEvent event) {
+   if (!isProcessContinuously()) {
+       return;
+   }
+   SoftTransactionConfiguration transactionConfig = SoftTransactionManager.getCurrentTransactionConfiguration().get();
+   TransactionLogStorage transactionLogStorage = TransactionLogStorageFactory.createTransactionLogStorage(transactionConfig.buildTransactionLogDataSource());
+   BEDSoftTransaction bedSoftTransaction = (BEDSoftTransaction) SoftTransactionManager.getCurrentTransaction().get();
+   switch (event.getEventExecutionType()) {
+       case BEFORE_EXECUTE: // 执行前，插入事务日志
+           //TODO 对于批量执行的SQL需要解析成两层列表
+           transactionLogStorage.add(new TransactionLog(event.getId(), bedSoftTransaction.getTransactionId(), bedSoftTransaction.getTransactionType(), 
+                   event.getDataSource(), event.getSql(), event.getParameters(), System.currentTimeMillis(), 0));
+           return;
+       case EXECUTE_SUCCESS: // 执行成功，移除事务日志
+           transactionLogStorage.remove(event.getId());
+           return;
+       case EXECUTE_FAILURE: // 执行失败，同步重试
+           boolean deliverySuccess = false;
+           for (int i = 0; i < transactionConfig.getSyncMaxDeliveryTryTimes(); i++) { // 同步【多次】重试
+               if (deliverySuccess) {
+                   return;
+               }
+               boolean isNewConnection = false;
+               Connection conn = null;
+               PreparedStatement preparedStatement = null;
+               try {
+                   // 获得数据库连接
+                   conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.DML);
+                   if (!isValidConnection(conn)) { // 因为可能执行失败是数据库连接异常，所以判断一次，如果无效，重新获取数据库连接
+                       bedSoftTransaction.getConnection().release(conn);
+                       conn = bedSoftTransaction.getConnection().getConnection(event.getDataSource(), SQLType.DML);
+                       isNewConnection = true;
+                   }
+                   preparedStatement = conn.prepareStatement(event.getSql());
+                   // 同步重试
+                   //TODO 对于批量事件需要解析成两层列表
+                   for (int parameterIndex = 0; parameterIndex < event.getParameters().size(); parameterIndex++) {
+                       preparedStatement.setObject(parameterIndex + 1, event.getParameters().get(parameterIndex));
+                   }
+                   preparedStatement.executeUpdate();
+                   deliverySuccess = true;
+                   // 同步重试成功，移除事务日志
+                   transactionLogStorage.remove(event.getId());
+               } catch (final SQLException ex) {
+                   log.error(String.format("Delivery times %s error, max try times is %s", i + 1, transactionConfig.getSyncMaxDeliveryTryTimes()), ex);
+               } finally {
+                   close(isNewConnection, conn, preparedStatement);
+               }
+           }
+           return;
+       default: 
+           throw new UnsupportedOperationException(event.getEventExecutionType().toString());
+   }
+}
+```
+
+* BestEffortsDeliveryListener 通过 EventBus 实现监听 SQL 的执行。Sharding-JDBC 如何实现 EventBus 的，请看[《Sharding-JDBC 源码分析 —— SQL 执行》](http://www.yunai.me/Sharding-JDBC/sql-execute/?self)
+* 调用 `#isProcessContinuously()` 方法判断是否处于**最大努力送达型事务**中，当且仅当处于该状态才进行监听事件处理
+* SQL 执行**前**，插入事务日志
+* SQL 执行**成功**，移除事务日志
+* SQL 执行**失败**，根据柔性事务配置( SoftTransactionConfiguration )同步的事务送达的最大尝试次数( `syncMaxDeliveryTryTimes` )进行多次重试**直到成功**。总体逻辑和 `RdbTransactionLogStorage#processData()` 方法逻辑类似，区别在于**获取分片数据库连接**的特殊处理：此处调用失败，数据库连接可能是异常无效的，因此调用了 `#isValidConnection()` 判断连接的**有效性**。若无效，则重新获取分片数据库连接。另外，若是重新获取分片数据库连接，需要进行关闭释放 (`Connection#close()`)：
+
+    ```Java
+    // BestEffortsDeliveryListener.java
+    /**
+    * 通过 SELECT 1 校验数据库连接是否有效
+    *
+    * @param conn 数据库连接
+    * @return 是否有效
+    */
+    private boolean isValidConnection(final Connection conn) {
+       try (PreparedStatement preparedStatement = conn.prepareStatement("SELECT 1")) {
+           try (ResultSet rs = preparedStatement.executeQuery()) {
+               return rs.next() && 1 == rs.getInt("1");
+           }
+       } catch (final SQLException ex) {
+           return false;
+       }
+    }
+    
+    /**
+    * 关闭释放预编译SQL对象和数据库连接
+    *
+    * @param isNewConnection 是否新创建的数据库连接，是的情况下才释放
+    * @param conn 数据库连接
+    * @param preparedStatement 预编译SQL
+    */
+    private void close(final boolean isNewConnection, final Connection conn, final PreparedStatement preparedStatement) {
+       if (null != preparedStatement) {
+           try {
+               preparedStatement.close();
+           } catch (final SQLException ex) {
+               log.error("PreparedStatement closed error:", ex);
+           }
+       }
+       if (isNewConnection && null != conn) {
+           try {
+               conn.close();
+           } catch (final SQLException ex) {
+               log.error("Connection closed error:", ex);
+           }
+       }
+    }
+    ```
+
 # 6. 最大努力送达型异步作业
+
+当最大努力送达型事务监听器( BestEffortsDeliveryListener )**多次同步**重试失败后，交给**最大努力送达型异步作业**进行**多次异步**重试，并且多次执行有**固定间隔**。
+
+Sharding-JDBC 提供了两个最大努力送达型异步作业实现：
+
+* NestedBestEffortsDeliveryJob ：内嵌的最大努力送达型异步作业
+* BestEffortsDeliveryJob ：最大努力送达型异步作业
+
+两者实现代码逻辑**基本一致**。前者相比后者，用于开发测试，去除对 Zookeeper 依赖，无法实现**高可用**，因此**生产环境下不适合使用**。
+
+## 6.1 BestEffortsDeliveryJob
+
+BestEffortsDeliveryJob 所在 Maven 项目为 `sharding-jdbc-transaction-async-job`，基于当当开源的 [Elastic-Job](https://github.com/dangdangdotcom/elastic-job) 实现。如下是官方对该 Maven 项目的简要说明：
+
+> 由于柔性事务采用异步尝试，需要部署独立的作业和Zookeeper。sharding-jdbc-transaction采用elastic-job实现的sharding-jdbc-transaction-async-job，通过简单配置即可启动高可用作业异步送达柔性事务，启动脚本为start.sh。
+
+**BestEffortsDeliveryJob**
+
+```Java
+public class BestEffortsDeliveryJob extends AbstractIndividualThroughputDataFlowElasticJob<TransactionLog> {
+
+    /**
+     * 最大努力送达型异步作业配置对象
+     */
+    @Setter
+    private BestEffortsDeliveryConfiguration bedConfig;
+    /**
+     * 事务日志存储器对象
+     */
+    @Setter
+    private TransactionLogStorage transactionLogStorage;
+
+    @Override
+    public List<TransactionLog> fetchData(final JobExecutionMultipleShardingContext context) {
+        return transactionLogStorage.findEligibleTransactionLogs(context.getFetchDataCount(),
+            bedConfig.getJobConfig().getMaxDeliveryTryTimes(), bedConfig.getJobConfig().getMaxDeliveryTryDelayMillis());
+    }
+
+    @Override
+    public boolean processData(final JobExecutionMultipleShardingContext context, final TransactionLog data) {
+        try (
+            Connection conn = bedConfig.getTargetDataSource(data.getDataSource()).getConnection()) {
+            transactionLogStorage.processData(conn, data, bedConfig.getJobConfig().getMaxDeliveryTryTimes());
+        } catch (final SQLException | TransactionCompensationException ex) {
+            log.error(String.format("Async delivery times %s error, max try times is %s, exception is %s", data.getAsyncDeliveryTryTimes() + 1, 
+                bedConfig.getJobConfig().getMaxDeliveryTryTimes(), ex.getMessage()));
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean isStreamingProcess() {
+        return false;
+    }
+}
+```
+
+* 调用 `#fetchData()` 方法获取需要处理的事务日志 (TransactionLog)，内部调用了 `TransactionLogStorage#findEligibleTransactionLogs()` 方法
+* 调用 `#processData()` 方法处理事务日志，重试执行失败的 SQL，内部调用了 `TransactionLogStorage#processData()`
+* `#fetchData()` 和 `#processData()` 调用是 Elastic-Job 控制的。每一轮定时调度，只执行**一次**。当**超过**最大异步调用次数后，该条事务日志不再处理，所以**生产使用时，最好增加下相应监控**。
+
+## 6.2 AsyncSoftTransactionJobConfiguration
+
+AsyncSoftTransactionJobConfiguration，异步柔性事务作业配置对象。
+
+```Java
+public class AsyncSoftTransactionJobConfiguration {
+    
+    /**
+     * 作业名称.
+     */
+    private String name = "bestEffortsDeliveryJob";
+    
+    /**
+     * 触发作业的cron表达式.
+     */
+    private String cron = "0/5 * * * * ?";
+    
+    /**
+     * 每次作业获取的事务日志最大数量.
+     */
+    private int transactionLogFetchDataCount = 100;
+    
+    /**
+     * 事务送达的最大尝试次数.
+     */
+    private int maxDeliveryTryTimes = 3;
+    
+    /**
+     * 执行事务的延迟毫秒数.
+     *
+     * <p>早于此间隔时间的入库事务才会被作业执行.</p>
+     */
+    private long maxDeliveryTryDelayMillis = 60  * 1000L;
+}
+```
+
+## 6.3 Elastic-Job 是否必须？
+
+Sharding-JDBC 提供的最大努力送达型异步作业实现( BestEffortsDeliveryJob )，通过与 Elastic-Job 集成，可以很便捷并且有质量保证的**高可用**、**高性能**使用。一部分团队，可能已经引入或自研了类似 Elastic-Job 的分布式作业中间件解决方案，每多一个中间件，就是多一个学习与运维成本。那么是否可以使用自己的分布式作业解决方案？答案是，可以的。参考 BestEffortsDeliveryJob 的实现，通过调用 TransactionLogStorage 来实现：
+
+```Java
+// 伪代码(不考虑性能、异常)
+List<TransactionLog> transactionLogs = transactionLogStorage.findEligibleTransactionLogs(....);
+for (TransactionLog transactionLog : transactionLogs) {
+       transactionLogStorage.processData(conn, log, maxDeliveryTryTimes);
+}
+```
+
+当然，个人还是很推荐 Elastic-Job。  
+
+😈 **笔者要开始写[《Elastic-Job 源码分析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)**。
 
 # 7. 适用场景
 
 # 8. 开发指南 & 开发示例
+
+见[《官方文档 - 事务支持》](http://dangdangdotcom.github.io/sharding-jdbc/02-guide/transaction/)。
 
 # 666. 彩蛋
 
