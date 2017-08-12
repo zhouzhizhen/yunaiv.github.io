@@ -334,6 +334,13 @@ public interface ExecuteCallback<T> {
 ```
 
 * `synchronized (baseStatementUnit.getStatement().getConnection())` 原以为 Connection 非线程安全，因此需要用**同步**，后翻查资料[《数据库连接池为什么要建立多个连接》](http://blog.csdn.net/goldenfish1919/article/details/9089667)，Connection 是线程安全的。等跟张亮大神请教确认原因后，咱会进行更新。
+    * 解答：MySQL、Oracle 的 Connection 实现是线程安全的。数据库连接池实现的 Connection 不一定是线程安全，例如 Druid 的线程池 Connection 非线程安全
+
+    > FROM https://github.com/dangdangdotcom/sharding-jdbc/issues/166  
+    > druid的数据源的stat这种filter在并发使用同一个connection链接时没有考虑线程安全的问题，故造成多个线程修改filter中的状态异常。
+改造这个问题时，考虑到mysql驱动在执行statement时对同一个connection是线程安全的。也就是说同一个数据库链接的会话是串行执行的。故在sjdbc的executor对于多线程执行的情况也进行了针对数据库链接级别的同步。故该方案不会降低sjdbc的性能。
+同时jdk1.7版本的同步采用了锁升级技术，在碰撞较低的情况下开销也是很小的。
+      
 * ExecutionEvent 这里先不解释，在本文第四节【EventBus】分享。
 * ExecutorExceptionHandler、ExecutorDataMap 和 柔性事务 ( AbstractSoftTransaction )，放在[《柔性事务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)分享。
 

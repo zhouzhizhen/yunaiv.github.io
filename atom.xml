@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-11T14:24:18.000Z</updated>
+  <updated>2017-08-11T16:10:40.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/"/>
     <id>http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/</id>
     <published>2017-08-31T16:00:00.000Z</published>
-    <updated>2017-08-11T14:24:18.000Z</updated>
+    <updated>2017-08-11T16:10:40.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -59,6 +59,33 @@
 <li>[ ] 作业监听器</li>
 <li>[ ] 基于 Docker 的进程隔离（TBD）</li>
 <li>[ ] 高可用</li>
+</ul>
+<h2 id="XXL-JOB"><a href="#XXL-JOB" class="headerlink" title="XXL-JOB"></a>XXL-JOB</h2><p>基于 V1.8，会逐渐和 Elastic-Job 功能做对比</p>
+<ul>
+<li>[ ] 1、简单：支持通过Web页面对任务进行CRUD操作，操作简单，一分钟上手；</li>
+<li>[ ] 2、动态：支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，即时生效；</li>
+<li>[ ] 3、调度中心HA（中心式）：调度采用中心式设计，“调度中心”基于集群Quartz实现，可保证调度中心HA；</li>
+<li>[ ] 4、执行器HA（分布式）：任务分布式执行，任务”执行器”支持集群部署，可保证任务执行HA；</li>
+<li>[ ] 5、任务Failover：执行器集群部署时，任务路由策略选择”故障转移”情况下调度失败时将会平滑切换执行器进行Failover；</li>
+<li>[ ] 6、一致性：“调度中心”通过DB锁保证集群分布式调度的一致性, 一次任务调度只会触发一次执行；</li>
+<li>[ ] 7、自定义任务参数：支持在线配置调度任务入参，即时生效；</li>
+<li>[ ] 8、调度线程池：调度系统多线程触发调度运行，确保调度精确执行，不被堵塞；</li>
+<li>[ ] 9、弹性扩容缩容：一旦有新执行器机器上线或者下线，下次调度时将会重新分配任务；</li>
+<li>[ ] 10、邮件报警：任务失败时支持邮件报警，支持配置多邮件地址群发报警邮件；</li>
+<li>[ ] 11、状态监控：支持实时监控任务进度；</li>
+<li>[ ] 12、Rolling执行日志：支持在线查看调度结果，并且支持以Rolling方式实时查看执行器输出的完整的执行日志；</li>
+<li>[ ] 13、GLUE：提供Web IDE，支持在线开发任务逻辑代码，动态发布，实时编译生效，省略部署上线的过程。支持30个版本的历史版本回溯。</li>
+<li>[ ] 14、数据加密：调度中心和执行器之间的通讯进行数据加密，提升调度信息安全性；</li>
+<li>[ ] 15、任务依赖：支持配置子任务依赖，当父任务执行结束且执行成功后将会主动触发一次子任务的执行, 多个子任务用逗号分隔；</li>
+<li>[ ] 16、推送maven中央仓库: 将会把最新稳定版推送到maven中央仓库, 方便用户接入和使用;</li>
+<li>[ ] 17、任务注册: 执行器会周期性自动注册任务, 调度中心将会自动发现注册的任务并触发执行。同时，也支持手动录入执行器地址；</li>
+<li>[ ] 18、路由策略：执行器集群部署时提供丰富的路由策略，包括：第一个、最后一个、轮询、随机、一致性HASH、最不经常使用、最近最久未使用、故障转移、忙碌转移等；</li>
+<li>[ ] 19、运行报表：支持实时查看运行数据，如任务数量、调度次数、执行器数量等；以及调度报表，如调度日期分布图，调度成功分布图等；</li>
+<li>[ ] 20、脚本任务：支持以GLUE模式开发和运行脚本任务，包括Shell、Python等类型脚本;</li>
+<li>[ ] 21、阻塞处理策略：调度过于密集执行器来不及处理时的处理策略，策略包括：单机串行（默认）、丢弃后续调度、覆盖之前调度；</li>
+<li>[ ] 22、失败处理策略；调度失败时的处理策略，策略包括：失败告警（默认）、失败重试；</li>
+<li>[ ] 23、分片广播任务：执行器集群部署时，任务路由策略选择”分片广播”情况下，一次任务调度将会广播触发对应集群中所有执行器执行一次任务，同时传递分片参数；可根据分片参数开发分片任务；</li>
+<li>[ ] 24、动态分片：分片广播任务以执行器为维度进行分片，支持动态扩容执行器集群从而动态增加分片数量，协同进行业务处理；在进行大数据量业务操作时可显著提升任务处理能力和速度。</li>
 </ul>
 ]]></content>
     
@@ -119,7 +146,7 @@
     <link href="http://www.yunai.me/Sharding-JDBC/transaction-bed/"/>
     <id>http://www.yunai.me/Sharding-JDBC/transaction-bed/</id>
     <published>2017-08-19T16:00:00.000Z</published>
-    <updated>2017-08-11T15:45:06.000Z</updated>
+    <updated>2017-08-11T17:22:58.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -298,14 +325,15 @@
 </tr>
 <tr>
 <td>data_source</td>
-<td>数据源名</td>
+<td>真实数据源名</td>
 <td>VARCHAR(255)</td>
 <td></td>
 </tr>
 <tr>
 <td>sql</td>
-<td>SQL</td>
+<td>执行 SQL</td>
 <td>TEXT</td>
+<td>已经改写过的 SQL</td>
 </tr>
 <tr>
 <td>parameters</td>
@@ -919,7 +947,7 @@
     <link href="http://www.yunai.me/Sharding-JDBC/sql-execute/"/>
     <id>http://www.yunai.me/Sharding-JDBC/sql-execute/</id>
     <published>2017-08-13T16:00:00.000Z</published>
-    <updated>2017-08-10T17:26:08.000Z</updated>
+    <updated>2017-08-12T07:21:22.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -1029,8 +1057,17 @@
 </ul>
 <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ExecuteCallback</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 执行任务.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@param</span> baseStatementUnit 语句对象执行单元</div><div class="line">     * <span class="doctag">@return</span> 处理结果</div><div class="line">     * <span class="doctag">@throws</span> Exception 执行期异常</div><div class="line">     */</div><div class="line">    <span class="function">T <span class="title">execute</span><span class="params">(BaseStatementUnit baseStatementUnit)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
-<li><code>synchronized (baseStatementUnit.getStatement().getConnection())</code> 原以为 Connection 非线程安全，因此需要用<strong>同步</strong>，后翻查资料<a href="http://blog.csdn.net/goldenfish1919/article/details/9089667" rel="external nofollow noopener noreferrer" target="_blank">《数据库连接池为什么要建立多个连接》</a>，Connection 是线程安全的。等跟张亮大神请教确认原因后，咱会进行更新。</li>
-<li>ExecutionEvent 这里先不解释，在本文第四节【EventBus】分享。</li>
+<li><p><code>synchronized (baseStatementUnit.getStatement().getConnection())</code> 原以为 Connection 非线程安全，因此需要用<strong>同步</strong>，后翻查资料<a href="http://blog.csdn.net/goldenfish1919/article/details/9089667" rel="external nofollow noopener noreferrer" target="_blank">《数据库连接池为什么要建立多个连接》</a>，Connection 是线程安全的。等跟张亮大神请教确认原因后，咱会进行更新。</p>
+<ul>
+<li><p>解答：MySQL、Oracle 的 Connection 实现是线程安全的。数据库连接池实现的 Connection 不一定是线程安全，例如 Druid 的线程池 Connection 非线程安全</p>
+<blockquote>
+<p>FROM <a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/166" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/dangdangdotcom/sharding-jdbc/issues/166</a><br>druid的数据源的stat这种filter在并发使用同一个connection链接时没有考虑线程安全的问题，故造成多个线程修改filter中的状态异常。<br>改造这个问题时，考虑到mysql驱动在执行statement时对同一个connection是线程安全的。也就是说同一个数据库链接的会话是串行执行的。故在sjdbc的executor对于多线程执行的情况也进行了针对数据库链接级别的同步。故该方案不会降低sjdbc的性能。<br>同时jdk1.7版本的同步采用了锁升级技术，在碰撞较低的情况下开销也是很小的。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>ExecutionEvent 这里先不解释，在本文第四节【EventBus】分享。</p>
+</li>
 <li>ExecutorExceptionHandler、ExecutorDataMap 和 柔性事务 ( AbstractSoftTransaction )，放在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《柔性事务》</a>分享。</li>
 </ul>
 <h1 id="3-Executor"><a href="#3-Executor" class="headerlink" title="3. Executor"></a>3. Executor</h1><p>Executor，执行器，目前一共有三个执行器。不同的执行器对应不同的执行单元 (BaseStatementUnit)。</p>

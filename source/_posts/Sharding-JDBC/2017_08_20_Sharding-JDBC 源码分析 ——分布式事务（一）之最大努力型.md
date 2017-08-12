@@ -411,8 +411,8 @@ TransactionLog (transaction_log) 数据库表结构如下：
 | --- | --- | --- | --- |
 | id | 事件编号 | VARCHAR(40) | EventBus 事件编号，**非事务编号** |
 | transaction_type | 柔性事务类型 | VARCHAR(30) |
-| data_source | 数据源名 | VARCHAR(255) |  |
-| sql | SQL | TEXT |
+| data_source | 真实数据源名 | VARCHAR(255) |  |
+| sql | 执行 SQL | TEXT | 已经改写过的 SQL |
 | parameters | 占位符参数 | TEXT | JSON 字符串存储 |
 | creation_time | 记录时间 | LONG |
 | async_delivery_try_times | 已异步重试次数 | INT |
