@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-execute/</loc>
+    <loc>http://www.yunai.me/Sharding-JDBC/transaction-bed/</loc>
     
-    <lastmod>2017-08-12T07:21:22.000Z</lastmod>
+    <lastmod>2017-08-12T10:48:17.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/transaction-bed/</loc>
+    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
     
-    <lastmod>2017-08-11T17:22:58.000Z</lastmod>
+    <lastmod>2017-08-12T08:59:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-execute/</loc>
+    
+    <lastmod>2017-08-12T07:21:22.000Z</lastmod>
     
   </url>
   
@@ -26,13 +33,6 @@
     <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-7/</loc>
     
     <lastmod>2017-08-11T15:49:01.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
-    
-    <lastmod>2017-08-10T17:26:17.000Z</lastmod>
     
   </url>
   

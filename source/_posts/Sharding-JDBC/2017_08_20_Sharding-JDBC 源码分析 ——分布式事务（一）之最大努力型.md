@@ -403,9 +403,9 @@ public void add(final TransactionLog transactionLog) {
 }
 ```
 
+* **注意**：如果插入事务日志**失败**，SQL 会继续执行，如果此时 SQL 执行失败，则该 SQL 会不见了。建议：`#add()` 和下文的 `#remove()` 异常时，都打印下异常日志都文件系统
+
 TransactionLog (transaction_log) 数据库表结构如下：
-
-
 
 | 字段 | 名字 | 数据库类型 | 备注 |
 | --- | --- | --- | --- |
@@ -417,7 +417,6 @@ TransactionLog (transaction_log) 数据库表结构如下：
 | creation_time | 记录时间 | LONG |
 | async_delivery_try_times | 已异步重试次数 | INT |
 
-// TODO 插入失败，是不是死循环了。
 
 ## 4.2 #remove()
 
@@ -763,9 +762,13 @@ for (TransactionLog transactionLog : transactionLogs) {
 
 😈 **笔者要开始写[《Elastic-Job 源码分析》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)**。
 
+-------
+
+另外，如果有支持**事务消息**的分布式队列系统，可以通过 TransactionLogStorage 实现存储事务消息存储成消息。为什么要支持**事务消息**？如果 SQL 执行是成功的，需要回滚（删除）事务消息。
+
 # 7. 适用场景
 
-TODO
+见[《官方文档 - 事务支持》](http://dangdangdotcom.github.io/sharding-jdbc/02-guide/transaction/)。
 
 # 8. 开发指南 & 开发示例
 

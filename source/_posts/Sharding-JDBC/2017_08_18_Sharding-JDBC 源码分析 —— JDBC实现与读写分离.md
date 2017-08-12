@@ -321,6 +321,24 @@ public final void rollback() throws SQLException {
 
 * `#commit()`、`#rollback()` 调用时，实际调用其所持有的 Connection 的方法
 * 异常情况下，`#commit()` 和 `#rollback()` 处理方式不同，笔者暂时不知道答案，求证后会进行更新 
+    * `#commit()` 处理方式需要改成和 `#rollback()` 一样。代码如下：
+
+    ```Java
+    @Override
+    public final void commit() throws SQLException {
+       Collection<SQLException> exceptions = new LinkedList<>();
+       for (Connection each : getConnections()) {
+           try {
+               each.commit();
+           } catch (final SQLException ex) {
+               exceptions.add(ex);
+           }
+       }
+       throwSQLExceptionIfNecessary(exceptions);
+    }
+    ```
+
+事务级别和是否只读相关代码如下：
 
 ```Java
 /**
