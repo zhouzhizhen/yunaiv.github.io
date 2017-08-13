@@ -163,5 +163,52 @@ $(document).ready(function(){
 </script>
 <% } %>
 
+
+<!--<link rel="stylesheet" href="<%- config.root %>alert/css/common.css">-->
+<!--<link rel="stylesheet" href="<%- config.root %>alert/js/SyntaxHighlighter/shCoreDefault.css">-->
+<link rel="stylesheet" href="<%- config.root %>alert/css/alert.css">
+<!--<link rel="stylesheet" href="<%- config.root %>alert/css/style.css">-->
+<!--<script src="<%- config.root %>alert/js/SyntaxHighlighter/shCore.js"></script>-->
+<!--<script src="<%- config.root %>alert/js/SyntaxHighlighter/makeSy.js"></script>-->
+<script src="<%- config.root %>alert/js/alert.js"></script>
+<!--<script src="<%- config.root %>alert/js/alert-api.js"></script>-->
+
+<script src="<%- config.root %>js/jquery.cookie.js"></script>
+
+<script>
+
+    $(document).ready(function(){
+//        alert('啦啦啦');
+
+//        debugger;
+        var key = 'doubi';
+        var count = $.cookie(key);
+        if (!count) {
+            $.cookie(key, 0, { expires: 1 });
+            count = 0;
+        } else {
+            count = parseInt(count);
+        }
+        if (count <= 3) {
+            function explode(){
+                var doubi = jqueryAlert({
+                    'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
+                    'width'   : '500',
+                    'height'  : '500',
+                    'modal': true,
+                    'content' : '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />',
+                    'buttons' :{
+                        '已关注，关闭窗口' : function(){
+                            doubi.close();
+                        }
+                    }
+                });
+                $.cookie(key, count + 1, { expires: 1 });
+            }
+            setTimeout(explode, ( count + 1 ) * 10000);
+        }
+    })
+</script>
+
 <%- partial('baidu_analytics') %>
 <%- partial('google_analytics') %>
