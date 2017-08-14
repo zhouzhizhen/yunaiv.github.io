@@ -189,14 +189,17 @@ $(document).ready(function(){
         } else {
             count = parseInt(count);
         }
+//        count = 1;
         if (count <= 3) {
+            var hour = new Date().getHours();
+            var numbers = 20 + hour * 5;
             function explode(){
                 var doubi = jqueryAlert({
                     'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
                     'width'   : '500',
                     'height'  : '500',
                     'modal': true,
-                    'content' : '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />',
+                    'content' : '<p style="color: red">今日已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />',
                     'buttons' :{
                         '已关注，关闭窗口' : function(){
                             doubi.close();
