@@ -184,7 +184,7 @@ $(document).ready(function(){
         var key = 'doubi';
         var count = $.cookie(key);
         if (!count) {
-            $.cookie(key, 0, { expires: 1 });
+            $.cookie(key, 0, { expires: 1, path: '/' });
             count = 0;
         } else {
             count = parseInt(count);
@@ -206,7 +206,7 @@ $(document).ready(function(){
                         }
                     }
                 });
-                $.cookie(key, count + 1, { expires: 1 });
+                $.cookie(key, count + 1, { expires: 1 , path: '/'});
             }
             setTimeout(explode, ( count + 1 ) * 10000);
         }
