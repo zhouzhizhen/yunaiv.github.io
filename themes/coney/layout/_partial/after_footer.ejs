@@ -115,10 +115,10 @@ $(document).ready(function(){
     ds.type = 'text/javascript';ds.async = true;
     ds.src = '//static.duoshuo.com/embed.js';
     ds.charset = 'UTF-8';
-    (document.getElementsByTagName('head')[0] 
+    (document.getElementsByTagName('head')[0]
     || document.getElementsByTagName('body')[0]).appendChild(ds);
   })();
-</script> 
+</script>
 <% } %>
 
 <% if (page.layout=='tags'||page.layout=='categories'){ %>
@@ -163,16 +163,8 @@ $(document).ready(function(){
 </script>
 <% } %>
 
-
-<!--<link rel="stylesheet" href="<%- config.root %>alert/css/common.css">-->
-<!--<link rel="stylesheet" href="<%- config.root %>alert/js/SyntaxHighlighter/shCoreDefault.css">-->
 <link rel="stylesheet" href="<%- config.root %>alert/css/alert.css">
-<!--<link rel="stylesheet" href="<%- config.root %>alert/css/style.css">-->
-<!--<script src="<%- config.root %>alert/js/SyntaxHighlighter/shCore.js"></script>-->
-<!--<script src="<%- config.root %>alert/js/SyntaxHighlighter/makeSy.js"></script>-->
 <script src="<%- config.root %>alert/js/alert.js"></script>
-<!--<script src="<%- config.root %>alert/js/alert-api.js"></script>-->
-
 <script src="<%- config.root %>js/jquery.cookie.js"></script>
 
 <script>
@@ -190,47 +182,31 @@ $(document).ready(function(){
         }
 
         var from = 'default';
-        if (location.search.indexOf('juejin') >= 0) {
-            from = 'juejin';
-        } else if (location.search.indexOf('oschina') >= 0) {
-            from = 'oschina';
-        } else if (location.search.indexOf('sjdbc') >= 0) {
-            from = 'sjdbc';
-        } else if (location.search.indexOf('jianshu') >= 0) {
-            from = 'jianshu';
-        } else if (location.search.indexOf('oschina') >= 0) {
-            from = 'oschina';
-        } else if (location.search.indexOf('csdn') >= 0) {
-            from = 'csdn';
+        var map = {
+            'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
+            'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
+        };
+        for (var key in map) {
+            if (location.search.indexOf(key) >= 0) {
+                from = key;
+                break;
+            }
         }
-        if (from === 'default' && $.cookie('from')) {
-            from = $.cookie('from');
+        if (from === 'default') {
+            from = $.cookie('from') || 'default';
         }
         $.cookie('from', from, { expires: 365, path: '/' });
+        var prefix = '';
+        var prefix2 = '';
+        if (from && map[from]) {
+            prefix = '<p style="color: red">欢迎来自【' + map[from] + '】的同学</p>';
+            prefix2 = '【' +  map[from] + '】';
+        }
 //        count = 1;
         if (count <= 3) {
             var hour = new Date().getHours();
             var numbers = 103 + hour * 5;
-            function explode(){
-
-                var prefix = '';
-                var prefix2 = '';
-                if (from === 'juejin') {
-                    prefix = '<p style="color: red">欢迎来自【掘金】的同学</p>';
-                    prefix2 = '【掘金】';
-                } else if (from === 'oschina') {
-                    prefix = '<p style="color: red">欢迎来自【开源中国】的同学</p>';
-                    prefix2 = '【开源中国】';
-                } else if (from === 'sjdbc') {
-                    prefix = '<p style="color: red">欢迎来自【Sharding-JDBC】的同学</p>';
-                    prefix2 = '【Sharding-JDBC】';
-                } else if (from === 'jianshu') {
-                    prefix = '<p style="color: red">欢迎来自【简书】的同学</p>';
-                    prefix2 = '【简书】';
-                } else if (from === 'csdn') {
-                    prefix = '<p style="color: red">欢迎来自【CSDN】的同学</p>';
-                    prefix2 = '【CSDN】';
-                }
+            function explode() {
 
                 var doubi = jqueryAlert({
                     'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
@@ -246,10 +222,9 @@ $(document).ready(function(){
                 });
                 $.cookie(key, count + 1, { expires: 1 , path: '/'});
             }
-            setTimeout(explode, ( count + 1 ) * 1000);
+            setTimeout(explode, ( count + 1 ) * 10000);
         }
     })
 </script>
 
 <%- partial('baidu_analytics') %>
-<%- partial('google_analytics') %>
