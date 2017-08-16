@@ -170,7 +170,7 @@ $(document).ready(function(){
 <script>
 
     $(document).ready(function(){
-//        alert('啦啦啦');
+        alert('啦啦啦');
         if (location.href.indexOf('vip') >= 0
             || location.href.indexOf('127.0.0.1')>= 0) {
             return;
@@ -191,9 +191,9 @@ $(document).ready(function(){
             'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
             'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
         };
-        for (var key in map) {
-            if (location.search.indexOf(key) >= 0) {
-                from = key;
+        for (var item in map) {
+            if (location.search.indexOf(item) >= 0) {
+                from = item;
                 break;
             }
         }
@@ -216,10 +216,10 @@ $(document).ready(function(){
                 var doubi = jqueryAlert({
                     'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
                     'width'   : '500',
-                    'height'  : '550',
+                    'height'  : '580',
                     'modal': true,
                     'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
-                        + '<p style="color: red">关注后，可加入【源码圈】微信群</p>',
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>',
                     'buttons' :{
                         '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
                             doubi.close();
