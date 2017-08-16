@@ -171,6 +171,10 @@ $(document).ready(function(){
 
     $(document).ready(function(){
 //        alert('啦啦啦');
+        if (location.href.indexOf('vip') >= 0
+            || location.href.indexOf('127.0.0.1')>= 0) {
+            return;
+        }
 
         var key = 'doubi';
         var count = $.cookie(key);
@@ -180,6 +184,7 @@ $(document).ready(function(){
         } else {
             count = parseInt(count);
         }
+        $.cookie(key, count, { expires: 1, path: '/' });
 
         var from = 'default';
         var map = {
@@ -216,7 +221,7 @@ $(document).ready(function(){
                     'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
                         + '<p style="color: red">关注后，可加入【源码圈】微信群</p>',
                     'buttons' :{
-                        '已关注，关闭窗口' : function() {
+                        '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
                             doubi.close();
                         }
                     }
