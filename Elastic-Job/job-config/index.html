@@ -217,7 +217,7 @@
   </p>
   <p class="article-time">
     <!--<time datetime="2017-09-08T16:00:00.000Z" itemprop="datePublished">2017-09-09</time>-->
-    <!--更新日期:<time datetime="2017-08-20T14:21:06.000Z" itemprop="dateModified">2017-08-20</time>-->
+    <!--更新日期:<time datetime="2017-08-20T15:59:08.000Z" itemprop="dateModified">2017-08-20</time>-->
     <!---->
       总阅读量:<span id="busuanzi_value_page_pv"></span>次
   </p>
@@ -446,16 +446,16 @@
 </blockquote>
 </li>
 <li>
-<p><code>failover</code>：是否开启任务执行失效转移。<strong>开启表示如果作业在一次任务执行中途宕机，允许将该次未完成的任务在另一作业节点上补偿执行</strong>。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务失效转移 》</a>详细分享。</p>
+<p><code>failover</code>：是否开启作业执行失效转移。<strong>开启表示如果作业在一次作业执行中途宕机，允许将该次未完成的作业在另一作业节点上补偿执行</strong>。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业失效转移 》</a>详细分享。</p>
 </li>
 <li>
-<p><code>misfire</code>：是否开启错过任务重新执行。默认为 <code>true</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务执行 》</a>详细分享。</p>
+<p><code>misfire</code>：是否开启错过作业重新执行。默认为 <code>true</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业执行 》</a>详细分享。</p>
 </li>
 <li>
 <p><code>description</code>：作业描述。选填。</p>
 </li>
 <li>
-<p><code>jobProperties</code>：作业属性配置。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务执行 》</a>详细分享。</p>
+<p><code>jobProperties</code>：作业属性配置。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业执行 》</a>详细分享。</p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobProperties</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> EnumMap&lt;JobPropertiesEnum, String&gt; map = <span class="keyword">new</span> EnumMap&lt;&gt;(JobPropertiesEnum.class);</div><div class="line">    </div><div class="line">   <span class="keyword">public</span> <span class="keyword">enum</span> JobPropertiesEnum &#123;</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 作业异常处理器.</div><div class="line">         */</div><div class="line">        JOB_EXCEPTION_HANDLER(<span class="string">"job_exception_handler"</span>, JobExceptionHandler.class, DefaultJobExceptionHandler.class.getCanonicalName()),</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 线程池服务处理器.</div><div class="line">         */</div><div class="line">        EXECUTOR_SERVICE_HANDLER(<span class="string">"executor_service_handler"</span>, ExecutorServiceHandler.class, DefaultExecutorServiceHandler.class.getCanonicalName());</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String key;</div><div class="line">    </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;?&gt; classType;</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String defaultValue;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li><code>JOB_EXCEPTION_HANDLER</code>：用于扩展<strong>异常处理</strong>类。</li>
@@ -525,10 +525,10 @@
 <nav class="article-nav clearfix">
  
  <div class="prev">
- <a href="/Elastic-Job/job-init/" title="Elastic-Job 源码分析 —— 作业初始化">
+ <a href="/Elastic-Job/job-init/" title="Elastic-Job-Lite 源码分析 —— 作业初始化">
   <strong>PREVIOUS:</strong><br>
   <span>
-  Elastic-Job 源码分析 —— 作业初始化</span>
+  Elastic-Job-Lite 源码分析 —— 作业初始化</span>
 </a>
 </div>
 

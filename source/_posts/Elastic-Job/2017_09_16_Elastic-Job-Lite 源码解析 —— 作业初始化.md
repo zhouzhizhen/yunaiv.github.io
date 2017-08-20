@@ -1,4 +1,4 @@
-title: Elastic-Job 源码分析 —— 作业初始化
+title: Elastic-Job-Lite 源码分析 —— 作业初始化
 date: 2017-09-16
 tags:
 categories: Elastic-Job
@@ -19,7 +19,15 @@ permalink: Elastic-Job/job-init
 
 # 1. 概述
 
-# 4. 作业注册表
+本文主要分享 **Elastic-Job-Lite 作业初始化**。
+
+涉及到主要类的类图如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_09_09/16.png) )：
+
+![](http://www.yunai.me/images/Elastic-Job/2017_09_16/01.png)
+
+
+
+# 2. 作业注册表
 
 作业注册表( JobRegistry )，维护了单个 Elastic-Job-Lite **进程内**作业相关信息，可以理解成其专属的 Spring IOC 容器。因此，其本身是一个**单例**。
 
@@ -79,11 +87,11 @@ public final class JobRegistry {
 * Map集合属性**全部**以**作业名称**作为 KEY，通过作业名称，可以获得作业相关信息。
 * 省略的方法，下文在实际调用时，进行解析。
 
-# 5. 作业调度器
+# 3. 作业调度器
 
 作业调度器( JobScheduler )，创建并初始化后，进行作业调度。
 
-## 5.1 创建
+## 3.1 创建
 
 ```Java
 public class JobScheduler {
@@ -149,9 +157,8 @@ public class JobScheduler {
     public void addJobInstance(final String jobName, final JobInstance jobInstance) {
        jobInstanceMap.put(jobName, jobInstance);
     }
-    ```
     
-    ```Java
+    // JobInstance.java
     public final class JobInstance {
     
         private static final String DELIMITER = "@-@";
@@ -166,11 +173,12 @@ public class JobScheduler {
                     + DELIMITER
                     + ManagementFactory.getRuntimeMXBean().getName().split("@")[0]; // PID
         }
-        
+    
     }
     ```
     * `jobInstanceId` 格式：`${IP}@-@${PID}`。其中 `PID` 为进程编号。同一个 Elastic-Job-Lite 实例，**不同**的作业使用**相同**的作业实例主键。
-    * 设置作业监听器，在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    
+* 设置作业监听器，在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 * SchedulerFacade，为**调度器**提供内部服务的门面类。
 
     ```Java
@@ -267,7 +275,7 @@ public class JobScheduler {
 
 SchedulerFacade 和 LiteJobFacade，看起来很相近，实际差别很大。它们分别为调度器、作业提供需要的方法。下文也会体现这一特点。
 
-## 5.2 初始化
+## 3.2 初始化
 
 作业调度器创建后，调用 `#init()` 方法初始化，作业方**开始**调度。
 
@@ -292,7 +300,7 @@ public void init() {
 }
 ```
 
-### 5.2.1 更新作业配置
+### 3.2.1 更新作业配置
 
 ```Java
 // SchedulerFacade.java
@@ -312,7 +320,7 @@ public LiteJobConfiguration updateJobConfiguration(final LiteJobConfiguration li
 
 * 从「3.3 持久化作业配置」，调用 `ConfigService#persist(...)` 方法也不一定会更新作业配置，因此调用 `ConfigService#load(...)` 方法返回的可能是本地的作业配置，也可能是远程的作业配置。
 
-### 5.2.2 设置当前作业分片总数
+### 3.2.2 设置当前作业分片总数
 
 ```Java
 // JobRegistry.java
@@ -328,7 +336,7 @@ public void setCurrentShardingTotalCount(final String jobName, final int current
 }
 ```
 
-### 5.2.3 创建作业调度控制器
+### 3.2.3 创建作业调度控制器
 
 ```Java
 public void init() {
@@ -398,10 +406,10 @@ public void init() {
        return result;
     }
     ```
-    
-    * `org.quartz.threadPool.threadCount = 1`，即 Quartz 执行任务线程数量为 1。原因：一个**作业( ElasticJob )**的调度，需要配置**独有**的一个**作业调度器( JobScheduler )**，两者是 `1 : 1` 的关系。
+    * `org.quartz.threadPool.threadCount = 1`，即 Quartz 执行作业线程数量为 1。原因：一个**作业( ElasticJob )**的调度，需要配置**独有**的一个**作业调度器( JobScheduler )**，两者是 `1 : 1` 的关系。
     * `org.quartz.plugin.shutdownhook.class` 设置作业**优雅关闭**钩子：[JobShutdownHookPlugin](https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-lite/elastic-job-lite-core/src/main/java/com/dangdang/ddframe/job/lite/internal/schedule/JobShutdownHookPlugin.java)。
     * 触发器监听器( TriggerListener )，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    
 * 调用 `#createJobDetail()` 方法创建 Quartz 作业：
 
     ```Java
@@ -435,12 +443,11 @@ public void init() {
        return Optional.fromNullable(elasticJob);
     }
     ```
-    
     * 创建 Quartz 作业设置了 LiteJob 类，这样 Quartz 触发作业执行时，LiteJob 会去调用 Elastic-Job 作业对象。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
     * 在 Spring 里，Elastic-Job 如果已经创建好**注入**到 SpringJobScheduler，无需进行创建。
     * `Jodetail.jobDataMap` 属性里添加了作业门面对象( LiteJobFacade )、Elastic-Job 对象，Quartz  触发作业时，会设置到 LiteJob 对象里。
 
-### 5.2.4 注册作业启动信息
+### 3.2.4 注册作业启动信息
 
 ```Java
 /**
@@ -470,13 +477,42 @@ public void registerStartUpInfo(final boolean enabled) {
 
 * 开启所有监听器。每个功能模块都有其相应的监听器，在[模块对应「文章」](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 * 选举主节点，在[《Elastic-Job-Lite 源码解析 —— 主从选举》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
-* 调用 `ServerService#persistOnline()` 方法，持久化作业服务器上线信息。TODO
-* 调用 `InstanceService#persistOnline()` 方法，持久化作业运行实例上线相关信息：TODO
-* 设置需要重新分片的标记，在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
-* 初始化作业监听服务，在[《Elastic-Job-Lite 源码解析 —— 任务监控服务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
-* 初始化调解作业不一致状态服务，在[《Elastic-Job-Lite 源码解析 —— 任务不一致修复》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 调用 `ServerService#persistOnline()` 方法，持久化作业服务器上线信息。
 
-### 5.2.5 调度作业
+    ```Java
+    public final class ServerService {
+        /**
+         * 持久化作业服务器上线信息.
+         * 
+         * @param enabled 作业是否启用
+         */
+        public void persistOnline(final boolean enabled) {
+            if (!JobRegistry.getInstance().isShutdown(jobName)) {
+                jobNodeStorage.fillJobNode(serverNode.getServerNode(JobRegistry.getInstance().getJobInstance(jobName).getIp()), enabled ? "" : ServerStatus.DISABLED.name());
+            }
+        }
+    }
+    ```
+    * 当作业配置设置作业**禁用**时( `LiteJobConfiguration.disabled = true` )，作业调度但**调度作业分片为空**。不太好理解？[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+
+* 调用 `InstanceService#persistOnline()` 方法，持久化作业运行实例上线相关信息：
+
+    ```Java
+    public final class InstanceService {
+        /**
+         * 持久化作业运行实例上线相关信息.
+         */
+        public void persistOnline() {
+            jobNodeStorage.fillEphemeralJobNode(instanceNode.getLocalInstanceNode(), "");
+        }
+    }
+    ```
+
+* 设置需要重新分片的标记，在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 初始化作业监听服务，在[《Elastic-Job-Lite 源码解析 —— 作业监控服务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 初始化调解作业不一致状态服务，在[《Elastic-Job-Lite 源码解析 —— 作业不一致修复》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+
+### 3.2.5 调度作业
 
 ```Java
 // JobScheduler.java
@@ -507,4 +543,10 @@ public void scheduleJob(final String cron) {
 * 调用 `#scheduleJob()` 方法后，该 Elastic-Job 作业**开始**被调度。
 
 # 666. 彩蛋
+
+作业初始化，如果你对 Quartz 不是特别了解，可以再看 Quartz 再重新理解。
+
+下一篇，[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg) 起航！
+
+道友，分享一波**微信朋友圈**支持支持支持，可好？
 
