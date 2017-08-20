@@ -1,10 +1,12 @@
-title: Elastic-Job 源码分析 —— 作业配置
+title: Elastic-Job-Lite 源码分析 —— 作业配置
 date: 2017-09-09
 tags:
 categories: Elastic-Job
 permalink: Elastic-Job/job-config
 
 -------
+
+**本文基于 Elastic-Job V2.1.5 版本分享**
 
 - [1. 概述](#)
 - [2. 作业配置](#)
@@ -67,7 +69,7 @@ permalink: Elastic-Job/job-config
 
 Elastic-Job 抽象了**注册中心接口( RegistryCenter )**，并提供了默认**基于 Zookeeper 的注册中心实现( ZookeeperRegistryCenter )**。
 
-ZookeeperRegistryCenter 对应配置类为 ZookeeperConfiguration。该类注释很完成，可以点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/reg/zookeeper/ZookeeperConfiguration.java)直接查看源码，这里我们重点说下 `namespace` 属性。如果你有多个**不同** Elastic-Job集群 时，使用相同 Zookeeper，可以配置不同的 `namespace` 进行隔离。
+ZookeeperRegistryCenter 对应配置类为 ZookeeperConfiguration。该类注释很完整，可以点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/reg/zookeeper/ZookeeperConfiguration.java)直接查看源码，这里我们重点说下 `namespace` 属性。如果你有多个**不同** Elastic-Job集群 时，使用相同 Zookeeper，可以配置不同的 `namespace` 进行隔离。
 
 注册中心的**初始化**，我们会在[《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
@@ -136,7 +138,7 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
 | :--- | :--- | :--- | :--- | :--- |
 | `coreConfig` | √ | √ | √ | 作业核心配置 |
 | `jobType` | JobType.SIMPLE | JobType.DATAFLOW | JobType.SCRIPT | 作业类型 |
-| `jobClass` | √ | √ | √<br />(默认：ScriptJob.class) | 作业实现类全路径 |
+| `jobClass` | √ | √ | √ (默认：ScriptJob.class) | 作业实现类全路径 |
 | `streamingProcess` | | √ | | 是否流式处理数据 |
 | `scriptCommandLine` | | | √ | 脚本型作业执行命令行 |
 
