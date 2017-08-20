@@ -36,8 +36,7 @@ gulp.task("tinypng", function () {
     gulp.src(datas.image).pipe(tinypng({
         key: 'Wfz4fyNBcSJQErzUiVcski2K6mt3_KvO',
         sigFile: './images/.tinypng-sigs',
-        log: true,
-        sameDest: true
+        log: true
     })).pipe(gulp.dest(buildDir));
 });
 
@@ -55,11 +54,11 @@ gulp.task("cssmin", function () {
     gulp.src(datas.css).pipe(csso()).pipe(gulp.dest(buildDir));
 });
 
-// gulp.task("default", ["htmlmin", "imagemin", "jsmin", "cssmin"]);
+gulp.task("default", ["htmlmin", "imagemin", "jsmin", "cssmin"]);
 
 // gulp.task("default", ["htmlmin", "jsmin", "cssmin"]);
-// gulp.task("default", ["tinypng"]);
-gulp.task("default", ["tiny"]);
+//gulp.task("default", ["tinypng"]);
+// gulp.task("default", ["tiny"]);
 
 //gulp.task("default", ["imagemin", "jsmin"]); // TODO htmlmin 报错
 // gulp.task("default", ["htmlmin", "jsmin"]);

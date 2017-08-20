@@ -144,9 +144,34 @@
     <link href="http://www.yunai.me/Elastic-Job/job-config/"/>
     <id>http://www.yunai.me/Elastic-Job/job-config/</id>
     <published>2017-09-08T16:00:00.000Z</published>
-    <updated>2017-08-20T04:00:34.000Z</updated>
+    <updated>2017-08-20T12:16:52.000Z</updated>
     
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+    <content type="html"><![CDATA[<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. 作业配置</a>
+<ul>
+<li><a href="#">2.1 注册中心配置</a></li>
+<li><a href="#">2.2 Lite作业配置</a>
+<ul>
+<li><a href="#">2.2.1 作业类型配置</a></li>
+<li><a href="#">2.2.2 作业核心配置</a></li>
+</ul>
+</li>
+<li><a href="#">2.3 作业事件配置</a></li>
+<li><a href="#">2.4 作业监听器</a></li>
+</ul>
+</li>
+<li><a href="#">3. 作业配置服务</a>
+<ul>
+<li><a href="#">3.1 读取作业配置</a></li>
+<li><a href="#">3.2 持久化作业配置</a></li>
+<li><a href="#">3.3 校验本机时间是否合法</a></li>
+</ul>
+</li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
 <p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
 <ol>
@@ -159,14 +184,30 @@
 </blockquote>
 <hr>
 <h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 作业配置</strong>。</p>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_09_09/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_09_09/01.png" alt=""></p>
+<ul>
+<li><strong>黄色</strong>的类在 <code>elastic-job-common-core</code> 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud <strong>公用</strong>作业配置类。</li>
+</ul>
+<p>另外建议你已经( 非必须 )：</p>
+<ul>
+<li>阅读过<a href="http://dangdangdotcom.github.io/elastic-job/elastic-job-lite/02-guide/config-manual/" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— 配置手册》</a></li>
+<li>运行过 <a href="https://github.com/dangdangdotcom/elastic-job/blob/8926e94aa7c48dc635a36518da2c4b10194420a5/elastic-job-example/elastic-job-example-lite-java/src/main/java/com/dangdang/ddframe/job/example/JavaMain.java" rel="external nofollow noopener noreferrer" target="_blank">JavaMain.java</a></li>
+</ul>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
 <h1>2. 作业配置</h1>
 <p>一个<strong>作业( ElasticJob )<strong>的调度，需要配置</strong>独有</strong>的一个<strong>作业调度器( JobScheduler )</strong>，两者是 <code>1 : 1</code> 的关系。<strong>这点大家要注意下，当然下文看代码也会看到。</strong></p>
 <p>作业调度器的创建可以配置四个参数：</p>
 <ol>
 <li>注册中心( CoordinatorRegistryCenter )：用于协调分布式服务。<strong>必填</strong>。</li>
 <li>Lite作业配置( LiteJobConfiguration )：<strong>必填</strong>。</li>
-<li>作业事件总线( JobEventBus )：TODO。<strong>选填</strong>。</li>
-<li>作业监听器( ElasticJobListener )：对作业执行前，执行后进行监听。<strong>选填</strong>。</li>
+<li>作业事件总线( JobEventBus )：对作业事件<strong>异步</strong>监听。<strong>选填</strong>。</li>
+<li>作业监听器( ElasticJobListener )：对作业执行前，执行后进行<strong>同步</strong>监听。<strong>选填</strong>。</li>
 </ol>
 <h2>2.1 注册中心配置</h2>
 <p>Elastic-Job 抽象了<strong>注册中心接口( RegistryCenter )</strong>，并提供了默认<strong>基于 Zookeeper 的注册中心实现( ZookeeperRegistryCenter )</strong>。</p>
@@ -176,21 +217,23 @@
 <p><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-lite/elastic-job-lite-core/src/main/java/com/dangdang/ddframe/job/lite/config/LiteJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">LiteJobConfiguration</a> 继承自接口 <a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/JobRootConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">JobRootConfiguration</a>，作为 Elastic-Job-Lite 里的作业( LiteJob )配置。<em>Elastic-Job-Cloud 的作业( CloudJob )对应另外的配置类，也实现了该接口。</em></p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">LiteJobConfiguration</span> <span class="keyword">implements</span> <span class="title">JobRootConfiguration</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobTypeConfiguration typeConfig;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> monitorExecution;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> maxTimeDiffSeconds;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> monitorPort;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobShardingStrategyClass;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> reconcileIntervalMinutes;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> disabled;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> overwrite;</div><div class="line">    </div><div class="line">    <span class="comment">// .... 省略部分get方法</span></div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</div><div class="line">    </div><div class="line">        <span class="comment">// .... 省略部分属性</span></div><div class="line">    </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> LiteJobConfiguration <span class="title">build</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> LiteJobConfiguration(jobConfig, monitorExecution, maxTimeDiffSeconds, monitorPort, jobShardingStrategyClass, reconcileIntervalMinutes, disabled, overwrite);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><code>typeConfig</code>：作业类型配置。<strong>必填</strong>。</li>
-<li><code>monitorExecution</code>：监控作业运行时状态。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业执行》</a>详细分享。</li>
-</ul>
+<li>
+<p><code>typeConfig</code>：作业类型配置。<strong>必填</strong>。</p>
+</li>
+<li>
+<p><code>monitorExecution</code>：监控作业运行时状态。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业执行》</a>详细分享。</p>
 <blockquote>
 <p>每次作业执行时间和间隔时间均<strong>非常短</strong>的情况，建议不监控作业运行时状态以提升效率。因为是瞬时状态，所以无必要监控。请用户自行增加数据堆积监控。并且不能保证数据重复选取，应在作业中实现幂等性。<br>
 每次作业执行时间和间隔时间均<strong>较长的</strong>情况，建议监控作业运行时状态，可保证数据不会重复选取。</p>
 </blockquote>
-<ul>
-<li><code>monitorPort</code>：作业监控端口。默认为 <code>-1</code>，不开启作业监控端口。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业监控服务》</a>详细分享。</li>
-</ul>
+</li>
+<li>
+<p><code>monitorPort</code>：作业监控端口。默认为 <code>-1</code>，不开启作业监控端口。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业监控服务》</a>详细分享。</p>
 <blockquote>
 <p>建议配置作业监控端口, 方便开发者dump作业信息。<br>
 使用方法: echo “dump” | nc 127.0.0.1 9888</p>
 </blockquote>
-<ul>
+</li>
 <li>
 <p><code>maxTimeDiffSeconds</code>：设置最大容忍的本机与注册中心的时间误差秒数。默认为 <code>-1</code>，不检查时间误差。选填。</p>
 </li>
@@ -201,13 +244,13 @@
 <p><code>reconcileIntervalMinutes</code>：修复作业服务器不一致状态服务调度间隔时间，配置为小于1的任意值表示不执行修复。默认为 <code>10</code>。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业不一致修复 》</a>详细分享。</p>
 </li>
 <li>
-<p><code>disabled</code>：TODO</p>
+<p><code>disabled</code>：作业是否禁用执行。默认为 <code>false</code>。选填。</p>
 </li>
 <li>
 <p><code>overwrite</code>：设置使用本地作业配置覆盖注册中心的作业配置。默认为 <code>false</code>。选填。建议使用**运维平台( console )**配置作业配置，统一管理。</p>
 </li>
 <li>
-<p>Builder 类：使用该类配置 LiteJobConfiguration 属性，调用 <code>#build()</code> 方法最终生成作业配置。</p>
+<p>Builder 类：使用该类配置 LiteJobConfiguration 属性，调用 <code>#build()</code> 方法最终生成作业配置。参见：<a href="http://blog.csdn.net/top_code/article/details/8469297" rel="external nofollow noopener noreferrer" target="_blank">《JAVA设计模式 — 生成器模式(Builder)》</a>。</p>
 </li>
 </ul>
 <h3>2.2.1 作业类型配置</h3>
@@ -229,7 +272,7 @@
 <tr>
 <td style="text-align:left"><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/dataflow/DataflowJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">DataflowJobConfiguration</a></td>
 <td style="text-align:left">DataflowJob</td>
-<td style="text-align:left">数据流作业。例如：TODO</td>
+<td style="text-align:left">数据流作业。TODO：笔者暂时未了解流式处理数据，不误人子弟</td>
 </tr>
 <tr>
 <td style="text-align:left"><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/script/ScriptJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">ScriptJobConfiguration</a></td>
@@ -292,25 +335,31 @@
 <p>作业核心配置( JobCoreConfiguration )，我们可以看到在每种作业类型配置都有该属性( <code>coreConfig</code> )。</p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobCoreConfiguration</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobName;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String cron;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String shardingItemParameters;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobParameter;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> failover;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> misfire;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String description;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobProperties jobProperties;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</div><div class="line">    </div><div class="line">        <span class="comment">// .... 省略部分属性</span></div><div class="line">    </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> JobCoreConfiguration <span class="title">build</span><span class="params">()</span> </span>&#123;</div><div class="line">            Preconditions.checkArgument(!Strings.isNullOrEmpty(jobName), <span class="string">"jobName can not be empty."</span>);</div><div class="line">            Preconditions.checkArgument(!Strings.isNullOrEmpty(cron), <span class="string">"cron can not be empty."</span>);</div><div class="line">            Preconditions.checkArgument(shardingTotalCount &gt; <span class="number">0</span>, <span class="string">"shardingTotalCount should larger than zero."</span>);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> JobCoreConfiguration(jobName, cron, shardingTotalCount, shardingItemParameters, jobParameter, failover, misfire, description, jobProperties);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><code>jobName</code>：作业名称。<strong>必填。</strong></li>
-<li><code>cron</code>：cron表达式，用于控制作业触发时间。<strong>必填。</strong></li>
-<li><code>shardingTotalCount</code>：TODO，详细xxx</li>
-<li><code>shardingItemParameters</code>：分片序列号和参数。选填。</li>
-</ul>
+<li>
+<p><code>jobName</code>：作业名称。<strong>必填。</strong></p>
+</li>
+<li>
+<p><code>cron</code>：cron表达式，用于控制作业触发时间。<strong>必填。</strong></p>
+</li>
+<li>
+<p><code>shardingTotalCount</code>：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 <code>shardingTotalCount</code> 会执行作业。**必填。**在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略 》</a>详细分享。</p>
+</li>
+<li>
+<p><code>shardingItemParameters</code>：分片序列号和参数。选填。</p>
 <blockquote>
 <p>分片序列号和参数用等号分隔，多个键值对用逗号分隔<br>
 分片序列号从0开始，<strong>不可大于或等于</strong>作业分片总数<br>
 如：<br>
 0=a,1=b,2=c</p>
 </blockquote>
-<ul>
-<li><code>jobParameter</code>：作业自定义参数。选填。</li>
-</ul>
+</li>
+<li>
+<p><code>jobParameter</code>：作业自定义参数。选填。</p>
 <blockquote>
 <p>作业自定义参数，可通过传递该参数为作业调度的业务方法传参，用于实现带参数的作业<br>
 例：每次获取的数据量、作业实例从数据库读取的主键等</p>
 </blockquote>
-<ul>
+</li>
 <li>
 <p><code>failover</code>：是否开启任务执行失效转移。<strong>开启表示如果作业在一次任务执行中途宕机，允许将该次未完成的任务在另一作业节点上补偿执行</strong>。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务失效转移 》</a>详细分享。</p>
 </li>
@@ -322,21 +371,8 @@
 </li>
 <li>
 <p><code>jobProperties</code>：作业属性配置。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务执行 》</a>详细分享。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobProperties</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> EnumMap&lt;JobPropertiesEnum, String&gt; map = <span class="keyword">new</span> EnumMap&lt;&gt;(JobPropertiesEnum.class);</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> JobPropertiesEnum &#123;</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 作业异常处理器.</div><div class="line">         */</div><div class="line">        JOB_EXCEPTION_HANDLER(<span class="string">"job_exception_handler"</span>, JobExceptionHandler.class, DefaultJobExceptionHandler.class.getCanonicalName()),</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 线程池服务处理器.</div><div class="line">         */</div><div class="line">        EXECUTOR_SERVICE_HANDLER(<span class="string">"executor_service_handler"</span>, ExecutorServiceHandler.class, DefaultExecutorServiceHandler.class.getCanonicalName());</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String key;</div><div class="line">    </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;?&gt; classType;</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String defaultValue;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><figure class="highlight"><table><tr><td class="code"><pre><div class="line">    public final class JobProperties &#123;</div><div class="line">        </div><div class="line">        private EnumMap&lt;JobPropertiesEnum, String&gt; map = new EnumMap&lt;&gt;(JobPropertiesEnum.class);</div><div class="line">        </div><div class="line">        public enum JobPropertiesEnum &#123;</div><div class="line">            </div><div class="line">            /**</div><div class="line">             * 作业异常处理器.</div><div class="line">             */</div><div class="line">            JOB_EXCEPTION_HANDLER("job_exception_handler", JobExceptionHandler.class, DefaultJobExceptionHandler.class.getCanonicalName()),</div><div class="line">            </div><div class="line">            /**</div><div class="line">             * 线程池服务处理器.</div><div class="line">             */</div><div class="line">            EXECUTOR_SERVICE_HANDLER("executor_service_handler", ExecutorServiceHandler.class, DefaultExecutorServiceHandler.class.getCanonicalName());</div><div class="line">            </div><div class="line">            private final String key;</div><div class="line">        </div><div class="line">            private final Class&lt;?&gt; classType;</div><div class="line">            </div><div class="line">            private final String defaultValue;</div><div class="line">       &#125;</div><div class="line">    &#125;    </div><div class="line">    ```  </div><div class="line">    </div><div class="line">    * `JOB_EXCEPTION_HANDLER`：用于扩展**异常处理**类。</div><div class="line">    * `EXECUTOR_SERVICE_HANDLER`：用于扩展**作业处理线程池**类。</div><div class="line">    * 通过这个属性，我们可以自定义**每个作业**的异常处理和线程池服务。</div><div class="line"></div><div class="line">## 2.3 作业事件配置</div><div class="line"></div><div class="line">通过作业事件配置( JobEventConfiguration )，实现对作业事件的**异步**监听、处理。在[《Elastic-Job-Lite 源码解析 —— 作业事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。</div><div class="line"></div><div class="line">## 2.4 作业监听器</div><div class="line"></div><div class="line">通过配置作业监听器( ElasticJobListener )，实现对作业执行的**同步**监听、处理。在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。</div><div class="line"></div><div class="line"># 3. 作业配置服务</div><div class="line"></div><div class="line">多个 Elastic-Job-Lite 使用相同**注册中心**和相同 **`namespace`** 组成集群，实现高可用。集群中，使用作业配置服务( ConfigurationService ) 共享作业配置。</div><div class="line"></div><div class="line">```Java</div><div class="line">public final class ConfigurationService &#123;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * 时间服务</div><div class="line">     */</div><div class="line">    private final TimeService timeService;</div><div class="line">    /**</div><div class="line">     * 作业节点数据访问类</div><div class="line">     */</div><div class="line">    private final JobNodeStorage jobNodeStorage;</div><div class="line">    </div><div class="line">    public ConfigurationService(final CoordinatorRegistryCenter regCenter, final String jobName) &#123;</div><div class="line">        jobNodeStorage = new JobNodeStorage(regCenter, jobName);</div><div class="line">        timeService = new TimeService();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
-</ul>
-<pre><code>* `JOB_EXCEPTION_HANDLER`：用于扩展**异常处理**类。
-* `EXECUTOR_SERVICE_HANDLER`：用于扩展**作业处理线程池**类。
-* 通过这个属性，我们可以自定义**每个作业**的异常处理和线程池服务。
-</code></pre>
-<h2>2.3 作业事件配置</h2>
-<p>通过作业事件配置( JobEventConfiguration )，实现对作业事件的<strong>异步</strong>监听、处理。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业事件与追踪》</a>详细分享。</p>
-<h2>2.4 作业监听器</h2>
-<p>通过配置作业监听器( ElasticJobListener )，实现对作业执行的<strong>同步</strong>监听、处理。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业监听器》</a>详细分享。</p>
-<h1>3. 作业配置服务</h1>
-<p>多个 Elastic-Job-Lite 使用相同<strong>注册中心</strong>和相同 <strong><code>namespace</code></strong> 组成集群，实现高可用。集群中，使用作业配置服务( ConfigurationService ) 共享作业配置。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ConfigurationService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 时间服务</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> TimeService timeService;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 作业节点数据访问类</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobNodeStorage jobNodeStorage;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConfigurationService</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">        jobNodeStorage = <span class="keyword">new</span> JobNodeStorage(regCenter, jobName);</div><div class="line">        timeService = <span class="keyword">new</span> TimeService();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
 <li>
 <p>JobNodeStorage，封装注册中心，提供存储服务。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 数据存储》</a>详细分享。</p>
 </li>
@@ -364,15 +400,19 @@
 <li>Elastic-Job-Lite 作业触发是<strong>依赖本机时间</strong>，相同集群使用注册中心时间为基准，校验本机与注册中心的时间误差是否在允许范围内( <code>LiteJobConfiguration.maxTimeDiffSeconds</code> )。</li>
 </ul>
 <h1>666. 彩蛋</h1>
+<p>Elastic-Job-Lite 源码解析系列第一篇文章，希望大家多多支持，预计全部更新完会有 15+ 篇。Elastic-Job-Cloud 源码系列后续也会更新。</p>
+<p>道友，分享一波<strong>微信朋友圈</strong>支持支持支持，可好？</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：&lt;/p&gt;
-&lt;ol&gt;
-&lt;
+      &lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 作业配置&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2.1 注册中心配置&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2.2 Lite作业配置&lt;/a&gt;
+&lt;u
     
     </summary>
     
