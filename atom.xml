@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-20T16:20:55.000Z</updated>
+  <updated>2017-08-20T16:34:58.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -20,9 +20,28 @@
     <link href="http://www.yunai.me/Elastic-Job/job-init/"/>
     <id>http://www.yunai.me/Elastic-Job/job-init/</id>
     <published>2017-09-15T16:00:00.000Z</published>
-    <updated>2017-08-20T16:20:55.000Z</updated>
+    <updated>2017-08-20T16:34:58.000Z</updated>
     
-    <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. 作业注册表</a></li>
+<li><a href="#">3. 作业调度器</a><ul>
+<li><a href="#">3.1 创建</a></li>
+<li><a href="#">3.2 初始化</a><ul>
+<li><a href="#">3.2.1 更新作业配置</a></li>
+<li><a href="#">3.2.2 设置当前作业分片总数</a></li>
+<li><a href="#">3.2.3 创建作业调度控制器</a></li>
+<li><a href="#">3.2.4 注册作业启动信息</a></li>
+<li><a href="#">3.2.5 调度作业</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
 <p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
 <ol>
@@ -45,6 +64,7 @@
 <li>省略的方法，下文在实际调用时，进行解析。</li>
 </ul>
 <h1 id="3-作业调度器"><a href="#3-作业调度器" class="headerlink" title="3. 作业调度器"></a>3. 作业调度器</h1><p>作业调度器( JobScheduler )，创建并初始化后，进行作业调度。</p>
+<p><strong>Elastic-Job-Lite 使用 Quartz 作为调度内核。</strong></p>
 <h2 id="3-1-创建"><a href="#3-1-创建" class="headerlink" title="3.1 创建"></a>3.1 创建</h2><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JobScheduler</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Lite作业配置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> LiteJobConfiguration liteJobConfig;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 注册中心</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CoordinatorRegistryCenter regCenter;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 调度器门面对象</div><div class="line">     */</div><div class="line">    <span class="meta">@Getter</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SchedulerFacade schedulerFacade;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 作业门面对象</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobFacade jobFacade;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JobScheduler</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> LiteJobConfiguration liteJobConfig, <span class="keyword">final</span> ElasticJobListener... elasticJobListeners)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>(regCenter, liteJobConfig, <span class="keyword">new</span> JobEventBus(), elasticJobListeners);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JobScheduler</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> LiteJobConfiguration liteJobConfig, <span class="keyword">final</span> JobEventConfiguration jobEventConfig, </span></span></div><div class="line">                        <span class="keyword">final</span> ElasticJobListener... elasticJobListeners) &#123;</div><div class="line">        <span class="keyword">this</span>(regCenter, liteJobConfig, <span class="keyword">new</span> JobEventBus(jobEventConfig), elasticJobListeners);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">JobScheduler</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> LiteJobConfiguration liteJobConfig, <span class="keyword">final</span> JobEventBus jobEventBus, <span class="keyword">final</span> ElasticJobListener... elasticJobListeners)</span> </span>&#123;</div><div class="line">        <span class="comment">// 添加 作业运行实例</span></div><div class="line">        JobRegistry.getInstance().addJobInstance(liteJobConfig.getJobName(), <span class="keyword">new</span> JobInstance());</div><div class="line">        <span class="comment">// 设置 Lite作业配置</span></div><div class="line">        <span class="keyword">this</span>.liteJobConfig = liteJobConfig;</div><div class="line">        <span class="keyword">this</span>.regCenter = regCenter;</div><div class="line">        <span class="comment">// 设置 作业监听器</span></div><div class="line">        List&lt;ElasticJobListener&gt; elasticJobListenerList = Arrays.asList(elasticJobListeners);</div><div class="line">        setGuaranteeServiceForElasticJobListeners(regCenter, elasticJobListenerList);</div><div class="line">        <span class="comment">// 设置 调度器门面对象</span></div><div class="line">        schedulerFacade = <span class="keyword">new</span> SchedulerFacade(regCenter, liteJobConfig.getJobName(), elasticJobListenerList);</div><div class="line">        <span class="comment">// 设置 作业门面对象</span></div><div class="line">        jobFacade = <span class="keyword">new</span> LiteJobFacade(regCenter, liteJobConfig.getJobName(), Arrays.asList(elasticJobListeners), jobEventBus);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><p>调用 <code>#JobRegistry#addJobInstance()</code> 方法添<strong>加作业运行实例( JobInstance )</strong>。</p>
@@ -67,7 +87,7 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 初始化作业.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 更新 作业配置</span></div><div class="line">   LiteJobConfiguration liteJobConfigFromRegCenter = schedulerFacade.updateJobConfiguration(liteJobConfig);</div><div class="line">   <span class="comment">// 设置 当前作业分片总数</span></div><div class="line">   JobRegistry.getInstance().setCurrentShardingTotalCount(liteJobConfigFromRegCenter.getJobName(), liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig().getShardingTotalCount());</div><div class="line">   <span class="comment">// 创建 作业调度控制器</span></div><div class="line">   JobScheduleController jobScheduleController = <span class="keyword">new</span> JobScheduleController(</div><div class="line">           createScheduler(), createJobDetail(liteJobConfigFromRegCenter.getTypeConfig().getJobClass()), liteJobConfigFromRegCenter.getJobName());</div><div class="line">   <span class="comment">// 添加 作业调度控制器</span></div><div class="line">   JobRegistry.getInstance().registerJob(liteJobConfigFromRegCenter.getJobName(), jobScheduleController, regCenter);</div><div class="line">   <span class="comment">// 注册 作业启动信息</span></div><div class="line">   schedulerFacade.registerStartUpInfo(!liteJobConfigFromRegCenter.isDisabled());</div><div class="line">   <span class="comment">// 调度作业</span></div><div class="line">   jobScheduleController.scheduleJob(liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig().getCron());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="3-2-1-更新作业配置"><a href="#3-2-1-更新作业配置" class="headerlink" title="3.2.1 更新作业配置"></a>3.2.1 更新作业配置</h3><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// SchedulerFacade.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 更新作业配置.</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> liteJobConfig 作业配置</div><div class="line">* <span class="doctag">@return</span> 更新后的作业配置</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> LiteJobConfiguration <span class="title">updateJobConfiguration</span><span class="params">(<span class="keyword">final</span> LiteJobConfiguration liteJobConfig)</span> </span>&#123;</div><div class="line">   <span class="comment">// 更新 作业配置</span></div><div class="line">   configService.persist(liteJobConfig);</div><div class="line">   <span class="comment">// 读取 作业配置</span></div><div class="line">   <span class="keyword">return</span> configService.load(<span class="keyword">false</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
-<li>从「3.3 持久化作业配置」，调用 <code>ConfigService#persist(...)</code> 方法也不一定会更新作业配置，因此调用 <code>ConfigService#load(...)</code> 方法返回的可能是本地的作业配置，也可能是远程的作业配置。</li>
+<li>从<a href="http://www.yunai.me/Elastic-Job/job-config/?self">《Elastic-Job 源码分析 —— 作业配置》</a>的「3.2 持久化作业配置」，调用 <code>ConfigService#persist(...)</code> 方法也不一定会更新作业配置，因此调用 <code>ConfigService#load(...)</code> 方法返回的可能是本地的作业配置，也可能是<strong>注册中心</strong>存储的作业配置。</li>
 </ul>
 <h3 id="3-2-2-设置当前作业分片总数"><a href="#3-2-2-设置当前作业分片总数" class="headerlink" title="3.2.2 设置当前作业分片总数"></a>3.2.2 设置当前作业分片总数</h3><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// JobRegistry.java</span></div><div class="line"><span class="keyword">private</span> Map&lt;String, Integer&gt; currentShardingTotalCountMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</div><div class="line"><span class="comment">/**</span></div><div class="line">* 设置当前分片总数.</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> jobName 作业名称</div><div class="line">* <span class="doctag">@param</span> currentShardingTotalCount 当前分片总数</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCurrentShardingTotalCount</span><span class="params">(<span class="keyword">final</span> String jobName, <span class="keyword">final</span> <span class="keyword">int</span> currentShardingTotalCount)</span> </span>&#123;</div><div class="line">   currentShardingTotalCountMap.put(jobName, currentShardingTotalCount);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="3-2-3-创建作业调度控制器"><a href="#3-2-3-创建作业调度控制器" class="headerlink" title="3.2.3 创建作业调度控制器"></a>3.2.3 创建作业调度控制器</h3><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// .... 省略</span></div><div class="line">   <span class="comment">// 创建 作业调度控制器</span></div><div class="line">   JobScheduleController jobScheduleController = <span class="keyword">new</span> JobScheduleController(</div><div class="line">           createScheduler(), createJobDetail(liteJobConfigFromRegCenter.getTypeConfig().getJobClass()), liteJobConfigFromRegCenter.getJobName());</div><div class="line">   <span class="comment">// .... 省略</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -121,9 +141,11 @@
     
     <summary type="html">
     
-      &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋道源码】&lt;/strong&gt;有福
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 作业注册表&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;3
     
     </summary>
     

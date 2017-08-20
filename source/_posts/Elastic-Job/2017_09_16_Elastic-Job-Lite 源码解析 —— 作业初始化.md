@@ -6,6 +6,22 @@ permalink: Elastic-Job/job-init
 
 -------
 
+**本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#)
+- [2. 作业注册表](#)
+- [3. 作业调度器](#)
+	- [3.1 创建](#)
+	- [3.2 初始化](#)
+		- [3.2.1 更新作业配置](#)
+		- [3.2.2 设置当前作业分片总数](#)
+		- [3.2.3 创建作业调度控制器](#)
+		- [3.2.4 注册作业启动信息](#)
+		- [3.2.5 调度作业](#)
+- [666. 彩蛋](#)
+
+-------
+
 ![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
@@ -24,8 +40,6 @@ permalink: Elastic-Job/job-init
 涉及到主要类的类图如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_09_09/16.png) )：
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_09_16/01.png)
-
-
 
 # 2. 作业注册表
 
@@ -90,6 +104,8 @@ public final class JobRegistry {
 # 3. 作业调度器
 
 作业调度器( JobScheduler )，创建并初始化后，进行作业调度。
+
+**Elastic-Job-Lite 使用 Quartz 作为调度内核。**
 
 ## 3.1 创建
 
@@ -318,7 +334,7 @@ public LiteJobConfiguration updateJobConfiguration(final LiteJobConfiguration li
 }
 ```
 
-* 从「3.3 持久化作业配置」，调用 `ConfigService#persist(...)` 方法也不一定会更新作业配置，因此调用 `ConfigService#load(...)` 方法返回的可能是本地的作业配置，也可能是远程的作业配置。
+* 从[《Elastic-Job 源码分析 —— 作业配置》](http://www.yunai.me/Elastic-Job/job-config/?self)的「3.2 持久化作业配置」，调用 `ConfigService#persist(...)` 方法也不一定会更新作业配置，因此调用 `ConfigService#load(...)` 方法返回的可能是本地的作业配置，也可能是**注册中心**存储的作业配置。
 
 ### 3.2.2 设置当前作业分片总数
 
