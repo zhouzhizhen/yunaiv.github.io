@@ -19,6 +19,23 @@ permalink: Elastic-Job/job-config
 
 # 1. 概述
 
+本文主要分享 **Elastic-Job-Lite 作业配置**。
+
+涉及到主要类的类图如下( [打开大图](../../../images/Elastic-Job/2017_09_09/01.png) )：
+
+![](../../../images/Elastic-Job/2017_09_09/01.png)
+
+* **黄色**的类在 `elastic-job-common-core` 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud **公用**作业配置类。
+
+另外建议你已经( 非必须 )：
+
+* 阅读过[《官方文档 —— 配置手册》](http://dangdangdotcom.github.io/elastic-job/elastic-job-lite/02-guide/config-manual/)
+* 运行过 [JavaMain.java](https://github.com/dangdangdotcom/elastic-job/blob/8926e94aa7c48dc635a36518da2c4b10194420a5/elastic-job-example/elastic-job-example-lite-java/src/main/java/com/dangdang/ddframe/job/example/JavaMain.java)
+
+> 你行好事会因为得到赞赏而愉悦  
+> 同理，开源项目贡献者会因为 Star 而更加有动力  
+> 为 Elastic-Job 点赞！[传送门](https://github.com/dangdangdotcom/elastic-job/stargazers)
+
 # 2. 作业配置
 
 一个**作业( ElasticJob )**的调度，需要配置**独有**的一个**作业调度器( JobScheduler )**，两者是 `1 : 1` 的关系。**这点大家要注意下，当然下文看代码也会看到。**
@@ -27,8 +44,8 @@ permalink: Elastic-Job/job-config
 
 1. 注册中心( CoordinatorRegistryCenter )：用于协调分布式服务。**必填**。
 2. Lite作业配置( LiteJobConfiguration )：**必填**。
-3. 作业事件总线( JobEventBus )：TODO。**选填**。
-4. 作业监听器( ElasticJobListener )：对作业执行前，执行后进行监听。**选填**。
+3. 作业事件总线( JobEventBus )：对作业事件**异步**监听。**选填**。
+4. 作业监听器( ElasticJobListener )：对作业执行前，执行后进行**同步**监听。**选填**。
 
 ## 2.1 注册中心配置
 
@@ -70,21 +87,21 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
 * `typeConfig`：作业类型配置。**必填**。
 * `monitorExecution`：监控作业运行时状态。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
-> 每次作业执行时间和间隔时间均**非常短**的情况，建议不监控作业运行时状态以提升效率。因为是瞬时状态，所以无必要监控。请用户自行增加数据堆积监控。并且不能保证数据重复选取，应在作业中实现幂等性。  
-每次作业执行时间和间隔时间均**较长的**情况，建议监控作业运行时状态，可保证数据不会重复选取。
+    > 每次作业执行时间和间隔时间均**非常短**的情况，建议不监控作业运行时状态以提升效率。因为是瞬时状态，所以无必要监控。请用户自行增加数据堆积监控。并且不能保证数据重复选取，应在作业中实现幂等性。  
+    每次作业执行时间和间隔时间均**较长的**情况，建议监控作业运行时状态，可保证数据不会重复选取。
 
 * `monitorPort`：作业监控端口。默认为 `-1`，不开启作业监控端口。选填。在[《Elastic-Job-Lite 源码解析 —— 作业监控服务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
-> 建议配置作业监控端口, 方便开发者dump作业信息。  
-使用方法: echo “dump” | nc 127.0.0.1 9888
+    > 建议配置作业监控端口, 方便开发者dump作业信息。  
+    使用方法: echo “dump” | nc 127.0.0.1 9888
 
 * `maxTimeDiffSeconds`：设置最大容忍的本机与注册中心的时间误差秒数。默认为 `-1`，不检查时间误差。选填。
 * `jobShardingStrategyClass`：作业分片策略实现类全路径。默认为使用分配侧路。选填。在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 * `reconcileIntervalMinutes`：修复作业服务器不一致状态服务调度间隔时间，配置为小于1的任意值表示不执行修复。默认为 `10`。在[《Elastic-Job-Lite 源码解析 —— 作业不一致修复 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
-* `disabled`：TODO
+* `disabled`：作业是否禁用执行。默认为 `false`。选填。
 * `overwrite`：设置使用本地作业配置覆盖注册中心的作业配置。默认为 `false`。选填。建议使用**运维平台( console )**配置作业配置，统一管理。
-* Builder 类：使用该类配置 LiteJobConfiguration 属性，调用 `#build()` 方法最终生成作业配置。
+* Builder 类：使用该类配置 LiteJobConfiguration 属性，调用 `#build()` 方法最终生成作业配置。参见：[《JAVA设计模式 — 生成器模式(Builder)》](http://blog.csdn.net/top_code/article/details/8469297)。
 
 ### 2.2.1 作业类型配置
 
@@ -94,7 +111,7 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
 | 配置实现 | 作业 | 说明 |
 | :--- | :--- | :--- |
 | [SimpleJobConfiguration](https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/simple/SimpleJobConfiguration.java) | SimpleJob | 简单作业。例如：订单过期作业  |
-| [DataflowJobConfiguration](https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/dataflow/DataflowJobConfiguration.java) | DataflowJob | 数据流作业。例如：TODO  |
+| [DataflowJobConfiguration](https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/dataflow/DataflowJobConfiguration.java) | DataflowJob | 数据流作业。TODO：笔者暂时未了解流式处理数据，不误人子弟  |
 | [ScriptJobConfiguration](https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/script/ScriptJobConfiguration.java) | ScriptJob | 脚本作业。例如：调用 shell 脚本备份数据库作业  |
 
 三种**配置类**属性对比如：
@@ -142,18 +159,18 @@ public final class JobCoreConfiguration {
 
 * `jobName`：作业名称。**必填。**
 * `cron`：cron表达式，用于控制作业触发时间。**必填。**
-* `shardingTotalCount`：TODO，详细xxx
+* `shardingTotalCount`：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 `shardingTotalCount` 会执行作业。**必填。**在[《Elastic-Job-Lite 源码解析 —— 作业分片策略 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 * `shardingItemParameters`：分片序列号和参数。选填。
 
-> 分片序列号和参数用等号分隔，多个键值对用逗号分隔  
-分片序列号从0开始，**不可大于或等于**作业分片总数  
-如：  
-0=a,1=b,2=c  
+    > 分片序列号和参数用等号分隔，多个键值对用逗号分隔  
+    分片序列号从0开始，**不可大于或等于**作业分片总数  
+    如：  
+    0=a,1=b,2=c  
 
 * `jobParameter`：作业自定义参数。选填。
 
-> 作业自定义参数，可通过传递该参数为作业调度的业务方法传参，用于实现带参数的作业  
-例：每次获取的数据量、作业实例从数据库读取的主键等
+    > 作业自定义参数，可通过传递该参数为作业调度的业务方法传参，用于实现带参数的作业  
+    例：每次获取的数据量、作业实例从数据库读取的主键等
 
 * `failover`：是否开启任务执行失效转移。**开启表示如果作业在一次任务执行中途宕机，允许将该次未完成的任务在另一作业节点上补偿执行**。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 任务失效转移 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 * `misfire`：是否开启错过任务重新执行。默认为 `true`。选填。在[《Elastic-Job-Lite 源码解析 —— 任务执行 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
@@ -184,7 +201,7 @@ public final class JobCoreConfiguration {
             private final String defaultValue;
        }
     }    
-    ```
+    ```  
     
     * `JOB_EXCEPTION_HANDLER`：用于扩展**异常处理**类。
     * `EXECUTOR_SERVICE_HANDLER`：用于扩展**作业处理线程池**类。
@@ -316,4 +333,9 @@ public void checkMaxTimeDiffSecondsTolerable() throws JobExecutionEnvironmentExc
 * Elastic-Job-Lite 作业触发是**依赖本机时间**，相同集群使用注册中心时间为基准，校验本机与注册中心的时间误差是否在允许范围内( `LiteJobConfiguration.maxTimeDiffSeconds` )。
 
 # 666. 彩蛋
+
+Elastic-Job-Lite 源码解析系列第一篇文章，希望大家多多支持，预计全部更新完会有 15+ 篇。Elastic-Job-Cloud 源码系列后续也会更新。
+
+道友，分享一波**微信朋友圈**支持支持支持，可好？
+
 
