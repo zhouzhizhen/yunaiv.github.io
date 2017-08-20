@@ -198,7 +198,7 @@ public final class JobCoreConfiguration {
         
         private EnumMap<JobPropertiesEnum, String> map = new EnumMap<>(JobPropertiesEnum.class);
         
-        public enum JobPropertiesEnum {
+       public enum JobPropertiesEnum {
             
             /**
              * 作业异常处理器.
@@ -216,12 +216,11 @@ public final class JobCoreConfiguration {
             
             private final String defaultValue;
        }
-    }    
-    ```  
-    
+    }
+    ```
     * `JOB_EXCEPTION_HANDLER`：用于扩展**异常处理**类。
     * `EXECUTOR_SERVICE_HANDLER`：用于扩展**作业处理线程池**类。
-    * 通过这个属性，我们可以自定义**每个作业**的异常处理和线程池服务。
+    * 通过这个属性，我们可以自定义**每个作业**的异常处理和线程池服务。    
 
 ## 2.3 作业事件配置
 
