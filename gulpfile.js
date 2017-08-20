@@ -55,10 +55,10 @@ gulp.task("cssmin", function () {
     gulp.src(datas.css).pipe(csso()).pipe(gulp.dest(buildDir));
 });
 
-// gulp.task("default", ["htmlmin", "imagemin", "jsmin", "cssmin"]);
+gulp.task("default", ["htmlmin", "tinypng", "jsmin", "cssmin"]);
 
 // gulp.task("default", ["htmlmin", "jsmin", "cssmin"]);
-gulp.task("default", ["tinypng"]);
+// gulp.task("default", ["tinypng"]);
 // gulp.task("default", ["tiny"]);
 
 //gulp.task("default", ["imagemin", "jsmin"]); // TODO htmlmin 报错
