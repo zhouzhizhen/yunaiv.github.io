@@ -1,3 +1,11 @@
+title: Elastic-Job-Lite 源码分析 —— 作业执行
+date: 2017-09-23
+tags:
+categories: Elastic-Job
+permalink: Elastic-Job/job-execute
+
+-------
+
 # 1. 概述
 
 本文主要分享 **Elastic-Job-Lite 作业执行**。
@@ -172,7 +180,7 @@ public final class ScriptJobExecutor extends AbstractElasticJobExecutor {
 
 ## 3.2 获取作业执行线程池
 
-作业每次执行时，可能涉及**多个分片**，需要使用线程池实现**并行**执行。考虑到作业和作业之间的隔离性，**一个作业一个线程池**。线程池服务处理器注册表( ExecutorServiceHandlerRegistry ) 获取线程池( `#getExecutorServiceHandler(....)` )代码如下：
+作业每次执行时，可能分配到**多个分片项**，需要使用线程池实现**并行**执行。考虑到不同作业之间的隔离性，通过**一个作业一个线程池**实现。线程池服务处理器注册表( ExecutorServiceHandlerRegistry ) 获取作业线程池( `#getExecutorServiceHandler(....)` )代码如下：
 
 ```Java
 public final class ExecutorServiceHandlerRegistry {
@@ -301,11 +309,11 @@ private Object getDefaultHandler(final JobProperties.JobPropertiesEnum jobProper
 ```
 
 * 每个处理器都会对应一个 JobPropertiesEnum，使用枚举获得处理器。优先从 `JobProperties.map` 获取**自定义**的处理器实现类，如果不符合条件( 未实现正确接口 或者 创建处理器失败 )，使用**默认**的处理器实现。
-* 每个作业可以配置**不同**的处理器。
+* 每个作业可以配置**不同**的处理器，在[《Elastic-Job-Lite 源码分析 —— 作业配置》的「2.2.2」作业核心配置](http://www.yunai.me/Elastic-Job/job-config/?self) 已经解析。
 
 ## 3.3 获取作业异常执行器
 
-获取作业异常执行器( JobExceptionHandler )和ExecutorServiceHandler( ExecutorServiceHandler )**相同**。
+获取作业异常执行器( JobExceptionHandler )和 ExecutorServiceHandler( ExecutorServiceHandler )**相同**。
 
 ```Java
 // ExecutorServiceHandler.java
@@ -333,6 +341,65 @@ public final class DefaultJobExceptionHandler implements JobExceptionHandler {
 * 默认实现 DefaultJobExceptionHandler **打印异常日志，不会抛出异常**。
 
 # 4. 执行器执行
+
+执行逻辑主流程如下图( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_09_23/02.png) )：
+
+![](http://www.yunai.me/images/Elastic-Job/2017_09_23/02.png)
+
+```Java
+// AbstractElasticJobExecutor.java
+public final void execute() {
+   // 检查 作业执行环境
+   try {
+       jobFacade.checkJobExecutionEnvironment();
+   } catch (final JobExecutionEnvironmentException cause) {
+       jobExceptionHandler.handleException(jobName, cause);
+   }
+   // 获取 当前作业服务器的分片上下文
+   ShardingContexts shardingContexts = jobFacade.getShardingContexts();
+   // 发布作业状态追踪事件(State.TASK_STAGING)
+   if (shardingContexts.isAllowSendJobEvent()) {
+       jobFacade.postJobStatusTraceEvent(shardingContexts.getTaskId(), State.TASK_STAGING, String.format("Job '%s' execute begin.", jobName));
+   }
+   // 跳过 存在运行中的被错过作业
+   if (jobFacade.misfireIfRunning(shardingContexts.getShardingItemParameters().keySet())) {
+       // 发布作业状态追踪事件(State.TASK_FINISHED)
+       if (shardingContexts.isAllowSendJobEvent()) {
+           jobFacade.postJobStatusTraceEvent(shardingContexts.getTaskId(), State.TASK_FINISHED, String.format(
+                   "Previous job '%s' - shardingItems '%s' is still running, misfired job will start after previous job completed.", jobName, 
+                   shardingContexts.getShardingItemParameters().keySet()));
+       }
+       return;
+   }
+   // 执行 作业执行前的方法
+   try {
+       jobFacade.beforeJobExecuted(shardingContexts);
+       //CHECKSTYLE:OFF
+   } catch (final Throwable cause) {
+       //CHECKSTYLE:ON
+       jobExceptionHandler.handleException(jobName, cause);
+   }
+   // 执行 普通触发的作业
+   execute(shardingContexts, JobExecutionEvent.ExecutionSource.NORMAL_TRIGGER);
+   // 执行 被跳过触发的作业
+   while (jobFacade.isExecuteMisfired(shardingContexts.getShardingItemParameters().keySet())) {
+       jobFacade.clearMisfire(shardingContexts.getShardingItemParameters().keySet());
+       execute(shardingContexts, JobExecutionEvent.ExecutionSource.MISFIRE);
+   }
+   // 执行 作业失效转移
+   jobFacade.failoverIfNecessary();
+   // 执行 作业执行后的方法
+   try {
+       jobFacade.afterJobExecuted(shardingContexts);
+       //CHECKSTYLE:OFF
+   } catch (final Throwable cause) {
+       //CHECKSTYLE:ON
+       jobExceptionHandler.handleException(jobName, cause);
+   }
+}
+```
+
+代码步骤比较多，我们一步一步往下看。
 
 ## 4.1 检查作业执行环境
 
@@ -705,10 +772,10 @@ public final class DataflowJobExecutor extends AbstractElasticJobExecutor {
     public boolean isEligibleForJobRunning() {
        LiteJobConfiguration liteJobConfig = configService.load(true);
        if (liteJobConfig.getTypeConfig() instanceof DataflowJobConfiguration) {
-           return !shardingService.isNeedSharding() // 作业需要重新分片
+           return !shardingService.isNeedSharding() // 作业不需要重新分片
                    && ((DataflowJobConfiguration) liteJobConfig.getTypeConfig()).isStreamingProcess();
        }
-       return !shardingService.isNeedSharding(); // 作业需要重新分片
+       return !shardingService.isNeedSharding(); // 作业不需要重新分片
     }
     ```
     * 作业需要重新分片，所以不适合继续流式数据处理。
@@ -783,6 +850,126 @@ public final class ScriptJobExecutor extends AbstractElasticJobExecutor {
 * 脚本参数传递使用 JSON 格式。
 
 ## 4.7 执行被错过触发的作业
+
+当作业执行过久，导致到达下次执行时间未进行下一次触发，Elastic-Job-Lite 会设置作业分片为被错过( `misfired` )，下一次执行时，会多执行，补上错过的调度。
+
+**标记作业被错过**
+
+```Java
+// JobScheduler.java
+private Scheduler createScheduler() {
+   Scheduler result;
+   // 省略部分代码
+   result.getListenerManager().addTriggerListener(schedulerFacade.newJobTriggerListener());
+   return result;
+}
+
+private Properties getBaseQuartzProperties() {
+   // 省略部分代码
+   result.put("org.quartz.jobStore.misfireThreshold", "1");
+   return result;
+}
+
+// JobScheduleController.class
+private CronTrigger createTrigger(final String cron) {
+   return TriggerBuilder.newTrigger()
+           .withIdentity(triggerIdentity)
+           .withSchedule(CronScheduleBuilder.cronSchedule(cron)
+           .withMisfireHandlingInstructionDoNothing())
+           .build();
+}
+```
+
+* `org.quartz.jobStore.misfireThreshold` 设置超过 1 毫秒，作业即被视为错过。
+* `#withMisfireHandlingInstructionDoNothing()` 设置 Quartz 系统不会立刻再执行任务，而是等到距离目前时间最近的预计时间执行。**重新执行错过的作业交给 Elastic-Job-Lite 处理**。
+* 使用 TriggerListener 监听被错过的作业分片：
+
+    ```Java
+    // JobTriggerListener.java
+    public final class JobTriggerListener extends TriggerListenerSupport {
+        
+        @Override
+        public void triggerMisfired(final Trigger trigger) {
+            if (null != trigger.getPreviousFireTime()) {
+                executionService.setMisfire(shardingService.getLocalShardingItems());
+            }
+        }
+    }
+    
+    // ExecutionService.java
+    public void setMisfire(final Collection<Integer> items) {
+       for (int each : items) {
+           jobNodeStorage.createJobNodeIfNeeded(ShardingNode.getMisfireNode(each));
+       }
+    }
+    ```
+    * 调用 `#setMisfire(...)` 设置作业分片被错过执行。
+
+**跳过存在运行中的被错过作业**
+
+```Java
+// LiteJobFacade.java
+@Override
+public boolean misfireIfRunning(final Collection<Integer> shardingItems) {
+   return executionService.misfireIfHasRunningItems(shardingItems);
+}
+
+// ExecutionService.java
+public boolean misfireIfHasRunningItems(final Collection<Integer> items) {
+   if (!hasRunningItems(items)) {
+       return false;
+   }
+   setMisfire(items);
+   return true;
+}
+
+public boolean hasRunningItems(final Collection<Integer> items) {
+   LiteJobConfiguration jobConfig = configService.load(true);
+   if (null == jobConfig || !jobConfig.isMonitorExecution()) {
+       return false;
+   }
+   for (int each : items) {
+       if (jobNodeStorage.isJobNodeExisted(ShardingNode.getRunningNode(each))) {
+           return true;
+       }
+   }
+   return false;
+}
+```
+
+* 当作业分片里存在**任意一个分片正在运行**中，设置分片项**都**被错过执行( `misfired` )，并不执行这些作业分片。如果不进行跳过，则可能导致**同时**运行某个作业分片。
+* 该功能依赖作业配置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )。
+
+**执行被错过触发的作业**
+
+```Java
+// AbstractElasticJobExecutor.java
+public final void execute() {
+   // .... 省略部分代码
+   // 执行 被跳过触发的作业
+   while (jobFacade.isExecuteMisfired(shardingContexts.getShardingItemParameters().keySet())) {
+       jobFacade.clearMisfire(shardingContexts.getShardingItemParameters().keySet());
+       execute(shardingContexts, JobExecutionEvent.ExecutionSource.MISFIRE);
+   }
+   // .... 省略部分代码
+}
+
+// LiteJobFacade.java
+@Override
+public boolean isExecuteMisfired(final Collection<Integer> shardingItems) {
+   return isEligibleForJobRunning() // 合适继续运行
+           && configService.load(true).getTypeConfig().getCoreConfig().isMisfire() // 作业配置开启作业被错过触发
+           && !executionService.getMisfiredJobItems(shardingItems).isEmpty(); // 所执行的作业分片存在被错过( misfired )
+}
+
+@Override
+public void clearMisfire(final Collection<Integer> shardingItems) {
+   executionService.clearMisfire(shardingItems);
+}
+```
+
+* 清除作业分片被错过执行的标识，并进行作业执行。
+* TODO：为什么这里使用 `where()`，确认后补充。
 
 ## 4.8 执行作业失效转移
 
