@@ -6,6 +6,42 @@ permalink: Elastic-Job/job-execute
 
 -------
 
+**本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#1-%E6%A6%82%E8%BF%B0)
+- [2. Lite调度作业](#2-lite%E8%B0%83%E5%BA%A6%E4%BD%9C%E4%B8%9A)
+- [3. 执行器创建](#3-%E6%89%A7%E8%A1%8C%E5%99%A8%E5%88%9B%E5%BB%BA)
+  - [3.1 加载作业配置](#31-%E5%8A%A0%E8%BD%BD%E4%BD%9C%E4%B8%9A%E9%85%8D%E7%BD%AE)
+  - [3.2 获取作业执行线程池](#32-%E8%8E%B7%E5%8F%96%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0)
+  - [3.3 获取作业异常执行器](#33-%E8%8E%B7%E5%8F%96%E4%BD%9C%E4%B8%9A%E5%BC%82%E5%B8%B8%E6%89%A7%E8%A1%8C%E5%99%A8)
+- [4. 执行器执行](#4-%E6%89%A7%E8%A1%8C%E5%99%A8%E6%89%A7%E8%A1%8C)
+  - [4.1 检查作业执行环境](#41-%E6%A3%80%E6%9F%A5%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E7%8E%AF%E5%A2%83)
+  - [4.2 获取当前作业服务器的分片上下文](#42-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E4%BD%9C%E4%B8%9A%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%88%86%E7%89%87%E4%B8%8A%E4%B8%8B%E6%96%87)
+  - [4.3 发布作业状态追踪事件](#43-%E5%8F%91%E5%B8%83%E4%BD%9C%E4%B8%9A%E7%8A%B6%E6%80%81%E8%BF%BD%E8%B8%AA%E4%BA%8B%E4%BB%B6)
+  - [4.4 跳过正在运行中的被错过执行的作业](#44-%E8%B7%B3%E8%BF%87%E6%AD%A3%E5%9C%A8%E8%BF%90%E8%A1%8C%E4%B8%AD%E7%9A%84%E8%A2%AB%E9%94%99%E8%BF%87%E6%89%A7%E8%A1%8C%E7%9A%84%E4%BD%9C%E4%B8%9A)
+  - [4.5 执行作业执行前的方法](#45-%E6%89%A7%E8%A1%8C%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E5%89%8D%E7%9A%84%E6%96%B9%E6%B3%95)
+  - [4.6 执行普通触发的作业](#46-%E6%89%A7%E8%A1%8C%E6%99%AE%E9%80%9A%E8%A7%A6%E5%8F%91%E7%9A%84%E4%BD%9C%E4%B8%9A)
+    - [4.6.1 简单作业执行器](#461-%E7%AE%80%E5%8D%95%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E5%99%A8)
+    - [4.6.2 数据流作业执行器](#462-%E6%95%B0%E6%8D%AE%E6%B5%81%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E5%99%A8)
+    - [4.6.3 脚本作业执行器](#463-%E8%84%9A%E6%9C%AC%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E5%99%A8)
+  - [4.7 执行被错过触发的作业](#47-%E6%89%A7%E8%A1%8C%E8%A2%AB%E9%94%99%E8%BF%87%E8%A7%A6%E5%8F%91%E7%9A%84%E4%BD%9C%E4%B8%9A)
+  - [4.8 执行作业失效转移](#48-%E6%89%A7%E8%A1%8C%E4%BD%9C%E4%B8%9A%E5%A4%B1%E6%95%88%E8%BD%AC%E7%A7%BB)
+  - [4.9 执行作业执行后的方法](#49-%E6%89%A7%E8%A1%8C%E4%BD%9C%E4%B8%9A%E6%89%A7%E8%A1%8C%E5%90%8E%E7%9A%84%E6%96%B9%E6%B3%95)
+- [666. 彩蛋](#666-%E5%BD%A9%E8%9B%8B)
+
+-------
+
+![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。  
+> 5. **认真的**源码交流微信群。
+
+-------
+
 # 1. 概述
 
 本文主要分享 **Elastic-Job-Lite 作业执行**。
@@ -412,19 +448,19 @@ public void checkJobExecutionEnvironment() throws JobExecutionEnvironmentExcepti
 ```
 
 * 调用 `ConfigService#checkMaxTimeDiffSecondsTolerable()` 方法校验本机时间是否合法，在[《Elastic-Job-Lite 源码分析 —— 作业配置》的「3.3」校验本机时间是否合法](http://www.yunai.me/Elastic-Job/job-config/?self) 已经解析。
-* 当校验本机时间不合法时，抛出异常。若使用 DefaultJobExceptionHandler 作为异常处理，**只打印日志，不会终止作业执行**。如果你期望作业**终止**执行，需要自定义 JobExceptionHandler 实现。
+* 当校验本机时间不合法时，抛出异常。若使用 DefaultJobExceptionHandler 作为异常处理，**只打印日志，不会终止作业执行**。如果你的作业对时间精准度有比较高的要求，期望作业**终止**执行，可以自定义 JobExceptionHandler 实现对异常的处理。
 
 ## 4.2 获取当前作业服务器的分片上下文
 
-调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所需要执行的分片**，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所分配执行的分片项**，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 ## 4.3 发布作业状态追踪事件
 
 调用 `LiteJobFacade#postJobStatusTraceEvent()` 方法发布作业状态追踪事件，在[《Elastic-Job-Lite 源码解析 —— 任务事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
-## 4.4 跳过存在运行中的被错过作业
+## 4.4 跳过正在运行中的被错过执行的作业
 
-该逻辑和**「4.7」执行被错过触发的作业**，一起解析，不然会比较闷逼。
+该逻辑和**「4.7」执行被错过执行的作业**，一起解析，可以整体性的理解 Elastic-Job-Lite 对被错过执行( misfired )的作业处理。
 
 ## 4.5 执行作业执行前的方法
 
@@ -442,7 +478,7 @@ public void beforeJobExecuted(final ShardingContexts shardingContexts) {
 
 ## 4.6 执行普通触发的作业
 
-这个小节的标题不太正确，其他**作业来源**也是走这样的逻辑。本小节执行作业会经历 4 个方法，方法**顺序**往下调用，我们逐个来看。
+这个小节的标题不太准确，其他**作业来源**( ExecutionSource )也是执行这样的逻辑。本小节执行作业会经历 4 个方法，方法**顺序**往下调用，我们逐个来看。
 
 ```Java
 // AbstractElasticJobExecutor.java
@@ -531,15 +567,15 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
     ```Java
     public enum ExecutionSource {
        /**
-        * 普通触发
+        * 普通触发执行
         */
        NORMAL_TRIGGER,
        /**
-        * 被错过触发
+        * 被错过执行
         */
        MISFIRE,
        /**
-        * 失效转移触发
+        * 失效转移执行
         */
        FAILOVER
     }
@@ -565,8 +601,8 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
        }
     }
     ```
-    * 当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )，才记录作业运行状态。
-    * 调用 `JobNodeStorage#fillEphemeralJobNode(...)` 方法记录**其执行的作业分片**正在运行中。如何记录的，在[《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    * 仅当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )时，记录作业运行状态。
+    * 调用 `JobNodeStorage#fillEphemeralJobNode(...)` 方法记录**分配的作业分片项**正在运行中。如何记录的，在[《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 * 调用 `LiteJobFacade#registerJobCompleted(...)` 方法注册作业**完成**信息：
 
@@ -596,9 +632,8 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
        }
     }
     ```
-    
-    * 当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )，才记录作业运行状态。
-    * 调用 `JobNodeStorage#removeJobNodeIfExisted(...)` 方法**移除****其执行的作业分片**正在运行中的标记，表示该作业分片未在运行中。
+    * 仅当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )，移除作业运行状态。
+    * 调用 `JobNodeStorage#removeJobNodeIfExisted(...)` 方法**移除分配的作业分片项**正在运行中的标记，表示作业分片项不在运行中状态。
     * 调用 `FailoverService#updateFailoverComplete(...)` 方法更新执行完毕失效转移的分片项状态，在[《Elastic-Job-Lite 源码解析 —— 任务失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 -------
@@ -646,8 +681,8 @@ private void process(final ShardingContexts shardingContexts, final JobExecution
 }
 ```
 
-* 单分片时，直接执行，无需使用线程池，效率更好。
-* 多分片时，线程池**并发**执行，使用 CountDownLatch 实现等待任务全部完成。
+* 分配**单**分片项时，直接执行，无需使用线程池，性能更优。
+* 分配**多**分片项时，使用线程池**并发**执行，通过 CountDownLatch 实现等待分片项全部执行完成。
 
 -------
 
@@ -688,7 +723,9 @@ private void process(final ShardingContexts shardingContexts, final int item, fi
 protected abstract void process(ShardingContext shardingContext);
 ```
 
-* 不同作业执行器实现类通过实现 `#process(shardingContext)` 抽象方法，实现对**单个分片**作业的处理。
+* 不同作业执行器实现类通过实现 `#process(shardingContext)` 抽象方法，实现对**单个分片项**作业的处理。
+* 不同作业执行器实现类通过实现 `#process(shardingContext)` 抽象方法，实现对**单个分片项**作业的处理。
+* 不同作业执行器实现类通过实现 `#process(shardingContext)` 抽象方法，实现对**单个分片项**作业的处理。
 
 ### 4.6.1 简单作业执行器
 
@@ -709,7 +746,7 @@ public final class SimpleJobExecutor extends AbstractElasticJobExecutor {
 }
 ```
 
-* 调用 `SimpleJob#execute()` 方法对单个分片作业进行处理。
+* 调用 `SimpleJob#execute()` 方法对单个分片项作业进行处理。
 
 ### 4.6.2 数据流作业执行器
 
@@ -851,9 +888,9 @@ public final class ScriptJobExecutor extends AbstractElasticJobExecutor {
 
 ## 4.7 执行被错过触发的作业
 
-当作业执行过久，导致到达下次执行时间未进行下一次触发，Elastic-Job-Lite 会设置作业分片为被错过( `misfired` )，下一次执行时，会多执行，补上错过的调度。
+当作业执行过久，导致到达下次执行时间未进行下一次作业执行，Elastic-Job-Lite 会设置该作业分片项为被错过执行( misfired )。下一次作业执行时，会**补充**执行被错过执行的作业分片项。
 
-**标记作业被错过**
+**标记作业被错过执行**
 
 ```Java
 // JobScheduler.java
@@ -880,9 +917,9 @@ private CronTrigger createTrigger(final String cron) {
 }
 ```
 
-* `org.quartz.jobStore.misfireThreshold` 设置超过 1 毫秒，作业即被视为错过。
-* `#withMisfireHandlingInstructionDoNothing()` 设置 Quartz 系统不会立刻再执行任务，而是等到距离目前时间最近的预计时间执行。**重新执行错过的作业交给 Elastic-Job-Lite 处理**。
-* 使用 TriggerListener 监听被错过的作业分片：
+* `org.quartz.jobStore.misfireThreshold` 设置超过 1 毫秒，作业分片项即被视为错过执行。
+* `#withMisfireHandlingInstructionDoNothing()` 设置 Quartz 系统不会立刻再执行任务，而是等到距离目前时间最近的预计时间执行。**重新执行被错过执行的作业交给 Elastic-Job-Lite 处理**。
+* 使用 TriggerListener 监听被错过执行的作业分片项：
 
     ```Java
     // JobTriggerListener.java
@@ -903,9 +940,9 @@ private CronTrigger createTrigger(final String cron) {
        }
     }
     ```
-    * 调用 `#setMisfire(...)` 设置作业分片被错过执行。
+    * 调用 `#setMisfire(...)` 设置作业分片项被错过执行。
 
-**跳过存在运行中的被错过作业**
+**跳过正在运行中的被错过执行的作业**
 
 ```Java
 // LiteJobFacade.java
@@ -937,10 +974,10 @@ public boolean hasRunningItems(final Collection<Integer> items) {
 }
 ```
 
-* 当作业分片里存在**任意一个分片正在运行**中，设置分片项**都**被错过执行( `misfired` )，并不执行这些作业分片。如果不进行跳过，则可能导致**同时**运行某个作业分片。
-* 该功能依赖作业配置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )。
+* 当分配的作业分片项里存在**任意一个分片正在运行**中，设置分片项**都**被错过执行( `misfired` )，并不执行这些作业分片。如果不进行跳过，则可能导致**同时**运行某个作业分片。
+* 该功能依赖作业配置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )时生效。
 
-**执行被错过触发的作业**
+**执行被错过执行的作业分片项**
 
 ```Java
 // AbstractElasticJobExecutor.java
@@ -968,7 +1005,7 @@ public void clearMisfire(final Collection<Integer> shardingItems) {
 }
 ```
 
-* 清除作业分片被错过执行的标识，并进行作业执行。
+* 清除分配的作业分片项被错过执行的标识，并执行作业分片项。
 * TODO：为什么这里使用 `where()`，确认后补充。
 
 ## 4.8 执行作业失效转移
@@ -1000,5 +1037,19 @@ public void afterJobExecuted(final ShardingContexts shardingContexts) {
 * 调用作业监听器执行作业**执行后**的方法，在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 # 666. 彩蛋
+
+呼！略长略长略长！
+
+下面会更新如下两篇文章，为后续的主节点选举、失效转移、作业分片策略等文章做铺垫：
+
+* [《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)
+* [《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)
+
+道友，赶紧上车，分享一波朋友圈！
+
+啊啊啊，我好想马上拜读 Elastic-Job-Cloud。为了你们，我忍住了心碎。
+
+旁白君：煞笔笔者已经偷偷在读了。  
+芋道君：旁白君，你大爷！
 
 
