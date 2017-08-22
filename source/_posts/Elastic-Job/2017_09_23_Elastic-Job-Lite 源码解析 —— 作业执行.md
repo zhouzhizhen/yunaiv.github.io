@@ -52,6 +52,10 @@ permalink: Elastic-Job/job-execute
 
 * **黄色**的类在 `elastic-job-common-core` 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud **公用**作业执行类。
 
+> 你行好事会因为得到赞赏而愉悦  
+> 同理，开源项目贡献者会因为 Star 而更加有动力  
+> 为 Elastic-Job 点赞！[传送门](https://github.com/dangdangdotcom/elastic-job/stargazers)
+
 # 2. Lite调度作业
 
 Lite调度作业( LiteJob )，作业被调度后，调用 `#execute()` 执行作业。

@@ -41,6 +41,10 @@ permalink: Elastic-Job/job-init
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_09_16/01.png)
 
+> 你行好事会因为得到赞赏而愉悦  
+> 同理，开源项目贡献者会因为 Star 而更加有动力  
+> 为 Elastic-Job 点赞！[传送门](https://github.com/dangdangdotcom/elastic-job/stargazers)
+
 # 2. 作业注册表
 
 作业注册表( JobRegistry )，维护了单个 Elastic-Job-Lite **进程内**作业相关信息，可以理解成其专属的 Spring IOC 容器。因此，其本身是一个**单例**。
