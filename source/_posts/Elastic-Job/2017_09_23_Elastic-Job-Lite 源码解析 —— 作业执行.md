@@ -452,11 +452,11 @@ public void checkJobExecutionEnvironment() throws JobExecutionEnvironmentExcepti
 
 ## 4.2 获取当前作业服务器的分片上下文
 
-调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所分配执行的分片项**，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所分配执行的分片项**，在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 ## 4.3 发布作业状态追踪事件
 
-调用 `LiteJobFacade#postJobStatusTraceEvent()` 方法发布作业状态追踪事件，在[《Elastic-Job-Lite 源码解析 —— 任务事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+调用 `LiteJobFacade#postJobStatusTraceEvent()` 方法发布作业状态追踪事件，在[《Elastic-Job-Lite 源码解析 —— 作业事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 ## 4.4 跳过正在运行中的被错过执行的作业
 
@@ -518,7 +518,7 @@ private void process(final ShardingContexts shardingContexts, final int item, fi
 protected abstract void process(ShardingContext shardingContext);
 ```
 
-ps：**作业事件**相关逻辑，先统一跳过，在[《Elastic-Job-Lite 源码解析 —— 任务事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+ps：**作业事件**相关逻辑，先统一跳过，在[《Elastic-Job-Lite 源码解析 —— 作业事件与追踪》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 -------
 
@@ -634,7 +634,7 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
     ```
     * 仅当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )，移除作业运行状态。
     * 调用 `JobNodeStorage#removeJobNodeIfExisted(...)` 方法**移除分配的作业分片项**正在运行中的标记，表示作业分片项不在运行中状态。
-    * 调用 `FailoverService#updateFailoverComplete(...)` 方法更新执行完毕失效转移的分片项状态，在[《Elastic-Job-Lite 源码解析 —— 任务失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    * 调用 `FailoverService#updateFailoverComplete(...)` 方法更新执行完毕失效转移的分片项状态，在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 -------
 
@@ -1006,7 +1006,7 @@ public void clearMisfire(final Collection<Integer> shardingItems) {
 ```
 
 * 清除分配的作业分片项被错过执行的标识，并执行作业分片项。
-* TODO：为什么这里使用 `where()`，确认后补充。
+* 为什么此处使用 **while(...)**？**防御性编程**，`#isExecuteMisfired(...)` 判断使用**内存缓存**的数据，而该数据的更新依赖 Zookeeper 通知进行**异步**更新，可能因为各种情况，例如网络，数据可能未及时更新导致**数据不一致**。使用 **while(...)** 进行防御编程，保证**内存缓存**的数据已经更新。
 
 ## 4.8 执行作业失效转移
 
@@ -1020,7 +1020,7 @@ public void failoverIfNecessary() {
 }
 ```
 
-* 调用作业失效转移服务( FailoverService )执行作业失效转移( `#failoverIfNecessary()` )，在[《Elastic-Job-Lite 源码解析 —— 任务失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 调用作业失效转移服务( FailoverService )执行作业失效转移( `#failoverIfNecessary()` )，在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 ## 4.9 执行作业执行后的方法
 
