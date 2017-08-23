@@ -33,11 +33,11 @@ permalink: Elastic-Job/why-read-Elastic-Job-source-code
 * [ ] 分布式调度协调
 * [ ] 弹性扩容缩容
 * [ ] 失效转移
-* [ ] 错过执行作业重触发
+* [x] 错过执行作业重触发
 * [ ] 作业分片策略
 * [ ] 作业唯一节点执行
 * [ ] 自诊断并修复分布式不稳定造成的问题
-* [ ] 支持并行调度
+* [x] 支持并行调度
 * [ ] 支持作业生命周期操作
 * [ ] 丰富的作业类型
 * [ ] Spring整合以及命名空间提供
@@ -46,7 +46,7 @@ permalink: Elastic-Job/why-read-Elastic-Job-source-code
 * [ ] DUMP 作业运行信息
 * [ ] 作业监听器
 * [ ] 基于 Docker 的进程隔离（TBD）
-* [ ] 高可用
+* [x] 高可用
 
 
 ## XXL-JOB 
