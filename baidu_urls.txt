@@ -1,8 +1,8 @@
+http://www.yunai.me/Elastic-Job/job-storage/
 http://www.yunai.me/Elastic-Job/reg-center-zookeeper/
 http://www.yunai.me/Elastic-Job/job-execute/
 http://www.yunai.me/Elastic-Job/job-init/
 http://www.yunai.me/Elastic-Job/job-config/
-http://www.yunai.me/Elastic-Job/job-storage/
 http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/
 http://www.yunai.me/Sharding-JDBC/transaction-tcc/
 http://www.yunai.me/Sharding-JDBC/transaction-bed/

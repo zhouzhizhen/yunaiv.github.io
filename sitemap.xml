@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/Elastic-Job/job-storage/</loc>
+    
+    <lastmod>2017-08-23T17:01:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/Elastic-Job/reg-center-zookeeper/</loc>
     
     <lastmod>2017-08-23T16:32:01.000Z</lastmod>
@@ -19,13 +26,6 @@
     <loc>http://www.yunai.me/Elastic-Job/job-config/</loc>
     
     <lastmod>2017-08-23T16:30:29.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Elastic-Job/job-storage/</loc>
-    
-    <lastmod>2017-08-23T16:29:50.000Z</lastmod>
     
   </url>
   
