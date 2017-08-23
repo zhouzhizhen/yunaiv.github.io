@@ -428,7 +428,7 @@ public void init() {
     ```
     * `org.quartz.threadPool.threadCount = 1`，即 Quartz 执行作业线程数量为 1。原因：一个**作业( ElasticJob )**的调度，需要配置**独有**的一个**作业调度器( JobScheduler )**，两者是 `1 : 1` 的关系。
     * `org.quartz.plugin.shutdownhook.class` 设置作业**优雅关闭**钩子：[JobShutdownHookPlugin](https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-lite/elastic-job-lite-core/src/main/java/com/dangdang/ddframe/job/lite/internal/schedule/JobShutdownHookPlugin.java)。
-    * 触发器监听器( TriggerListener )，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    * 触发器监听器( TriggerListener )，在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
     
 * 调用 `#createJobDetail()` 方法创建 Quartz 作业：
 
@@ -463,7 +463,7 @@ public void init() {
        return Optional.fromNullable(elasticJob);
     }
     ```
-    * 创建 Quartz 作业设置了 LiteJob 类，这样 Quartz 触发作业执行时，LiteJob 会去调用 Elastic-Job 作业对象。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    * 创建 Quartz 作业设置了 LiteJob 类，这样 Quartz 触发作业执行时，LiteJob 会去调用 Elastic-Job 作业对象。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
     * 在 Spring 里，Elastic-Job 如果已经创建好**注入**到 SpringJobScheduler，无需进行创建。
     * `Jodetail.jobDataMap` 属性里添加了作业门面对象( LiteJobFacade )、Elastic-Job 对象，Quartz  触发作业时，会设置到 LiteJob 对象里。
 
@@ -566,7 +566,7 @@ public void scheduleJob(final String cron) {
 
 作业初始化，如果你对 Quartz 不是特别了解，可以再看 Quartz 再重新理解。
 
-下一篇，[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg) 起航！
+下一篇，[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self) 起航！
 
 道友，分享一波**微信朋友圈**支持支持支持，可好？
 

@@ -606,7 +606,7 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
     }
     ```
     * 仅当作业配置设置**监控作业运行时状态**( `LiteJobConfiguration.monitorExecution = true` )时，记录作业运行状态。
-    * 调用 `JobNodeStorage#fillEphemeralJobNode(...)` 方法记录**分配的作业分片项**正在运行中。如何记录的，在[《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+    * 调用 `JobNodeStorage#fillEphemeralJobNode(...)` 方法记录**分配的作业分片项**正在运行中。如何记录的，在[《Elastic-Job-Lite 源码解析 —— 作业数据存储》](http://www.yunai.me/Elastic-Job/job-storage/?self)详细分享。
 
 * 调用 `LiteJobFacade#registerJobCompleted(...)` 方法注册作业**完成**信息：
 
@@ -1047,7 +1047,7 @@ public void afterJobExecuted(final ShardingContexts shardingContexts) {
 下面会更新如下两篇文章，为后续的主节点选举、失效转移、作业分片策略等文章做铺垫：
 
 * [《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)
-* [《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)
+* [《Elastic-Job-Lite 源码解析 —— 作业数据存储》](http://www.yunai.me/Elastic-Job/job-storage/?self)
 
 道友，赶紧上车，分享一波朋友圈！
 

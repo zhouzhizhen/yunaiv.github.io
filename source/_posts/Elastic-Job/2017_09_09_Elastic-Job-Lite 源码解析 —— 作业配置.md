@@ -71,7 +71,7 @@ Elastic-Job 抽象了**注册中心接口( RegistryCenter )**，并提供了默�
 
 ZookeeperRegistryCenter 对应配置类为 ZookeeperConfiguration。该类注释很完整，可以点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/reg/zookeeper/ZookeeperConfiguration.java)直接查看源码，这里我们重点说下 `namespace` 属性。如果你有多个**不同** Elastic-Job集群 时，使用相同 Zookeeper，可以配置不同的 `namespace` 进行隔离。
 
-注册中心的**初始化**，我们会在[《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+注册中心的**初始化**，我们会在[《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self)详细分享。
 
 ## 2.2 Lite作业配置
 
@@ -103,7 +103,7 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
 ```
 
 * `typeConfig`：作业类型配置。**必填**。
-* `monitorExecution`：监控作业运行时状态。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `monitorExecution`：监控作业运行时状态。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
 
     > 每次作业执行时间和间隔时间均**非常短**的情况，建议不监控作业运行时状态以提升效率。因为是瞬时状态，所以无必要监控。请用户自行增加数据堆积监控。并且不能保证数据重复选取，应在作业中实现幂等性。  
     每次作业执行时间和间隔时间均**较长的**情况，建议监控作业运行时状态，可保证数据不会重复选取。
@@ -191,9 +191,9 @@ public final class JobCoreConfiguration {
     例：每次获取的数据量、作业实例从数据库读取的主键等
 
 * `failover`：是否开启作业执行失效转移。**开启表示如果作业在一次作业执行中途宕机，允许将该次未完成的作业在另一作业节点上补偿执行**。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业失效转移 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
-* `misfire`：是否开启错过作业重新执行。默认为 `true`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `misfire`：是否开启错过作业重新执行。默认为 `true`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
 * `description`：作业描述。选填。
-* `jobProperties`：作业属性配置。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `jobProperties`：作业属性配置。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
 
     ```Java
     public final class JobProperties {
@@ -255,7 +255,7 @@ public final class ConfigurationService {
 }
 ```
 
-* JobNodeStorage，封装注册中心，提供存储服务。在[《Elastic-Job-Lite 源码解析 —— 数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* JobNodeStorage，封装注册中心，提供存储服务。在[《Elastic-Job-Lite 源码解析 —— 作业数据存储》](http://www.yunai.me/Elastic-Job/job-storage/?self)详细分享。
 * TimeService，时间服务，提供当前时间查询。
 
     ```Java

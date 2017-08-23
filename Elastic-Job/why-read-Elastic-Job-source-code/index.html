@@ -1,5 +1,534 @@
-<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E"><meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0"><meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214"><meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1"><meta name="sogou_site_verification" content="MpPsku240L"><title>Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？ | 芋艿V的博客</title><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3,minimum-scale=1"><meta name="author" content="王文斌"><meta name="description" content="🙂🙂🙂关注微信公众号：【芋道源码】有福利：  
 
-RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表  
-RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址  
-您对于源码的疑问每条留言都将得到认真回复。甚至不"><meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表"><link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml"><link rel="icon" href="/images/favicon.ico"><link rel="stylesheet" href="/css/style.css"><script>var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="//hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script>!function(){var t="http:"==document.location.protocol?"http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";document.write('<script src="'+t+'" id="sozz"><\/script>')}()</script><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></head></html><body><header><div><div id="textlogo"><h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1><a class="blog-motto">愿编码半生，如老友相伴！</a></div><div class="navbar"><a class="navbutton navmobile" href="#" title="菜单"></a></div><nav class="animated"><ul><ul><li><a href="/">文章</a></li><li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li><li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li></ul></ul></nav></div></header><div id="container"><div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div><div id="toc" class="toc-aside"><strong class="toc-title">文章目录</strong><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Elastic-Job-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Elastic-Job 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用公司"><span class="toc-number">2.</span> <span class="toc-text">使用公司</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤-功能"><span class="toc-number">3.</span> <span class="toc-text">步骤/功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XXL-JOB"><span class="toc-number">4.</span> <span class="toc-text">XXL-JOB</span></a></li></ol></div><div id="asidepart"><aside class="clearfix"><div id="authorInfo"><div><img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"></div><div class="social-list"></div></div><div class="categorieslist"><p class="asidetitle">微信公众号福利：芋道源码</p><ul><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">0. 阅读源码葵花宝典</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">2. 您对于源码的疑问每条留言都将得到认真回复</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">3. 新的源码解析文章实时收到通知，每周六十点更新</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群</a></li></ul></div><div class="categorieslist"><p class="asidetitle">分类</p><ul><li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li><li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>5</sup></a></li><li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li><li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li><li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li><li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li><li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li></ul></div></aside></div><div id="main" class="post" itemscope="" itemprop="blogPost"><article itemprop="articleBody"><header class="article-info clearfix"><h1 itemprop="name"><a href="/Elastic-Job/why-read-Elastic-Job-source-code/" title="Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？" itemprop="url">Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？</a></h1><p class="article-author"></p><p class="article-time">总阅读量:<span id="busuanzi_value_page_pv"></span>次</p></header><div class="article-content"><div id="toc" class="toc-article"><strong class="toc-title">文章目录</strong><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么阅读-Elastic-Job-源码？"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Elastic-Job 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用公司"><span class="toc-number">2.</span> <span class="toc-text">使用公司</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#步骤-功能"><span class="toc-number">3.</span> <span class="toc-text">步骤/功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XXL-JOB"><span class="toc-number">4.</span> <span class="toc-text">XXL-JOB</span></a></li></ol></div><p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p><blockquote><p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：</p><ol><li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li><li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li><li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li><li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li><li><strong>认真的</strong>源码交流微信群。</li></ol></blockquote><hr><h2 id="为什么阅读-Elastic-Job-源码？"><a href="#为什么阅读-Elastic-Job-源码？" class="headerlink" title="为什么阅读 Elastic-Job 源码？"></a>为什么阅读 Elastic-Job 源码？</h2><ol><li>之前断断续续读过 Quartz 源码，团队里也对 Quartz 做过一些封装管理，很多 Quartz 二次封装开源项目，想了解 Elastic-Job 做了哪些功能，是怎么实现的</li><li>Quartz 多节点通过数据库锁实现任务抢占，Elastic-Job 基于什么策略实现任务调度与分配</li><li>任务分片如何实现</li><li>Elastic-Job-Cloud 如何实现任务动态扩容和缩容</li><li>任务超时如何处理？任务假死怎么判断？</li></ol><h2 id="使用公司"><a href="#使用公司" class="headerlink" title="使用公司"></a>使用公司</h2><h2 id="步骤-功能"><a href="#步骤-功能" class="headerlink" title="步骤/功能"></a>步骤/功能</h2><ul><li>[ ] 分布式调度协调</li><li>[ ] 弹性扩容缩容</li><li>[ ] 失效转移</li><li>[ ] 错过执行作业重触发</li><li>[ ] 作业分片策略</li><li>[ ] 作业唯一节点执行</li><li>[ ] 自诊断并修复分布式不稳定造成的问题</li><li>[ ] 支持并行调度</li><li>[ ] 支持作业生命周期操作</li><li>[ ] 丰富的作业类型</li><li>[ ] Spring整合以及命名空间提供</li><li>[ ] 运维平台</li><li>[ ] 事件追踪</li><li>[ ] DUMP 作业运行信息</li><li>[ ] 作业监听器</li><li>[ ] 基于 Docker 的进程隔离（TBD）</li><li>[ ] 高可用</li></ul><h2 id="XXL-JOB"><a href="#XXL-JOB" class="headerlink" title="XXL-JOB"></a>XXL-JOB</h2><p>基于 V1.8，会逐渐和 Elastic-Job 功能做对比</p><ul><li>[ ] 1、简单：支持通过Web页面对任务进行CRUD操作，操作简单，一分钟上手；</li><li>[ ] 2、动态：支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，即时生效；</li><li>[ ] 3、调度中心HA（中心式）：调度采用中心式设计，“调度中心”基于集群Quartz实现，可保证调度中心HA；</li><li>[ ] 4、执行器HA（分布式）：任务分布式执行，任务”执行器”支持集群部署，可保证任务执行HA；</li><li>[ ] 5、任务Failover：执行器集群部署时，任务路由策略选择”故障转移”情况下调度失败时将会平滑切换执行器进行Failover；</li><li>[ ] 6、一致性：“调度中心”通过DB锁保证集群分布式调度的一致性, 一次任务调度只会触发一次执行；</li><li>[ ] 7、自定义任务参数：支持在线配置调度任务入参，即时生效；</li><li>[ ] 8、调度线程池：调度系统多线程触发调度运行，确保调度精确执行，不被堵塞；</li><li>[ ] 9、弹性扩容缩容：一旦有新执行器机器上线或者下线，下次调度时将会重新分配任务；</li><li>[ ] 10、邮件报警：任务失败时支持邮件报警，支持配置多邮件地址群发报警邮件；</li><li>[ ] 11、状态监控：支持实时监控任务进度；</li><li>[ ] 12、Rolling执行日志：支持在线查看调度结果，并且支持以Rolling方式实时查看执行器输出的完整的执行日志；</li><li>[ ] 13、GLUE：提供Web IDE，支持在线开发任务逻辑代码，动态发布，实时编译生效，省略部署上线的过程。支持30个版本的历史版本回溯。</li><li>[ ] 14、数据加密：调度中心和执行器之间的通讯进行数据加密，提升调度信息安全性；</li><li>[ ] 15、任务依赖：支持配置子任务依赖，当父任务执行结束且执行成功后将会主动触发一次子任务的执行, 多个子任务用逗号分隔；</li><li>[ ] 16、推送maven中央仓库: 将会把最新稳定版推送到maven中央仓库, 方便用户接入和使用;</li><li>[ ] 17、任务注册: 执行器会周期性自动注册任务, 调度中心将会自动发现注册的任务并触发执行。同时，也支持手动录入执行器地址；</li><li>[ ] 18、路由策略：执行器集群部署时提供丰富的路由策略，包括：第一个、最后一个、轮询、随机、一致性HASH、最不经常使用、最近最久未使用、故障转移、忙碌转移等；</li><li>[ ] 19、运行报表：支持实时查看运行数据，如任务数量、调度次数、执行器数量等；以及调度报表，如调度日期分布图，调度成功分布图等；</li><li>[ ] 20、脚本任务：支持以GLUE模式开发和运行脚本任务，包括Shell、Python等类型脚本;</li><li>[ ] 21、阻塞处理策略：调度过于密集执行器来不及处理时的处理策略，策略包括：单机串行（默认）、丢弃后续调度、覆盖之前调度；</li><li>[ ] 22、失败处理策略；调度失败时的处理策略，策略包括：失败告警（默认）、失败重试；</li><li>[ ] 23、分片广播任务：执行器集群部署时，任务路由策略选择”分片广播”情况下，一次任务调度将会广播触发对应集群中所有执行器执行一次任务，同时传递分片参数；可根据分片参数开发分片任务；</li><li>[ ] 24、动态分片：分片广播任务以执行器为维度进行分片，支持动态扩容执行器集群从而动态增加分片数量，协同进行业务处理；在进行大数据量业务操作时可显著提升任务处理能力和速度。</li></ul></div><footer class="article-footer clearfix"><div class="article-categories"><span></span> <a class="article-category-link" href="/categories/Elastic-Job/">Elastic-Job</a></div><div class="article-share" id="share"><div data-url="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/" data-title="Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？ | 芋艿V的博客" data-tsina="null" class="share clearfix"></div></div></footer></article><nav class="article-nav clearfix"><div class="prev"><a href="/Elastic-Job/job-config/" title="Elastic-Job-Lite 源码分析 —— 作业配置"><strong>PREVIOUS:</strong><br><span>Elastic-Job-Lite 源码分析 —— 作业配置</span></a></div><div class="next"><a href="/Sharding-JDBC/transaction-tcc/" title="Sharding-JDBC 源码分析 —— 分布式事务（二）之事务补偿型"><strong>NEXT:</strong><br><span>Sharding-JDBC 源码分析 —— 分布式事务（二）之事务补偿型</span></a></div></nav></div></div><footer><div id="footer"><p class="copyright">© 2017 <a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a> && <span style="display:inline" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span> && <span style="display:inline" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span> && Hosted by <a href="https://pages.coding.me" style="font-weight:700" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a> && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a></p></div></footer><script src="/js/jquery-2.1.0.min.js"></script><script type="text/javascript">$(document).ready(function(){function e(){"number"==typeof window.innerWidth?n=window.innerWidth:document.documentElement&&document.documentElement.clientWidth&&(n=document.documentElement.clientWidth)}$(".navbar").click(function(){$("header nav").toggleClass("shownav")});var n=0,s=$("#main"),a=$("#asidepart"),o=$(".closeaside"),d=$(".openaside");$(window).resize(function(){e(),n>=1024?$("header nav").removeClass("shownav"):(s.removeClass("moveMain"),a.css("display","block").removeClass("fadeOut"),d.css("display","none"),$("#toc.toc-aside").css("display","none"))}),o.click(function(){a.addClass("fadeOut").css("display","none"),d.css("display","block").addClass("fadeIn"),s.addClass("moveMain")}),d.click(function(){d.css("display","none").removeClass("beforeFadeIn"),a.css("display","block").removeClass("fadeOut").addClass("fadeIn"),s.removeClass("moveMain")}),$(window).scroll(function(){d.css("top",Math.max(80,260-$(this).scrollTop()))})})</script><script type="text/javascript">$(document).ready(function(){var a=$(".article-content>iframe"),t=$(".article-content>embed"),n=$("#toc");$("article h2"),ah=$("article h2"),ta=$("#toc.toc-aside"),o=$(".openaside"),c=$(".closeaside"),a.length>0&&a.wrap('<div class="video-container" />'),t.length>0&&t.wrap('<div class="video-container" />'),0==ah.length?n.css("display","none"):(c.click(function(){ta.css("display","block").addClass("fadeIn")}),o.click(function(){ta.css("display","none")}),$(window).scroll(function(){ta.css("top",Math.max(140,320-$(this).scrollTop()))}))})</script><script type="text/javascript">$(document).ready(function(){var t=$(".share"),a=t.attr("data-url"),e=encodeURIComponent(a),r=['<a href="#" class="overlay" id="qrcode"></a>','<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url='+e+'"/></div>','<a href="#textlogo" class="article-back-to-top" title="Top"></a>','<a href="https://www.facebook.com/sharer.php?u='+e+'" class="article-share-facebook" target="_blank" title="Facebook"></a>','<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>','<a href="https://twitter.com/intent/tweet?url='+e+'" class="article-share-twitter" target="_blank" title="Twitter"></a>','<a href="http://service.weibo.com/share/share.php?title='+t.attr("data-title")+"&url="+e+"&ralateUid="+t.attr("data-tsina")+'&searchPic=true&style=number" class="article-share-weibo" target="_blank" title="Weibo"></a>','<span title="Share to"></span>'].join("");t.append(r),$(".article-share-qrcode").click(function(){var t=$("#qrcode-pic").attr("data-src");$("#qrcode-pic").attr("src",t),$("#qrcode-pic").load(function(){$(".qrcode strong").text(" ")})})})</script><link rel="stylesheet" href="/alert/css/alert.css"><script src="/alert/js/alert.js"></script><script src="/js/jquery.cookie.js"></script><script>$(document).ready(function(){function e(){var e=jqueryAlert({title:"👼每周六更新一篇源码解析，【扫一扫】关注公众号👼",width:"500",height:"580",modal:!0,content:n+'<p style="color: red">今日'+c+"已关注人数："+p+'</p><img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" /><p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p><p style="color: red">一起看源码，读源码，提升技术！</p>',buttons:{"已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）":function(){e.close()}}});$.cookie(o,i+1,{expires:1,path:"/"})}if(!(location.href.indexOf("vip")>=0||location.href.indexOf("127.0.0.1")>=0)){var o="doubi",i=$.cookie(o);i?i=parseInt(i):($.cookie(o,0,{expires:1,path:"/"}),i=0),$.cookie(o,i,{expires:1,path:"/"});var t="default",r={juejin:"掘金",oschina:"开源中国",sjdbc:"Sharding-JDBC",jianshu:"简书",csdn:"CSDN",iteye:"iteye",cnblogs:"博客园"};for(var a in r)if(location.search.indexOf(a)>=0){t=a;break}"default"===t&&(t=$.cookie("from")||"default"),$.cookie("from",t,{expires:365,path:"/"});var n="",c="";if(t&&r[t]&&(n='<p style="color: red">欢迎来自【'+r[t]+"】的同学</p>",c="【"+r[t]+"】"),i<=3){var p=103+5*(new Date).getHours();setTimeout(e,1e4*(i+1))}}})</script></body>
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+
+  
+    <title>Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？ | 芋艿V的博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="王文斌">
+    
+    <meta name="description" content="🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：
+
+RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表
+RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址
+您对于源码的疑问每条留言都将得到认真回复。甚至不知道">
+    
+
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表">
+    
+
+    
+    
+    <link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/images/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='ef4ed89f6dc83d01803a2440ae21e666';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</head>
+</html>
+  <body>
+    <header>
+      <div>
+    
+    <div id="textlogo">
+        <h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1>
+        <a class="blog-motto">
+            
+            愿编码半生，如老友相伴！
+            
+        </a>
+    </div>
+    <div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+        </a></div>
+    <nav class="animated">
+        <ul>
+            <ul>
+                
+                <li><a href="/">文章</a></li>
+                
+                <li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li>
+                
+                <li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li>
+                
+                <!--<li>-->
+                    <!---->
+                        <!--<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">-->
+                            <!--<label>Search</label>-->
+                            <!--<input type="text" id="search" name="q" autocomplete="off" maxlength="20"-->
+                                   <!--placeholder="搜索"/>-->
+                            <!--<input type="hidden" name="q" value="site:www.yunai.me">-->
+                        <!--</form>-->
+                        <!---->
+                <!--</li>-->
+            </ul>
+    </ul></nav>
+</div>
+
+    </header>
+    <div id="container">
+        <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="toc" class="toc-aside">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Elastic-Job 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">使用公司</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">步骤/功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">XXL-JOB</span></a></li></ol>
+</div>
+
+<div id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!---->
+            <!--<div class="author-logo"></div>-->
+            <!---->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"> </div>
+
+            <div class="social-list">
+                
+                
+                
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="categorieslist">
+    <p class="asidetitle">微信公众号福利：芋道源码</p>
+    <ul>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 0. 阅读源码葵花宝典 </a></li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 2. 您对于源码的疑问每条留言都将得到认真回复 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 3. 新的源码解析文章实时收到通知，每周六十点更新 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群 </a> </li>
+
+
+    </ul>
+</div>
+        
+        
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>6</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li>
+		
+			<li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+        
+    </aside>
+</div>
+        <div id="main" class="post" itemscope="" itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/Elastic-Job/why-read-Elastic-Job-source-code/" title="Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？" itemprop="url">Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？</a>
+  </h1>
+  <p class="article-author">
+      <!--By-->
+    <!---->
+      <!--<a href="http://www.yunai.me" title="王文斌">王文斌</a>-->
+    <!---->
+  </p>
+  <p class="article-time">
+    <!--<time datetime="2017-08-31T16:00:00.000Z" itemprop="datePublished">2017-09-01</time>-->
+    <!--更新日期:<time datetime="2017-08-23T09:14:34.000Z" itemprop="dateModified">2017-08-23</time>-->
+    <!---->
+      总阅读量:<span id="busuanzi_value_page_pv"></span>次
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">为什么阅读 Elastic-Job 源码？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">使用公司</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">步骤/功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">XXL-JOB</span></a></li></ol>
+		</div>
+		
+		<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<h2>为什么阅读 Elastic-Job 源码？</h2>
+<ol>
+<li>之前断断续续读过 Quartz 源码，团队里也对 Quartz 做过一些封装管理，很多 Quartz 二次封装开源项目，想了解 Elastic-Job 做了哪些功能，是怎么实现的</li>
+<li>Quartz 多节点通过数据库锁实现任务抢占，Elastic-Job 基于什么策略实现任务调度与分配</li>
+<li>任务分片如何实现</li>
+<li>Elastic-Job-Cloud 如何实现任务动态扩容和缩容</li>
+<li>任务超时如何处理？任务假死怎么判断？</li>
+</ol>
+<h2>使用公司</h2>
+<h2>步骤/功能</h2>
+<ul>
+<li>[ ] 分布式调度协调</li>
+<li>[ ] 弹性扩容缩容</li>
+<li>[ ] 失效转移</li>
+<li>[x] 错过执行作业重触发</li>
+<li>[ ] 作业分片策略</li>
+<li>[ ] 作业唯一节点执行</li>
+<li>[ ] 自诊断并修复分布式不稳定造成的问题</li>
+<li>[x] 支持并行调度</li>
+<li>[ ] 支持作业生命周期操作</li>
+<li>[ ] 丰富的作业类型</li>
+<li>[ ] Spring整合以及命名空间提供</li>
+<li>[ ] 运维平台</li>
+<li>[ ] 事件追踪</li>
+<li>[ ] DUMP 作业运行信息</li>
+<li>[ ] 作业监听器</li>
+<li>[ ] 基于 Docker 的进程隔离（TBD）</li>
+<li>[x] 高可用</li>
+</ul>
+<h2>XXL-JOB</h2>
+<p>基于 V1.8，会逐渐和 Elastic-Job 功能做对比</p>
+<ul>
+<li>[ ] 1、简单：支持通过Web页面对任务进行CRUD操作，操作简单，一分钟上手；</li>
+<li>[ ] 2、动态：支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，即时生效；</li>
+<li>[ ] 3、调度中心HA（中心式）：调度采用中心式设计，“调度中心”基于集群Quartz实现，可保证调度中心HA；</li>
+<li>[ ] 4、执行器HA（分布式）：任务分布式执行，任务&quot;执行器&quot;支持集群部署，可保证任务执行HA；</li>
+<li>[ ] 5、任务Failover：执行器集群部署时，任务路由策略选择&quot;故障转移&quot;情况下调度失败时将会平滑切换执行器进行Failover；</li>
+<li>[ ] 6、一致性：“调度中心”通过DB锁保证集群分布式调度的一致性, 一次任务调度只会触发一次执行；</li>
+<li>[ ] 7、自定义任务参数：支持在线配置调度任务入参，即时生效；</li>
+<li>[ ] 8、调度线程池：调度系统多线程触发调度运行，确保调度精确执行，不被堵塞；</li>
+<li>[ ] 9、弹性扩容缩容：一旦有新执行器机器上线或者下线，下次调度时将会重新分配任务；</li>
+<li>[ ] 10、邮件报警：任务失败时支持邮件报警，支持配置多邮件地址群发报警邮件；</li>
+<li>[ ] 11、状态监控：支持实时监控任务进度；</li>
+<li>[ ] 12、Rolling执行日志：支持在线查看调度结果，并且支持以Rolling方式实时查看执行器输出的完整的执行日志；</li>
+<li>[ ] 13、GLUE：提供Web IDE，支持在线开发任务逻辑代码，动态发布，实时编译生效，省略部署上线的过程。支持30个版本的历史版本回溯。</li>
+<li>[ ] 14、数据加密：调度中心和执行器之间的通讯进行数据加密，提升调度信息安全性；</li>
+<li>[ ] 15、任务依赖：支持配置子任务依赖，当父任务执行结束且执行成功后将会主动触发一次子任务的执行, 多个子任务用逗号分隔；</li>
+<li>[ ] 16、推送maven中央仓库: 将会把最新稳定版推送到maven中央仓库, 方便用户接入和使用;</li>
+<li>[ ] 17、任务注册: 执行器会周期性自动注册任务, 调度中心将会自动发现注册的任务并触发执行。同时，也支持手动录入执行器地址；</li>
+<li>[ ] 18、路由策略：执行器集群部署时提供丰富的路由策略，包括：第一个、最后一个、轮询、随机、一致性HASH、最不经常使用、最近最久未使用、故障转移、忙碌转移等；</li>
+<li>[ ] 19、运行报表：支持实时查看运行数据，如任务数量、调度次数、执行器数量等；以及调度报表，如调度日期分布图，调度成功分布图等；</li>
+<li>[ ] 20、脚本任务：支持以GLUE模式开发和运行脚本任务，包括Shell、Python等类型脚本;</li>
+<li>[ ] 21、阻塞处理策略：调度过于密集执行器来不及处理时的处理策略，策略包括：单机串行（默认）、丢弃后续调度、覆盖之前调度；</li>
+<li>[ ] 22、失败处理策略；调度失败时的处理策略，策略包括：失败告警（默认）、失败重试；</li>
+<li>[ ] 23、分片广播任务：执行器集群部署时，任务路由策略选择&quot;分片广播&quot;情况下，一次任务调度将会广播触发对应集群中所有执行器执行一次任务，同时传递分片参数；可根据分片参数开发分片任务；</li>
+<li>[ ] 24、动态分片：分片广播任务以执行器为维度进行分片，支持动态扩容执行器集群从而动态增加分片数量，协同进行业务处理；在进行大数据量业务操作时可显著提升任务处理能力和速度。</li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Elastic-Job/">Elastic-Job</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/" data-title="Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？ | 芋艿V的博客" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev">
+ <a href="/Elastic-Job/job-storage/" title="Elastic-Job-Lite 源码分析 —— 作业数据存储">
+  <strong>PREVIOUS:</strong><br>
+  <span>
+  Elastic-Job-Lite 源码分析 —— 作业数据存储</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/Sharding-JDBC/transaction-tcc/" title="Sharding-JDBC 源码分析 —— 分布式事务（二）之事务补偿型">
+ <strong>NEXT:</strong><br> 
+ <span>Sharding-JDBC 源码分析 —— 分布式事务（二）之事务补偿型
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+    </div>
+    <footer><div id="footer">
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a>
+		
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a>
+            </p></div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/alert/css/alert.css">
+<script src="/alert/js/alert.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+
+<script>
+
+    $(document).ready(function(){
+//        alert('啦啦啦');
+        if (location.href.indexOf('vip') >= 0
+            || location.href.indexOf('127.0.0.1')>= 0) {
+            return;
+        }
+
+        var key = 'doubi';
+        var count = $.cookie(key);
+        if (!count) {
+            $.cookie(key, 0, { expires: 1, path: '/' });
+            count = 0;
+        } else {
+            count = parseInt(count);
+        }
+        $.cookie(key, count, { expires: 1, path: '/' });
+
+        var from = 'default';
+        var map = {
+            'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
+            'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
+        };
+        for (var item in map) {
+            if (location.search.indexOf(item) >= 0) {
+                from = item;
+                break;
+            }
+        }
+        if (from === 'default') {
+            from = $.cookie('from') || 'default';
+        }
+        $.cookie('from', from, { expires: 365, path: '/' });
+        var prefix = '';
+        var prefix2 = '';
+        if (from && map[from]) {
+            prefix = '<p style="color: red">欢迎来自【' + map[from] + '】的同学</p>';
+            prefix2 = '【' +  map[from] + '】';
+        }
+//        count = 1;
+        if (count <= 3) {
+            var hour = new Date().getHours();
+            var numbers = 103 + hour * 5;
+            function explode() {
+
+                var doubi = jqueryAlert({
+                    'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
+                    'width'   : '500',
+                    'height'  : '580',
+                    'modal': true,
+                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>',
+                    'buttons' :{
+                        '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
+                            doubi.close();
+                        }
+                    }
+                });
+                $.cookie(key, count + 1, { expires: 1 , path: '/'});
+            }
+            setTimeout(explode, ( count + 1 ) * 10000);
+        }
+    })
+</script>
+
+
+
+
+  </body>
+
+

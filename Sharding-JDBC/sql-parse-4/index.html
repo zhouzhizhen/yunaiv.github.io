@@ -1,5 +1,550 @@
-<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E"><meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0"><meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214"><meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1"><meta name="sogou_site_verification" content="MpPsku240L"><title>Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL | 芋艿V的博客</title><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3,minimum-scale=1"><meta name="author" content="王文斌"><meta name="description" content="🙂🙂🙂关注微信公众号：【芋道源码】有福利：  
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+
+  
+    <title>Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL | 芋艿V的博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="王文斌">
+    
+    <meta name="description" content="🙂🙂🙂关注微信公众号：【芋道源码】有福利：  
 
 RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表  
 RocketMQ / MyCAT / Sharding-JDBC 中文注释源码 GitHub 地址  
-您对于源码的疑问每条留言都将得到认真回复。甚至不"><meta name="keywords" content="Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,SQL解析, SQL 解析,Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表"><link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml"><link rel="icon" href="/images/favicon.ico"><link rel="stylesheet" href="/css/style.css"><script>var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="//hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script>!function(){var t="http:"==document.location.protocol?"http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";document.write('<script src="'+t+'" id="sozz"><\/script>')}()</script><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></head></html><body><header><div><div id="textlogo"><h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1><a class="blog-motto">愿编码半生，如老友相伴！</a></div><div class="navbar"><a class="navbutton navmobile" href="#" title="菜单"></a></div><nav class="animated"><ul><ul><li><a href="/">文章</a></li><li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li><li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li></ul></ul></nav></div></header><div id="container"><div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div><div id="toc" class="toc-aside"><strong class="toc-title">文章目录</strong><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-InsertStatement"><span class="toc-number">2.</span> <span class="toc-text">2. InsertStatement</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-parse"><span class="toc-number">3.</span> <span class="toc-text">3. #parse()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-parseInto"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 #parseInto()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-parseColumns"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 #parseColumns()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-parseValues"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 #parseValues()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-GeneratedKey"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.4.1 GeneratedKey</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-Condition"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.4.2 Condition</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-parseCustomizedInsert"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 #parseCustomizedInsert()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-appendGenerateKey"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 #appendGenerateKey()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-GeneratedKeyToken"><span class="toc-number">3.5.1.</span> <span class="toc-text">3.5.1 GeneratedKeyToken</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#666-彩蛋"><span class="toc-number">4.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol></div><div id="asidepart"><aside class="clearfix"><div id="authorInfo"><div><img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"></div><div class="social-list"></div></div><div class="categorieslist"><p class="asidetitle">微信公众号福利：芋道源码</p><ul><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">0. 阅读源码葵花宝典</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">2. 您对于源码的疑问每条留言都将得到认真回复</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">3. 新的源码解析文章实时收到通知，每周六十点更新</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群</a></li></ul></div><div class="categorieslist"><p class="asidetitle">分类</p><ul><li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li><li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>5</sup></a></li><li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li><li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li><li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li><li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li><li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li></ul></div></aside></div><div id="main" class="post" itemscope="" itemprop="blogPost"><article itemprop="articleBody"><header class="article-info clearfix"><h1 itemprop="name"><a href="/Sharding-JDBC/sql-parse-4/" title="Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL" itemprop="url">Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL</a></h1><p class="article-author"></p><p class="article-time">总阅读量:<span id="busuanzi_value_page_pv"></span>次</p></header><div class="article-content"><div id="toc" class="toc-article"><strong class="toc-title">文章目录</strong><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-InsertStatement"><span class="toc-number">2.</span> <span class="toc-text">2. InsertStatement</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-parse"><span class="toc-number">3.</span> <span class="toc-text">3. #parse()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-parseInto"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 #parseInto()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-parseColumns"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 #parseColumns()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-parseValues"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 #parseValues()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-GeneratedKey"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.4.1 GeneratedKey</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-Condition"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.4.2 Condition</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-parseCustomizedInsert"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 #parseCustomizedInsert()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-appendGenerateKey"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 #appendGenerateKey()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-GeneratedKeyToken"><span class="toc-number">3.5.1.</span> <span class="toc-text">3.5.1 GeneratedKeyToken</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#666-彩蛋"><span class="toc-number">4.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol></div><p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p><blockquote><p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：</p><ol><li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li><li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li><li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li><li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li><li><strong>认真的</strong>源码交流微信群。</li></ol></blockquote><hr><p><strong>本文主要基于 Sharding-JDBC 1.5.0 正式版</strong></p><ul><li><a href="#">1. 概述</a></li><li><a href="#">2. InsertStatement</a></li><li><a href="#">3. #parse()</a><ul><li><a href="#">3.1 #parseInfo()</a></li><li><a href="#">3.2 #parseColumns()</a></li><li><a href="#">3.3 #parseValues()</a></li><li><a href="#">3.4 #parseCustomizedInsert()</a></li><li><a href="#">3.5 #appendGenerateKey()</a></li></ul></li><li><a href="#">666. 彩蛋</a></li></ul><hr><h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文前置阅读：</p><ul><li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self">《SQL 解析（一）之词法解析》</a></li><li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》</a></li></ul><p>本文分享<strong>插入SQL解析</strong>的源码实现。</p><p>不考虑 INSERT SELECT 情况下，插入SQL解析比查询SQL解析复杂度低的多的多。不同数据库在插入SQL语法上也统一的多。<strong>本文分享 MySQL 插入SQL解析器 MySQLInsertParser</strong>。</p><p>MySQL INSERT 语法一共有 3 种 ：</p><ul><li>第一种：<code>INSERT {VALUES | VALUES}</code></li></ul><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    &#123;<span class="keyword">VALUES</span> | <span class="keyword">VALUE</span>&#125; (&#123;expr | <span class="keyword">DEFAULT</span>&#125;,...),(...),...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure><ul><li>第二种：<code>INSERT SET</code></li></ul><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    <span class="keyword">SET</span> col_name=&#123;expr | <span class="keyword">DEFAULT</span>&#125;, ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure><ul><li>第三种：<code>INSERT SELECT</code></li></ul><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    <span class="keyword">SELECT</span> ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure><p>Sharding-JDBC 目前支持：</p><ul><li>第一种：<code>INSERT {VALUES | VALUES}</code> <strong>单条记录</strong></li><li>第二种：<code>INSERT SET</code></li></ul><p>Sharding-JDBC 插入SQL解析主流程如下：</p><p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/01.png" alt=""></p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> InsertStatement <span class="title">parse</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.getLexer().nextToken(); <span class="comment">// 跳过 INSERT 关键字</span></div><div class="line">   parseInto(); <span class="comment">// 解析INTO</span></div><div class="line">   parseColumns(); <span class="comment">// 解析表</span></div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(DefaultKeyword.SELECT, Symbol.LEFT_PAREN)) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support subquery"</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (getValuesKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第一种插入SQL情况</span></div><div class="line">       parseValues();</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getCustomizedInsertKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第二种插入SQL情况</span></div><div class="line">       parseCustomizedInsert();</div><div class="line">   &#125;</div><div class="line">   appendGenerateKey(); <span class="comment">// 自增主键</span></div><div class="line">   <span class="keyword">return</span> insertStatement;</div><div class="line">&#125;</div></pre></td></tr></table></figure><blockquote><p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p></blockquote><h1 id="2-InsertStatement"><a href="#2-InsertStatement" class="headerlink" title="2. InsertStatement"></a>2. InsertStatement</h1><p>插入SQL 解析结果。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertStatement</span> <span class="keyword">extends</span> <span class="title">AbstractSQLStatement</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Collection&lt;Column&gt; columns = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">    <span class="comment">/**</span></div><div class="line">     *</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> GeneratedKey generatedKey;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> columnsListLastPosition;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> valuesListLastPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure><p>我们来看下 <code>INSERT INTO t_order (uid, nickname) VALUES (?, ?)</code> 的<strong>解析结果</strong>：</p><p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/02.png" alt=""></p><h1 id="3-parse"><a href="#3-parse" class="headerlink" title="3. #parse()"></a>3. #parse()</h1><h2 id="3-1-parseInto"><a href="#3-1-parseInto" class="headerlink" title="3.1 #parseInto()"></a>3.1 #parseInto()</h2><p>解析<strong>表</strong>。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析表</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInto</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 例如，Oracle，INSERT FIRST/ALL 目前不支持</span></div><div class="line">   <span class="keyword">if</span> (getUnsupportedKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> SQLParsingUnsupportedException(sqlParser.getLexer().getCurrentToken().getType());</div><div class="line">   &#125;</div><div class="line">   sqlParser.skipUntil(DefaultKeyword.INTO);</div><div class="line">   sqlParser.getLexer().nextToken();</div><div class="line">   <span class="comment">// 解析表</span></div><div class="line">   sqlParser.parseSingleTable(insertStatement);</div><div class="line">   skipBetweenTableAndValues();</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 跳过 表 和 插入字段 中间的 Token</div><div class="line">* 例如 MySQL ：[PARTITION (partition_name,...)]</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">skipBetweenTableAndValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">while</span> (getSkippedKeywordsBetweenTableAndValues().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">           sqlParser.skipParentheses();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure><p>其中 <code>#parseSingleTable()</code> 请看<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的 <code>#parseSingleTable()</code> 小节</a>。</p><h2 id="3-2-parseColumns"><a href="#3-2-parseColumns" class="headerlink" title="3.2 #parseColumns()"></a>3.2 #parseColumns()</h2><p>解析<strong>插入字段</strong>。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseColumns</span><span class="params">()</span> </span>&#123;</div><div class="line">   Collection&lt;Column&gt; result = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">       String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">       Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName); <span class="comment">// 自动生成键信息</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           <span class="comment">// Column 插入字段</span></div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           String columnName = SQLUtil.getExactlyValue(sqlParser.getLexer().getCurrentToken().getLiterals());</div><div class="line">           result.add(<span class="keyword">new</span> Column(columnName, tableName));</div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           <span class="comment">// 自动生成键</span></div><div class="line">           <span class="keyword">if</span> (generateKeyColumn.isPresent() &amp;&amp; generateKeyColumn.get().equalsIgnoreCase(columnName)) &#123;</div><div class="line">               generateKeyColumnIndex = count;</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125; <span class="keyword">while</span> (!sqlParser.equalAny(Symbol.RIGHT_PAREN) &amp;&amp; !sqlParser.equalAny(Assist.END));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setColumnsListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">//</span></div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">   &#125;</div><div class="line">   insertStatement.getColumns().addAll(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure><h2 id="3-3-parseValues"><a href="#3-3-parseValues" class="headerlink" title="3.3 #parseValues()"></a>3.3 #parseValues()</h2><p>解析<strong>值字段</strong></p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 解析值字段</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">boolean</span> parsed = <span class="keyword">false</span>;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       <span class="keyword">if</span> (parsed) &#123; <span class="comment">// 只允许INSERT INTO 一条</span></div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support multiple insert"</span>);</div><div class="line">       &#125;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       sqlParser.accept(Symbol.LEFT_PAREN);</div><div class="line">       <span class="comment">// 解析表达式</span></div><div class="line">       List&lt;SQLExpression&gt; sqlExpressions = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           sqlExpressions.add(sqlParser.parseExpression());</div><div class="line">       &#125; <span class="keyword">while</span> (sqlParser.skipIfEqual(Symbol.COMMA));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setValuesListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">// 解析值字段</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">for</span> (Column each : insertStatement.getColumns()) &#123;</div><div class="line">           SQLExpression sqlExpression = sqlExpressions.get(count);</div><div class="line">           insertStatement.getConditions().add(<span class="keyword">new</span> Condition(each, sqlExpression), shardingRule);</div><div class="line">           <span class="keyword">if</span> (generateKeyColumnIndex == count) &#123; <span class="comment">// 自动生成键</span></div><div class="line">               insertStatement.setGeneratedKey(createGeneratedKey(each, sqlExpression));</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125;</div><div class="line">       sqlParser.accept(Symbol.RIGHT_PAREN);</div><div class="line">       parsed = <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">while</span> (sqlParser.equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 创建 自动生成键</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> column 字段</div><div class="line">* <span class="doctag">@param</span> sqlExpression 表达式</div><div class="line">* <span class="doctag">@return</span> 自动生成键</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> GeneratedKey <span class="title">createGeneratedKey</span><span class="params">(<span class="keyword">final</span> Column column, <span class="keyword">final</span> SQLExpression sqlExpression)</span> </span>&#123;</div><div class="line">   GeneratedKey result;</div><div class="line">   <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLPlaceholderExpression) &#123; <span class="comment">// 占位符</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), ((SQLPlaceholderExpression) sqlExpression).getIndex(), <span class="keyword">null</span>);</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLNumberExpression) &#123; <span class="comment">// 数字</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), -<span class="number">1</span>, ((SQLNumberExpression) sqlExpression).getNumber());</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> ShardingJdbcException(<span class="string">"Generated key only support number."</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure><h3 id="3-4-1-GeneratedKey"><a href="#3-4-1-GeneratedKey" class="headerlink" title="3.4.1 GeneratedKey"></a>3.4.1 GeneratedKey</h3><p>自动生成键，<strong>属于分片上下文信息</strong>。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKey</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String column;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 第几个占位符</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> index;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Number value;</div><div class="line">&#125;</div></pre></td></tr></table></figure><h3 id="3-4-2-Condition"><a href="#3-4-2-Condition" class="headerlink" title="3.4.2 Condition"></a>3.4.2 Condition</h3><p>条件对象，<strong>属于分片上下文信息</strong>。在<strong>插入SQL解析</strong>里存储<strong>影响分片的值字段</strong>。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 路由》</a> 会专门分享这块。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Condition</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="meta">@Getter</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Column column;</div><div class="line">    </div><div class="line">    <span class="comment">// ... 省略其它属性</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Column</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 列名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String name;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 表名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String tableName;</div><div class="line">&#125;</div></pre></td></tr></table></figure><h2 id="3-4-parseCustomizedInsert"><a href="#3-4-parseCustomizedInsert" class="headerlink" title="3.4 #parseCustomizedInsert()"></a>3.4 #parseCustomizedInsert()</h2><p>解析<strong>第二种插入SQL</strong>：<code>INSERT SET</code>。例如：</p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>  <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span> <span class="keyword">name</span> = <span class="string">'doubi'</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div></pre></td></tr></table></figure><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInsertSet</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 插入字段</span></div><div class="line">       Column column = <span class="keyword">new</span> Column(SQLUtil.getExactlyValue(getSqlParser().getLexer().getCurrentToken().getLiterals()), getInsertStatement().getTables().getSingleTableName());</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 等号</span></div><div class="line">       getSqlParser().accept(Symbol.EQ);</div><div class="line">       <span class="comment">// 【值】表达式</span></div><div class="line">       SQLExpression sqlExpression;</div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Literals.INT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Integer.parseInt(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.FLOAT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Double.parseDouble(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.CHARS)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLTextExpression(getSqlParser().getLexer().getCurrentToken().getLiterals());</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(DefaultKeyword.NULL)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLIgnoreExpression();</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.QUESTION)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLPlaceholderExpression(getSqlParser().getParametersIndex());</div><div class="line">           getSqlParser().increaseParametersIndex();</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">""</span>);</div><div class="line">       &#125;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// Condition</span></div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.COMMA, DefaultKeyword.ON, Assist.END)) &#123;</div><div class="line">           getInsertStatement().getConditions().add(<span class="keyword">new</span> Condition(column, sqlExpression), getShardingRule());</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           getSqlParser().skipUntil(Symbol.COMMA, DefaultKeyword.ON);</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">while</span> (getSqlParser().equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div></pre></td></tr></table></figure><h2 id="3-5-appendGenerateKey"><a href="#3-5-appendGenerateKey" class="headerlink" title="3.5 #appendGenerateKey()"></a>3.5 #appendGenerateKey()</h2><p>当表设置<strong>自动生成键</strong>，并且插入SQL<strong>没</strong>写自增字段，增加该字段。例如：</p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">// 主键为user_id</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> t_user(nickname, age) <span class="keyword">VALUES</span> (?, ?)</div></pre></td></tr></table></figure><p>后续 SQL 改写会生成该自增编号，并改写该 SQL。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 改写》</a> 会专门分享这块。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">appendGenerateKey</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 当表设置自动生成键，并且插入SQL没写自增字段</span></div><div class="line">   String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">   Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName);</div><div class="line">   <span class="keyword">if</span> (!generateKeyColumn.isPresent() || <span class="keyword">null</span> != insertStatement.getGeneratedKey()) &#123;</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// ItemsToken</span></div><div class="line">   ItemsToken columnsToken = <span class="keyword">new</span> ItemsToken(insertStatement.getColumnsListLastPosition());</div><div class="line">   columnsToken.getItems().add(generateKeyColumn.get());</div><div class="line">   insertStatement.getSqlTokens().add(columnsToken);</div><div class="line">   <span class="comment">// GeneratedKeyToken</span></div><div class="line">   insertStatement.getSqlTokens().add(<span class="keyword">new</span> GeneratedKeyToken(insertStatement.getValuesListLastPosition()));</div><div class="line">&#125;</div></pre></td></tr></table></figure><h3 id="3-5-1-GeneratedKeyToken"><a href="#3-5-1-GeneratedKeyToken" class="headerlink" title="3.5.1 GeneratedKeyToken"></a>3.5.1 GeneratedKeyToken</h3><p>自增主键标记对象。</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKeyToken</span> <span class="keyword">implements</span> <span class="title">SQLToken</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> beginPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure><h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😈 是不是比<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-3/?self">《SQL 解析（三）之插入SQL》</a>简单很多。</p><p><strong>道友，可否分享一波【本文】到朋友圈</strong>。</p><p><strong>继续加油更新！</strong></p></div><footer class="article-footer clearfix"><div class="article-categories"><span></span> <a class="article-category-link" href="/categories/Sharding-JDBC/">Sharding-JDBC</a></div><div class="article-share" id="share"><div data-url="http://www.yunai.me/Sharding-JDBC/sql-parse-4/" data-title="Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL | 芋艿V的博客" data-tsina="null" class="share clearfix"></div></div></footer></article><nav class="article-nav clearfix"><div class="prev"><a href="/Sharding-JDBC/sql-parse-5/" title="Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL"><strong>PREVIOUS:</strong><br><span>Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL</span></a></div><div class="next"><a href="/Sharding-JDBC/sql-parse-3/" title="Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL"><strong>NEXT:</strong><br><span>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL</span></a></div></nav></div></div><footer><div id="footer"><p class="copyright">© 2017 <a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a> && <span style="display:inline" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span> && <span style="display:inline" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span> && Hosted by <a href="https://pages.coding.me" style="font-weight:700" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a> && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a></p></div></footer><script src="/js/jquery-2.1.0.min.js"></script><script type="text/javascript">$(document).ready(function(){function e(){"number"==typeof window.innerWidth?n=window.innerWidth:document.documentElement&&document.documentElement.clientWidth&&(n=document.documentElement.clientWidth)}$(".navbar").click(function(){$("header nav").toggleClass("shownav")});var n=0,s=$("#main"),a=$("#asidepart"),o=$(".closeaside"),d=$(".openaside");$(window).resize(function(){e(),n>=1024?$("header nav").removeClass("shownav"):(s.removeClass("moveMain"),a.css("display","block").removeClass("fadeOut"),d.css("display","none"),$("#toc.toc-aside").css("display","none"))}),o.click(function(){a.addClass("fadeOut").css("display","none"),d.css("display","block").addClass("fadeIn"),s.addClass("moveMain")}),d.click(function(){d.css("display","none").removeClass("beforeFadeIn"),a.css("display","block").removeClass("fadeOut").addClass("fadeIn"),s.removeClass("moveMain")}),$(window).scroll(function(){d.css("top",Math.max(80,260-$(this).scrollTop()))})})</script><script type="text/javascript">$(document).ready(function(){var a=$(".article-content>iframe"),t=$(".article-content>embed"),n=$("#toc");$("article h2"),ah=$("article h2"),ta=$("#toc.toc-aside"),o=$(".openaside"),c=$(".closeaside"),a.length>0&&a.wrap('<div class="video-container" />'),t.length>0&&t.wrap('<div class="video-container" />'),0==ah.length?n.css("display","none"):(c.click(function(){ta.css("display","block").addClass("fadeIn")}),o.click(function(){ta.css("display","none")}),$(window).scroll(function(){ta.css("top",Math.max(140,320-$(this).scrollTop()))}))})</script><script type="text/javascript">$(document).ready(function(){var t=$(".share"),a=t.attr("data-url"),e=encodeURIComponent(a),r=['<a href="#" class="overlay" id="qrcode"></a>','<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url='+e+'"/></div>','<a href="#textlogo" class="article-back-to-top" title="Top"></a>','<a href="https://www.facebook.com/sharer.php?u='+e+'" class="article-share-facebook" target="_blank" title="Facebook"></a>','<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>','<a href="https://twitter.com/intent/tweet?url='+e+'" class="article-share-twitter" target="_blank" title="Twitter"></a>','<a href="http://service.weibo.com/share/share.php?title='+t.attr("data-title")+"&url="+e+"&ralateUid="+t.attr("data-tsina")+'&searchPic=true&style=number" class="article-share-weibo" target="_blank" title="Weibo"></a>','<span title="Share to"></span>'].join("");t.append(r),$(".article-share-qrcode").click(function(){var t=$("#qrcode-pic").attr("data-src");$("#qrcode-pic").attr("src",t),$("#qrcode-pic").load(function(){$(".qrcode strong").text(" ")})})})</script><link rel="stylesheet" href="/alert/css/alert.css"><script src="/alert/js/alert.js"></script><script src="/js/jquery.cookie.js"></script><script>$(document).ready(function(){function e(){var e=jqueryAlert({title:"👼每周六更新一篇源码解析，【扫一扫】关注公众号👼",width:"500",height:"580",modal:!0,content:n+'<p style="color: red">今日'+c+"已关注人数："+p+'</p><img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" /><p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p><p style="color: red">一起看源码，读源码，提升技术！</p>',buttons:{"已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）":function(){e.close()}}});$.cookie(o,i+1,{expires:1,path:"/"})}if(!(location.href.indexOf("vip")>=0||location.href.indexOf("127.0.0.1")>=0)){var o="doubi",i=$.cookie(o);i?i=parseInt(i):($.cookie(o,0,{expires:1,path:"/"}),i=0),$.cookie(o,i,{expires:1,path:"/"});var t="default",r={juejin:"掘金",oschina:"开源中国",sjdbc:"Sharding-JDBC",jianshu:"简书",csdn:"CSDN",iteye:"iteye",cnblogs:"博客园"};for(var a in r)if(location.search.indexOf(a)>=0){t=a;break}"default"===t&&(t=$.cookie("from")||"default"),$.cookie("from",t,{expires:365,path:"/"});var n="",c="";if(t&&r[t]&&(n='<p style="color: red">欢迎来自【'+r[t]+"】的同学</p>",c="【"+r[t]+"】"),i<=3){var p=103+5*(new Date).getHours();setTimeout(e,1e4*(i+1))}}})</script></body>
+您对于源码的疑问每条留言都将得到认真回复。甚至不">
+    
+
+    
+    <meta name="keywords" content="Sharding-JDBC,ShardingJDBC,Sharding-JDBC 源码,SQL解析, SQL 解析,Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表">
+    
+
+    
+    
+    <link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/images/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='ef4ed89f6dc83d01803a2440ae21e666';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</head>
+</html>
+  <body>
+    <header>
+      <div>
+    
+    <div id="textlogo">
+        <h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1>
+        <a class="blog-motto">
+            
+            愿编码半生，如老友相伴！
+            
+        </a>
+    </div>
+    <div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+        </a></div>
+    <nav class="animated">
+        <ul>
+            <ul>
+                
+                <li><a href="/">文章</a></li>
+                
+                <li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li>
+                
+                <li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li>
+                
+                <!--<li>-->
+                    <!---->
+                        <!--<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">-->
+                            <!--<label>Search</label>-->
+                            <!--<input type="text" id="search" name="q" autocomplete="off" maxlength="20"-->
+                                   <!--placeholder="搜索"/>-->
+                            <!--<input type="hidden" name="q" value="site:www.yunai.me">-->
+                        <!--</form>-->
+                        <!---->
+                <!--</li>-->
+            </ul>
+    </ul></nav>
+</div>
+
+    </header>
+    <div id="container">
+        <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="toc" class="toc-aside">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-InsertStatement"><span class="toc-number">2.</span> <span class="toc-text">2. InsertStatement</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-parse"><span class="toc-number">3.</span> <span class="toc-text">3. #parse()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-parseInto"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 #parseInto()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-parseColumns"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 #parseColumns()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-parseValues"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 #parseValues()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-GeneratedKey"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.4.1 GeneratedKey</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-Condition"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.4.2 Condition</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-parseCustomizedInsert"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 #parseCustomizedInsert()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-appendGenerateKey"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 #appendGenerateKey()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-GeneratedKeyToken"><span class="toc-number">3.5.1.</span> <span class="toc-text">3.5.1 GeneratedKeyToken</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#666-彩蛋"><span class="toc-number">4.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol>
+</div>
+
+<div id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!---->
+            <!--<div class="author-logo"></div>-->
+            <!---->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"> </div>
+
+            <div class="social-list">
+                
+                
+                
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="categorieslist">
+    <p class="asidetitle">微信公众号福利：芋道源码</p>
+    <ul>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 0. 阅读源码葵花宝典 </a></li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 2. 您对于源码的疑问每条留言都将得到认真回复 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 3. 新的源码解析文章实时收到通知，每周六十点更新 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群 </a> </li>
+
+
+    </ul>
+</div>
+        
+        
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>6</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li>
+		
+			<li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+        
+    </aside>
+</div>
+        <div id="main" class="post" itemscope="" itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/Sharding-JDBC/sql-parse-4/" title="Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL" itemprop="url">Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL</a>
+  </h1>
+  <p class="article-author">
+      <!--By-->
+    <!---->
+      <!--<a href="http://www.yunai.me" title="王文斌">王文斌</a>-->
+    <!---->
+  </p>
+  <p class="article-time">
+    <!--<time datetime="2017-07-28T16:00:00.000Z" itemprop="datePublished">2017-07-29</time>-->
+    <!--更新日期:<time datetime="2017-08-14T18:34:12.000Z" itemprop="dateModified">2017-08-15</time>-->
+    <!---->
+      总阅读量:<span id="busuanzi_value_page_pv"></span>次
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-InsertStatement"><span class="toc-number">2.</span> <span class="toc-text">2. InsertStatement</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-parse"><span class="toc-number">3.</span> <span class="toc-text">3. #parse()</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-parseInto"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 #parseInto()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-parseColumns"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 #parseColumns()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-parseValues"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 #parseValues()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-GeneratedKey"><span class="toc-number">3.3.1.</span> <span class="toc-text">3.4.1 GeneratedKey</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-Condition"><span class="toc-number">3.3.2.</span> <span class="toc-text">3.4.2 Condition</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-parseCustomizedInsert"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 #parseCustomizedInsert()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-appendGenerateKey"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 #appendGenerateKey()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-GeneratedKeyToken"><span class="toc-number">3.5.1.</span> <span class="toc-text">3.5.1 GeneratedKeyToken</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#666-彩蛋"><span class="toc-number">4.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol>
+		</div>
+		
+		<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<p><strong>本文主要基于 Sharding-JDBC 1.5.0 正式版</strong>  </p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. InsertStatement</a></li>
+<li><a href="#">3. #parse()</a><ul>
+<li><a href="#">3.1 #parseInfo()</a></li>
+<li><a href="#">3.2 #parseColumns()</a></li>
+<li><a href="#">3.3 #parseValues()</a></li>
+<li><a href="#">3.4 #parseCustomizedInsert()</a></li>
+<li><a href="#">3.5 #appendGenerateKey()</a></li>
+</ul>
+</li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文前置阅读：</p>
+<ul>
+<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self">《SQL 解析（一）之词法解析》</a></li>
+<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》</a></li>
+</ul>
+<p>本文分享<strong>插入SQL解析</strong>的源码实现。</p>
+<p>不考虑 INSERT SELECT 情况下，插入SQL解析比查询SQL解析复杂度低的多的多。不同数据库在插入SQL语法上也统一的多。<strong>本文分享 MySQL 插入SQL解析器 MySQLInsertParser</strong>。</p>
+<p>MySQL INSERT 语法一共有 3 种 ：</p>
+<ul>
+<li>第一种：<code>INSERT {VALUES | VALUES}</code></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    &#123;<span class="keyword">VALUES</span> | <span class="keyword">VALUE</span>&#125; (&#123;expr | <span class="keyword">DEFAULT</span>&#125;,...),(...),...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
+<ul>
+<li>第二种：<code>INSERT SET</code></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    <span class="keyword">SET</span> col_name=&#123;expr | <span class="keyword">DEFAULT</span>&#125;, ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
+<ul>
+<li>第三种：<code>INSERT SELECT</code></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    <span class="keyword">SELECT</span> ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
+<p>Sharding-JDBC 目前支持：</p>
+<ul>
+<li>第一种：<code>INSERT {VALUES | VALUES}</code> <strong>单条记录</strong></li>
+<li>第二种：<code>INSERT SET</code></li>
+</ul>
+<p>Sharding-JDBC 插入SQL解析主流程如下：</p>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/01.png" alt=""></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> InsertStatement <span class="title">parse</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.getLexer().nextToken(); <span class="comment">// 跳过 INSERT 关键字</span></div><div class="line">   parseInto(); <span class="comment">// 解析INTO</span></div><div class="line">   parseColumns(); <span class="comment">// 解析表</span></div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(DefaultKeyword.SELECT, Symbol.LEFT_PAREN)) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support subquery"</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (getValuesKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第一种插入SQL情况</span></div><div class="line">       parseValues();</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getCustomizedInsertKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第二种插入SQL情况</span></div><div class="line">       parseCustomizedInsert();</div><div class="line">   &#125;</div><div class="line">   appendGenerateKey(); <span class="comment">// 自增主键</span></div><div class="line">   <span class="keyword">return</span> insertStatement;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
+</blockquote>
+<h1 id="2-InsertStatement"><a href="#2-InsertStatement" class="headerlink" title="2. InsertStatement"></a>2. InsertStatement</h1><p>插入SQL 解析结果。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertStatement</span> <span class="keyword">extends</span> <span class="title">AbstractSQLStatement</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Collection&lt;Column&gt; columns = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">    <span class="comment">/**</span></div><div class="line">     *</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> GeneratedKey generatedKey;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> columnsListLastPosition;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> valuesListLastPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们来看下 <code>INSERT INTO t_order (uid, nickname) VALUES (?, ?)</code> 的<strong>解析结果</strong>：</p>
+<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/02.png" alt=""></p>
+<h1 id="3-parse"><a href="#3-parse" class="headerlink" title="3. #parse()"></a>3. #parse()</h1><h2 id="3-1-parseInto"><a href="#3-1-parseInto" class="headerlink" title="3.1 #parseInto()"></a>3.1 #parseInto()</h2><p>解析<strong>表</strong>。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析表</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInto</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 例如，Oracle，INSERT FIRST/ALL 目前不支持</span></div><div class="line">   <span class="keyword">if</span> (getUnsupportedKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> SQLParsingUnsupportedException(sqlParser.getLexer().getCurrentToken().getType());</div><div class="line">   &#125;</div><div class="line">   sqlParser.skipUntil(DefaultKeyword.INTO);</div><div class="line">   sqlParser.getLexer().nextToken();</div><div class="line">   <span class="comment">// 解析表</span></div><div class="line">   sqlParser.parseSingleTable(insertStatement);</div><div class="line">   skipBetweenTableAndValues();</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 跳过 表 和 插入字段 中间的 Token</div><div class="line">* 例如 MySQL ：[PARTITION (partition_name,...)]</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">skipBetweenTableAndValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">while</span> (getSkippedKeywordsBetweenTableAndValues().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">           sqlParser.skipParentheses();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中 <code>#parseSingleTable()</code> 请看<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的 <code>#parseSingleTable()</code> 小节</a>。</p>
+<h2 id="3-2-parseColumns"><a href="#3-2-parseColumns" class="headerlink" title="3.2 #parseColumns()"></a>3.2 #parseColumns()</h2><p>解析<strong>插入字段</strong>。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseColumns</span><span class="params">()</span> </span>&#123;</div><div class="line">   Collection&lt;Column&gt; result = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">       String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">       Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName); <span class="comment">// 自动生成键信息</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           <span class="comment">// Column 插入字段</span></div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           String columnName = SQLUtil.getExactlyValue(sqlParser.getLexer().getCurrentToken().getLiterals());</div><div class="line">           result.add(<span class="keyword">new</span> Column(columnName, tableName));</div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           <span class="comment">// 自动生成键</span></div><div class="line">           <span class="keyword">if</span> (generateKeyColumn.isPresent() &amp;&amp; generateKeyColumn.get().equalsIgnoreCase(columnName)) &#123;</div><div class="line">               generateKeyColumnIndex = count;</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125; <span class="keyword">while</span> (!sqlParser.equalAny(Symbol.RIGHT_PAREN) &amp;&amp; !sqlParser.equalAny(Assist.END));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setColumnsListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">//</span></div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">   &#125;</div><div class="line">   insertStatement.getColumns().addAll(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="3-3-parseValues"><a href="#3-3-parseValues" class="headerlink" title="3.3 #parseValues()"></a>3.3 #parseValues()</h2><p>解析<strong>值字段</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 解析值字段</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">boolean</span> parsed = <span class="keyword">false</span>;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       <span class="keyword">if</span> (parsed) &#123; <span class="comment">// 只允许INSERT INTO 一条</span></div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support multiple insert"</span>);</div><div class="line">       &#125;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       sqlParser.accept(Symbol.LEFT_PAREN);</div><div class="line">       <span class="comment">// 解析表达式</span></div><div class="line">       List&lt;SQLExpression&gt; sqlExpressions = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           sqlExpressions.add(sqlParser.parseExpression());</div><div class="line">       &#125; <span class="keyword">while</span> (sqlParser.skipIfEqual(Symbol.COMMA));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setValuesListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">// 解析值字段</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">for</span> (Column each : insertStatement.getColumns()) &#123;</div><div class="line">           SQLExpression sqlExpression = sqlExpressions.get(count);</div><div class="line">           insertStatement.getConditions().add(<span class="keyword">new</span> Condition(each, sqlExpression), shardingRule);</div><div class="line">           <span class="keyword">if</span> (generateKeyColumnIndex == count) &#123; <span class="comment">// 自动生成键</span></div><div class="line">               insertStatement.setGeneratedKey(createGeneratedKey(each, sqlExpression));</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125;</div><div class="line">       sqlParser.accept(Symbol.RIGHT_PAREN);</div><div class="line">       parsed = <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">while</span> (sqlParser.equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 创建 自动生成键</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> column 字段</div><div class="line">* <span class="doctag">@param</span> sqlExpression 表达式</div><div class="line">* <span class="doctag">@return</span> 自动生成键</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> GeneratedKey <span class="title">createGeneratedKey</span><span class="params">(<span class="keyword">final</span> Column column, <span class="keyword">final</span> SQLExpression sqlExpression)</span> </span>&#123;</div><div class="line">   GeneratedKey result;</div><div class="line">   <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLPlaceholderExpression) &#123; <span class="comment">// 占位符</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), ((SQLPlaceholderExpression) sqlExpression).getIndex(), <span class="keyword">null</span>);</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLNumberExpression) &#123; <span class="comment">// 数字</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), -<span class="number">1</span>, ((SQLNumberExpression) sqlExpression).getNumber());</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> ShardingJdbcException(<span class="string">"Generated key only support number."</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="3-4-1-GeneratedKey"><a href="#3-4-1-GeneratedKey" class="headerlink" title="3.4.1 GeneratedKey"></a>3.4.1 GeneratedKey</h3><p>自动生成键，<strong>属于分片上下文信息</strong>。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKey</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String column;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 第几个占位符</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> index;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Number value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="3-4-2-Condition"><a href="#3-4-2-Condition" class="headerlink" title="3.4.2 Condition"></a>3.4.2 Condition</h3><p>条件对象，<strong>属于分片上下文信息</strong>。在<strong>插入SQL解析</strong>里存储<strong>影响分片的值字段</strong>。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 路由》</a> 会专门分享这块。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Condition</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="meta">@Getter</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Column column;</div><div class="line">    </div><div class="line">    <span class="comment">// ... 省略其它属性</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Column</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 列名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String name;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 表名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String tableName;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="3-4-parseCustomizedInsert"><a href="#3-4-parseCustomizedInsert" class="headerlink" title="3.4 #parseCustomizedInsert()"></a>3.4 #parseCustomizedInsert()</h2><p>解析<strong>第二种插入SQL</strong>：<code>INSERT SET</code>。例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>  <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span> <span class="keyword">name</span> = <span class="string">'doubi'</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInsertSet</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 插入字段</span></div><div class="line">       Column column = <span class="keyword">new</span> Column(SQLUtil.getExactlyValue(getSqlParser().getLexer().getCurrentToken().getLiterals()), getInsertStatement().getTables().getSingleTableName());</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 等号</span></div><div class="line">       getSqlParser().accept(Symbol.EQ);</div><div class="line">       <span class="comment">// 【值】表达式</span></div><div class="line">       SQLExpression sqlExpression;</div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Literals.INT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Integer.parseInt(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.FLOAT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Double.parseDouble(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.CHARS)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLTextExpression(getSqlParser().getLexer().getCurrentToken().getLiterals());</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(DefaultKeyword.NULL)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLIgnoreExpression();</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.QUESTION)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLPlaceholderExpression(getSqlParser().getParametersIndex());</div><div class="line">           getSqlParser().increaseParametersIndex();</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">""</span>);</div><div class="line">       &#125;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// Condition</span></div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.COMMA, DefaultKeyword.ON, Assist.END)) &#123;</div><div class="line">           getInsertStatement().getConditions().add(<span class="keyword">new</span> Condition(column, sqlExpression), getShardingRule());</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           getSqlParser().skipUntil(Symbol.COMMA, DefaultKeyword.ON);</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">while</span> (getSqlParser().equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="3-5-appendGenerateKey"><a href="#3-5-appendGenerateKey" class="headerlink" title="3.5 #appendGenerateKey()"></a>3.5 #appendGenerateKey()</h2><p>当表设置<strong>自动生成键</strong>，并且插入SQL<strong>没</strong>写自增字段，增加该字段。例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">// 主键为user_id</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> t_user(nickname, age) <span class="keyword">VALUES</span> (?, ?)</div></pre></td></tr></table></figure>
+<p>后续 SQL 改写会生成该自增编号，并改写该 SQL。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 改写》</a> 会专门分享这块。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">appendGenerateKey</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 当表设置自动生成键，并且插入SQL没写自增字段</span></div><div class="line">   String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">   Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName);</div><div class="line">   <span class="keyword">if</span> (!generateKeyColumn.isPresent() || <span class="keyword">null</span> != insertStatement.getGeneratedKey()) &#123;</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// ItemsToken</span></div><div class="line">   ItemsToken columnsToken = <span class="keyword">new</span> ItemsToken(insertStatement.getColumnsListLastPosition());</div><div class="line">   columnsToken.getItems().add(generateKeyColumn.get());</div><div class="line">   insertStatement.getSqlTokens().add(columnsToken);</div><div class="line">   <span class="comment">// GeneratedKeyToken</span></div><div class="line">   insertStatement.getSqlTokens().add(<span class="keyword">new</span> GeneratedKeyToken(insertStatement.getValuesListLastPosition()));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="3-5-1-GeneratedKeyToken"><a href="#3-5-1-GeneratedKeyToken" class="headerlink" title="3.5.1 GeneratedKeyToken"></a>3.5.1 GeneratedKeyToken</h3><p>自增主键标记对象。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKeyToken</span> <span class="keyword">implements</span> <span class="title">SQLToken</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> beginPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😈 是不是比<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-3/?self">《SQL 解析（三）之插入SQL》</a>简单很多。</p>
+<p><strong>道友，可否分享一波【本文】到朋友圈</strong>。</p>
+<p><strong>继续加油更新！</strong></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Sharding-JDBC/">Sharding-JDBC</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.yunai.me/Sharding-JDBC/sql-parse-4/" data-title="Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL | 芋艿V的博客" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev">
+ <a href="/Sharding-JDBC/sql-parse-5/" title="Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL">
+  <strong>PREVIOUS:</strong><br>
+  <span>
+  Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/Sharding-JDBC/sql-parse-3/" title="Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL">
+ <strong>NEXT:</strong><br> 
+ <span>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+    </div>
+    <footer><div id="footer">
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a>
+		
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a>
+            </p></div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/alert/css/alert.css">
+<script src="/alert/js/alert.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+
+<script>
+
+    $(document).ready(function(){
+//        alert('啦啦啦');
+        if (location.href.indexOf('vip') >= 0
+            || location.href.indexOf('127.0.0.1')>= 0) {
+            return;
+        }
+
+        var key = 'doubi';
+        var count = $.cookie(key);
+        if (!count) {
+            $.cookie(key, 0, { expires: 1, path: '/' });
+            count = 0;
+        } else {
+            count = parseInt(count);
+        }
+        $.cookie(key, count, { expires: 1, path: '/' });
+
+        var from = 'default';
+        var map = {
+            'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
+            'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
+        };
+        for (var item in map) {
+            if (location.search.indexOf(item) >= 0) {
+                from = item;
+                break;
+            }
+        }
+        if (from === 'default') {
+            from = $.cookie('from') || 'default';
+        }
+        $.cookie('from', from, { expires: 365, path: '/' });
+        var prefix = '';
+        var prefix2 = '';
+        if (from && map[from]) {
+            prefix = '<p style="color: red">欢迎来自【' + map[from] + '】的同学</p>';
+            prefix2 = '【' +  map[from] + '】';
+        }
+//        count = 1;
+        if (count <= 3) {
+            var hour = new Date().getHours();
+            var numbers = 103 + hour * 5;
+            function explode() {
+
+                var doubi = jqueryAlert({
+                    'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
+                    'width'   : '500',
+                    'height'  : '580',
+                    'modal': true,
+                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>',
+                    'buttons' :{
+                        '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
+                            doubi.close();
+                        }
+                    }
+                });
+                $.cookie(key, count + 1, { expires: 1 , path: '/'});
+            }
+            setTimeout(explode, ( count + 1 ) * 10000);
+        }
+    })
+</script>
+
+
+
+
+  </body>
+
+

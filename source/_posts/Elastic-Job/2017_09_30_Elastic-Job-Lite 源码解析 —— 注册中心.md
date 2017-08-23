@@ -48,7 +48,7 @@ permalink: Elastic-Job/reg-center-zookeeper
 ![](http://www.yunai.me/images/Elastic-Job/2017_09_30/01.png)
 
 * **黄色**的类在 `elastic-job-common-core` 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud **公用**注册中心类。
-* 作业节点数据访问类( JobNodeStorage )的**在主节点执行操作**、**在事务中执行操作**两个方法和注册中心**协调分布式服务**有关系，从[《Elastic-Job-Lite 源码解析 —— 节点数据存储》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)摘出来，放本文解析。
+* 作业节点数据访问类( JobNodeStorage )的**在主节点执行操作**、**在事务中执行操作**两个方法和注册中心**协调分布式服务**有关系，从[《Elastic-Job-Lite 源码解析 —— 作业数据存储》](http://www.yunai.me/Elastic-Job/job-storage/?self)摘出来，放本文解析。
 
 > 你行好事会因为得到赞赏而愉悦  
 > 同理，开源项目贡献者会因为 Star 而更加有动力  

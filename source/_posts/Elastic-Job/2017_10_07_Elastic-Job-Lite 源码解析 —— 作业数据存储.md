@@ -1,3 +1,27 @@
+title: Elastic-Job-Lite 源码分析 —— 作业数据存储
+date: 2017-10-07
+tags:
+categories: Elastic-Job
+permalink: Elastic-Job/job-storage
+
+-------
+
+**本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#1-%E6%A6%82%E8%BF%B0)
+- [2. JobNodePath](#2-jobnodepath)
+- [3. JobNodeStorage](#3-jobnodestorage)
+- [4. ConfigurationNode](#4-configurationnode)
+- [5. ServerNode](#5-servernode)
+- [6. InstanceNode](#6-instancenode)
+- [7. ShardingNode](#7-shardingnode)
+- [8. LeaderNode](#8-leadernode)
+- [9. FailoverNode](#9-failovernode)
+- [10. GuaranteeNode](#10-guaranteenode)
+- [666. 彩蛋](#666-%E5%BD%A9%E8%9B%8B)
+
+-------
+
 # 1. 概述
 
 本文主要分享 **Elastic-Job-Lite 注册中心**。
