@@ -6,7 +6,13 @@ permalink: Elastic-Job/election
 
 -------
 
+**本文基于 Elastic-Job V2.1.5 版本分享**
 
+- [1. 概述]()
+- [2. 为什么需要选举主节点]()
+- [3. 选举主节点]()
+- [4. 删除主节点]()
+- [666. 彩蛋]()
 
 -------
 
@@ -36,7 +42,7 @@ permalink: Elastic-Job/election
 
 > Elastic-Job-Lite 定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。
 
-**无中心化**，意味着 Elastic-Job-Lite 不存在**一个中心**执行一些操作，例如：作业分片项分配。Elastic-Job-Lite 选举主节点，通过主节点进行作业分片项分配。目前，必须在主节点执行的操作有：作业分片项分配，调解分布式作业不一致状态。
+**无中心化**，意味着 Elastic-Job-Lite 不存在**一个中心**执行一些操作，例如：分配作业分片项。Elastic-Job-Lite 选举主节点，通过主节点进行作业分片项分配。目前，必须在主节点执行的操作有：分配作业分片项，调解分布式作业不一致状态。
 
 另外，主节点的选举是以**作业为维度**。例如：有一个 Elastic-Job-Lite 集群有三个作业节点 `A`、`B`、`C`，存在两个作业 `a`、`b`，可能 `a` 作业的主节点是 `C`，`b` 作业的主节点是 `A`。
 
@@ -101,8 +107,8 @@ class LeaderElectionExecutionCallback implements LeaderExecutionCallback {
 
     ``` bash
     [zk: localhost:2181(CONNECTED) 7] get /elastic-job-example-lite-java/javaSimpleJob/leader/election/instance
-192.168.16.137@-@82496
-    ```   
+    192.168.16.137@-@82496
+    ```
 
 **选举主节点时机**
 
@@ -156,8 +162,7 @@ class LeaderElectionJobListener extends AbstractJobListener {
     ```
     * 当作业被禁用( `LiteJobConfiguration.disabled = true` )时，作业是不存在主节点的。那有同学就有疑问了？`LeaderService#electLeader()` 没做这个限制呀，作业**注册作业启动信息时**也进行了选举。在「4. 删除主节点」小结，我们会解开这个答案。这里大家先记住这个结论。
     * 根据上面我们说的结论，这里就很好理解了，`#isActiveElection()` 方法判断了两个条件：( 1 ) 不存在主节点；( 2 ) 开启作业，不再禁用，因此需要进行主节点选举落。
-    * 这里判断开启作业的方法 `#isLocalServerEnabled(...)` 有点特殊，它不是通过作业节点是否处于开启状态，而是该数据不是讲作业节点更新成关闭状态。
-    * [ ]TODO：这里解释的比较绕，后续想想怎么优化优化。
+    * 这里判断开启作业的方法 `#isLocalServerEnabled(...)` 有点特殊，它不是通过作业节点是否处于开启状态，而是该数据不是将作业节点更新成关闭状态。举个例子：作业节点处于**禁用**状态，使用**运维平台**设置作业节点开启，会进行主节点选举；作业节点处于**开启**状态，使用**运维平台**设置作业节点禁用，不会进行主节点选举。
 
 * **被动**选举 `#isPassiveElection(...)`
 
@@ -172,15 +177,28 @@ class LeaderElectionJobListener extends AbstractJobListener {
     }
     ```
     * 当主节点因为各种情况( 「4. 删除主节点」会列举 )被删除，需要重新进行选举。对的，**必须主节点被删除后才可以重新进行选举**。
-    * `isPassiveElection(...)` 方法判断了两个条件：( 1 ) 原主节点被删除；( 2 ) 当前节点正在运行中（未挂掉），可以参加主节点选举。
+    * `#isPassiveElection(...)` 方法判断了两个条件：( 1 ) 原主节点被删除；( 2 ) 当前节点正在运行中（未挂掉），可以参加主节点选举。
+    * `#isLeaderCrashed(...)` 方法虽然命名带有 `Crashed` 英文，实际主作业节点**正常**退出也符合**被动**选举条件。
 
 # 4. 删除主节点
 
 有主节点的选举，必然有主节点的删除，否则怎么进行**重新选举**。
 
+实现代码如下：
+
+```Java
+// LeaderService.java
+/**
+* 删除主节点供重新选举.
+*/
+public void removeLeader() {
+   jobNodeStorage.removeJobNodeIfExisted(LeaderNode.INSTANCE);
+}    
+```
+
 **删除主节点时机**
 
-**第一种**，主节点关闭进程时。
+**第一种**，主节点进程**正常**关闭时。
 
 ```Java
 public final class JobShutdownHookPlugin extends ShutdownHookPlugin {
@@ -202,7 +220,11 @@ public final class JobShutdownHookPlugin extends ShutdownHookPlugin {
 
 * 这个比较好理解，退出进程，若该进程为主节点，需要将自己移除。
 
-**第二种**，作业被**禁用**时。
+**第二种**，主节点进程 CRASHED 时。
+
+`${JOB_NAME}/leader/electron/instance` 是**临时**节点，主节点进程 CRASHED 后，超过最大会话时间，Zookeeper 自动进行删除，触发重新选举逻辑。
+
+**第三种**，作业被**禁用**时。
 
 ```Java
 class LeaderAbdicationJobListener extends AbstractJobListener {
@@ -220,9 +242,9 @@ class LeaderAbdicationJobListener extends AbstractJobListener {
 }
 ```
 
-* 这里就解答上面我们遗留的疑问。被禁用的作业**注册作业启动信息时**也进行了选举，会被该监听器处理，移除该选举。
+* 这里就解答上面我们遗留的疑问。被禁用的作业**注册作业启动信息时**即使进行了主节点选举，也会被该监听器处理，移除该选举的主节点。
 
-**第三种**，笔者暂时未想明白，先贴出代码。
+**第四种**，笔者暂时未想明白，先贴出代码。
 
 ```Java
 // InstanceShutdownStatusJobListener.java
@@ -264,4 +286,11 @@ public void shutdownInstance() {
 ```
 
 # 666. 彩蛋
+
+旁白君：哎哟，这次竟然分享了点干货 😈  
+芋道君：嘿呀嘿呀，必须的啊，虽然有点焦头烂额啦。  
+
+![](http://www.yunai.me/images/Elastic-Job/2017_10_21/03.png)
+
+道友，赶紧上车，分享一波朋友圈！
 
