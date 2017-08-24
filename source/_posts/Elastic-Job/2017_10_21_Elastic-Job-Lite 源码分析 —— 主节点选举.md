@@ -244,18 +244,18 @@ class LeaderAbdicationJobListener extends AbstractJobListener {
 
 * 这里就解答上面我们遗留的疑问。被禁用的作业**注册作业启动信息时**即使进行了主节点选举，也会被该监听器处理，移除该选举的主节点。
 
-**第四种**，笔者暂时未想明白，先贴出代码。
+**第四种**，主节点进程**远程**关闭。
 
 ```Java
 // InstanceShutdownStatusJobListener.java
 class InstanceShutdownStatusJobListener extends AbstractJobListener {
-   
+        
    @Override
    protected void dataChanged(final String path, final Type eventType, final String data) {
        if (!JobRegistry.getInstance().isShutdown(jobName)
                && !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused() // 作业未暂停调度
-               && isRemoveInstance(path, eventType) // 运行实例被移除
-               && !isReconnectedRegistryCenter()) { //
+               && isRemoveInstance(path, eventType) // 移除【运行实例】事件
+               && !isReconnectedRegistryCenter()) { // 运行实例被移除
            schedulerFacade.shutdownInstance();
        }
    }
@@ -275,7 +275,7 @@ class InstanceShutdownStatusJobListener extends AbstractJobListener {
 */
 public void shutdownInstance() {
    if (leaderService.isLeader()) {
-       leaderService.removeLeader();
+       leaderService.removeLeader(); // 移除主节点
    }
    monitorService.close();
    if (reconcileService.isRunning()) {
@@ -284,6 +284,11 @@ public void shutdownInstance() {
    JobRegistry.getInstance().shutdown(jobName);
 }
 ```
+
+* **远程**关闭作业节点有两种方式：
+    * zkClient 发起命令：`rmr /${NAMESPACE}/${JOB_NAME}/instances/${JOB_INSTANCE_ID}`。
+    * 运维平台发起 `Shutdown` 操作。`Shutdown` 操作实质上就是第一种。
+        ![](http://www.yunai.me/images/Elastic-Job/2017_10_21/04.png)
 
 # 666. 彩蛋
 

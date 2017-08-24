@@ -11,7 +11,7 @@ var root = "./";
 var buildDir = root;
 var datas = {
     html: [root + "/**/**/*.html", '!node_modules/**', '!.idea/**', '!themes/**'],
-    image: [root + "/**/*.{png,jpg,jpeg}", '!node_modules/**', '!themes/**'],
+    image: [root + "/**/*.{png,jpg,jpeg}", '!node_modules/**', '!themes/**', '!themes/**'],
     css: [root + "/**/*.css", '!node_modules/**', '!themes/**'],
     js: [root + "/**/*.js", '!*min.js', '!node_modules/**', '!themes/**', '!gulpfile.js']
 }
