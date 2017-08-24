@@ -377,3 +377,5 @@ GuaranteeNode，保证分布式任务全部开始和结束状态节点路径。�
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_10_07/02.png)
 
+道友，赶紧上车，分享一波朋友圈！
+

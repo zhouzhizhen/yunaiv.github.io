@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-23T17:01:37.000Z</updated>
+  <updated>2017-08-24T10:41:03.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,11 +16,199 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Elastic-Job-Lite 源码分析 —— 主节点选举</title>
+    <link href="http://www.yunai.me/Elastic-Job/election/"/>
+    <id>http://www.yunai.me/Elastic-Job/election/</id>
+    <published>2017-10-20T16:00:00.000Z</published>
+    <updated>2017-08-24T10:41:03.000Z</updated>
+    
+    <content type="html"><![CDATA[<hr>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 主节点选举</strong>。</p>
+<p>建议前置阅读：</p>
+<ul>
+<li><a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》</a></li>
+<li><a href="http://www.yunai.me/Elastic-Job/job-storage/?self">《Elastic-Job-Lite 源码分析 —— 作业数据存储》</a></li>
+<li><a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/?self">《Elastic-Job-Lite 源码分析 —— 注册中心监听器》</a></li>
+</ul>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_21/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/01.png" alt=""></p>
+<ul>
+<li>粉色的类在 <code>com.dangdang.ddframe.job.lite.internal.election</code> 包下，实现了 Elastic-Job-Lite 主节点选举。</li>
+</ul>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1>2. 为什么需要选举主节点</h1>
+<p>首先我们来看一段<strong>官方</strong>对 Elastic-Job-Lite 的介绍：</p>
+<blockquote>
+<p>Elastic-Job-Lite 定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。</p>
+</blockquote>
+<p><strong>无中心化</strong>，意味着 Elastic-Job-Lite 不存在<strong>一个中心</strong>执行一些操作，例如：作业分片项分配。Elastic-Job-Lite 选举主节点，通过主节点进行作业分片项分配。目前，必须在主节点执行的操作有：作业分片项分配，调解分布式作业不一致状态。</p>
+<p>另外，主节点的选举是以<strong>作业为维度</strong>。例如：有一个 Elastic-Job-Lite 集群有三个作业节点 <code>A</code>、<code>B</code>、<code>C</code>，存在两个作业 <code>a</code>、<code>b</code>，可能 <code>a</code> 作业的主节点是 <code>C</code>，<code>b</code> 作业的主节点是 <code>A</code>。</p>
+<h1>3. 选举主节点</h1>
+<p>调用 <code>LeaderService#electLeader()</code> 选举主节点。</p>
+<p>大体流程如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png">打开大图</a> )：
+<img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png" alt=""></p>
+<p>实现代码如下：</p>
+<p><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">// LeaderService.java</div><div class="line">/**</div><div class="line">* 选举主节点.</div><div class="line">*/</div><div class="line">public void electLeader() &#123;</div><div class="line">   log.debug(&quot;Elect a new leader now.&quot;);</div><div class="line">   jobNodeStorage.executeInLeader(LeaderNode.LATCH, new LeaderElectionExecutionCallback());</div><div class="line">   log.debug(&quot;Leader election completed.&quot;);</div><div class="line">&#125;</div><div class="line"></div><div class="line">// JobNodeStorage.java</div><div class="line">public void executeInLeader(final String latchNode, final LeaderExecutionCallback callback) &#123;</div><div class="line">   try (LeaderLatch latch = new LeaderLatch(getClient(), jobNodePath.getFullPath(latchNode))) &#123;</div><div class="line">       latch.start();</div><div class="line">       latch.await();</div><div class="line">       callback.execute();</div><div class="line">   &#125; catch (final Exception ex) &#123;</div><div class="line">       handleException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// LeaderElectionExecutionCallback.java</div><div class="line">class LeaderElectionExecutionCallback implements LeaderExecutionCallback &#123;</div><div class="line">   </div><div class="line">   @Override</div><div class="line">   public void execute() &#123;</div><div class="line">       if (!hasLeader()) &#123; // 当前无主节点</div><div class="line">           jobNodeStorage.fillEphemeralJobNode(LeaderNode.INSTANCE, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>使用 Curator LeaderLatch 分布式锁，<strong>保证同一时间有且仅有一个工作节点</strong>能够调用 <code>LeaderElectionExecutionCallback#execute()</code> 方法执行主节点设置。Curator LeaderLatch 在<a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》「3.1」在主节点执行操作</a>有详细解析。</p>
+</li>
+<li>
+<p>在 <code>LeaderElectionExecutionCallback#execute()</code> 为什么要调用 <code>#hasLeader()</code> 呢？LeaderLatch <strong>只保证同一时间有且仅有一个工作节点</strong>，在获得分布式锁的工作节点结束逻辑后，第二个工作节点会开始逻辑，如果不判断当前是否有主节点，原来的主节点会被覆盖。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 判断是否已经有主节点.</div><div class="line"> * </div><div class="line"> * <span class="doctag">@return</span> 是否已经有主节点</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> jobNodeStorage.isJobNodeExisted(LeaderNode.INSTANCE);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>选举成功后，Zookeeper 存储<strong>作业</strong>的主节点：<code>/${JOB_NAME}/leader/electron/instance</code> 为当前节点。</p>
+<pre><code class="language-bash">[zk: localhost:2181(CONNECTED) 7] get /elastic-job-example-lite-java/javaSimpleJob/leader/election/instance
+</code></pre>
+</li>
+</ul>
+<p>192.168.16.137@-@82496
+```</p>
+<hr>
+<h1>4. 删除主节点</h1>
+<h1>666. 彩蛋</h1>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;hr&gt;
+&lt;h1&gt;1. 概述&lt;/h1&gt;
+&lt;p&gt;本文主要分享 &lt;strong&gt;Elastic-Job-Lite 主节点选举&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;建议前置阅读：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.yunai.me/Elastic-Job/
+    
+    </summary>
+    
+      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Elastic-Job-Lite 源码分析 —— 注册中心监听器</title>
+    <link href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/"/>
+    <id>http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/</id>
+    <published>2017-10-13T16:00:00.000Z</published>
+    <updated>2017-08-24T08:19:25.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. ListenerManager</a></li>
+<li><a href="#">3. AbstractListenerManager</a></li>
+<li><a href="#">4. AbstractJobListener</a></li>
+<li><a href="#">5. RegistryCenterConnectionStateListener</a></li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 注册中心监听器</strong>。</p>
+<p>建议前置阅读：</p>
+<ul>
+<li><a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》</a></li>
+</ul>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_14/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_14/01.png" alt=""></p>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1>2. ListenerManager</h1>
+<p>ListenerManager，作业注册中心的监听器管理者。管理者<strong>两类</strong>组件：</p>
+<ul>
+<li>监听管理器</li>
+<li>注册中心连接状态监听器</li>
+</ul>
+<p>其中<strong>监听管理器</strong>管理着自己的作业注册中心监听器。</p>
+<p>一起从代码层面看看：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ListenerManager</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobNodeStorage jobNodeStorage;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ElectionListenerManager electionListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ShardingListenerManager shardingListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> FailoverListenerManager failoverListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MonitorExecutionListenerManager monitorExecutionListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ShutdownListenerManager shutdownListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> TriggerListenerManager triggerListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> RescheduleListenerManager rescheduleListenerManager;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> GuaranteeListenerManager guaranteeListenerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> RegistryCenterConnectionStateListener regCenterConnectionStateListener;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>第一类：<code>electionListenerManager</code> / <code>shardingListenerManager</code> / <code>failoverListenerManager</code> / <code>MonitorExecutionListenerManager</code> / <code>shutdownListenerManager</code> / <code>triggerListenerManager</code> / <code>rescheduleListenerManager</code> / <code>guaranteeListenerManager</code> 是不同服务的<strong>监听管理器</strong>，都继承<strong>作业注册中心的监听器管理者的抽象类</strong>( AbstractListenerManager )。我们以下一篇文章会涉及到的<strong>分片监听管理器</strong>( ShardingListenerManager ) 来瞅瞅内部整体实现：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingListenerManager</span> <span class="keyword">extends</span> <span class="title">AbstractListenerManager</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</div><div class="line">        addDataListener(<span class="keyword">new</span> ShardingTotalCountChangedJobListener());</div><div class="line">        addDataListener(<span class="keyword">new</span> ListenServersChangedJobListener());</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ShardingTotalCountChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        <span class="comment">// .... 省略方法</span></div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ListenServersChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        <span class="comment">// .... 省略方法</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>ShardingListenerManager 内部管理了 ShardingTotalCountChangedJobListener / ListenServersChangedJobListener 两个作业注册中心监听器。具体作业注册中心监听器是什么，有什么用途，下文会详细解析。</li>
+</ul>
+</li>
+<li>
+<p>第二类：<code>regCenterConnectionStateListener</code> 是注册中心连接状态监听器。下文也会详细解析。</p>
+</li>
+</ul>
+<p>在<a href="http://www.yunai.me/Elastic-Job/job-init?self">《Elastic-Job-Lite 源码分析 —— 作业初始化》「3.2.4」注册作业启动信息</a>，我们看到作业初始化时，会开启所有注册中心监听器：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// SchedulerFacade.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 注册作业启动信息.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> enabled 作业是否启用</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerStartUpInfo</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> enabled)</span> </span>&#123;</div><div class="line">   <span class="comment">// 开启 所有监听器</span></div><div class="line">   listenerManager.startAllListeners();</div><div class="line">   <span class="comment">// .... 省略方法</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ListenerManager.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 开启所有监听器.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startAllListeners</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 开启 不同服务监听管理器</span></div><div class="line">   electionListenerManager.start();</div><div class="line">   shardingListenerManager.start();</div><div class="line">   failoverListenerManager.start();</div><div class="line">   monitorExecutionListenerManager.start();</div><div class="line">   shutdownListenerManager.start();</div><div class="line">   triggerListenerManager.start();</div><div class="line">   rescheduleListenerManager.start();</div><div class="line">   guaranteeListenerManager.start();</div><div class="line">   <span class="comment">// 开启 注册中心连接状态监听器</span></div><div class="line">   jobNodeStorage.addConnectionStateListener(regCenterConnectionStateListener);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1>3. AbstractListenerManager</h1>
+<p>AbstractListenerManager，作业注册中心的监听器管理者的<strong>抽象类</strong>。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractListenerManager</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobNodeStorage jobNodeStorage;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">AbstractListenerManager</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">        jobNodeStorage = <span class="keyword">new</span> JobNodeStorage(regCenter, jobName);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 开启监听器.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 添加注册中心监听器</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> listener 注册中心监听器</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">addDataListener</span><span class="params">(<span class="keyword">final</span> TreeCacheListener listener)</span> </span>&#123;</div><div class="line">        jobNodeStorage.addDataListener(listener);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p><code>#addDataListener()</code>，将作业注册中心的监听器添加到注册中心 TreeCache 的监听者里。<code>JobNodeStorage#addDataListener(...)</code> 在<a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 作业初始化》「2.2」缓存</a>已经详细解析。</p>
+</li>
+<li>
+<p>子类实现 <code>#start()</code> 方法实现监听器初始化。目前所有子类的实现都是将自己管理的注册中心监听器调用 <code>#addDataListener(...)</code>，还是以 ShardingListenerManager 举例子：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingListenerManager</span> <span class="keyword">extends</span> <span class="title">AbstractListenerManager</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</div><div class="line">        addDataListener(<span class="keyword">new</span> ShardingTotalCountChangedJobListener());</div><div class="line">        addDataListener(<span class="keyword">new</span> ListenServersChangedJobListener());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+</ul>
+<h1>4. AbstractJobListener</h1>
+<p>AbstractJobListener，作业注册中心的监听器<strong>抽象类</strong>。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractJobListener</span> <span class="keyword">implements</span> <span class="title">TreeCacheListener</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">childEvent</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> TreeCacheEvent event)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChildData childData = event.getData();</div><div class="line">        <span class="comment">// 忽略掉非数据变化的事件，例如 event.type 为 CONNECTION_SUSPENDED、CONNECTION_RECONNECTED、CONNECTION_LOST、INITIALIZED 事件</span></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == childData) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        String path = childData.getPath();</div><div class="line">        <span class="keyword">if</span> (path.isEmpty()) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        dataChanged(path, event.getType(), <span class="keyword">null</span> == childData.getData() ? <span class="string">""</span> : <span class="keyword">new</span> String(childData.getData(), Charsets.UTF_8));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 节点数据变化</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> path 节点路径</div><div class="line">     * <span class="doctag">@param</span> eventType 事件类型</div><div class="line">     * <span class="doctag">@param</span> data 数据</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>作业注册中心的监听器<strong>实现类</strong>实现 <code>#dataChanged(...)</code>，对节点数据变化进行处理。</li>
+<li><code>#childEvent(...)</code> 屏蔽掉非节点数据变化事件，例如：CONNECTION_SUSPENDED、CONNECTION_RECONNECTED、CONNECTION_LOST、INITIALIZED 事件，只处理 NODE_ADDED、NODE_UPDATED、NODE_REMOVED 事件。</li>
+</ul>
+<p>我们再拿 ShardingListenerManager 举例子：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingListenerManager</span> <span class="keyword">extends</span> <span class="title">AbstractListenerManager</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ShardingTotalCountChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (configNode.isConfigPath(path) &amp;&amp; <span class="number">0</span> != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123;</div><div class="line">                <span class="keyword">int</span> newShardingTotalCount = LiteJobConfigurationGsonFactory.fromJson(data).getTypeConfig().getCoreConfig().getShardingTotalCount();</div><div class="line">                <span class="keyword">if</span> (newShardingTotalCount != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123;</div><div class="line">                    shardingService.setReshardingFlag();</div><div class="line">                    JobRegistry.getInstance().setCurrentShardingTotalCount(jobName, newShardingTotalCount);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ListenServersChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName) &amp;&amp; (isInstanceChange(eventType, path) || isServerChange(path))) &#123;</div><div class="line">                shardingService.setReshardingFlag();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isInstanceChange</span><span class="params">(<span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> instanceNode.isInstancePath(path) &amp;&amp; Type.NODE_UPDATED != eventType;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isServerChange</span><span class="params">(<span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> serverNode.isServerPath(path);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务分片策略》</a>详细解析。</li>
+</ul>
+<h1>5. RegistryCenterConnectionStateListener</h1>
+<p>RegistryCenterConnectionStateListener，实现 Curator ConnectionStateListener 接口，注册中心连接状态监听器。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">RegistryCenterConnectionStateListener</span> <span class="keyword">implements</span> <span class="title">ConnectionStateListener</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stateChanged</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> ConnectionState newState)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (JobRegistry.getInstance().isShutdown(jobName)) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        JobScheduleController jobScheduleController = JobRegistry.getInstance().getJobScheduleController(jobName);</div><div class="line">        <span class="keyword">if</span> (ConnectionState.SUSPENDED == newState || ConnectionState.LOST == newState) &#123; <span class="comment">// Zookeeper 连接终端 或 连接丢失</span></div><div class="line">            <span class="comment">// 暂停作业调度</span></div><div class="line">            jobScheduleController.pauseJob();</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ConnectionState.RECONNECTED == newState) &#123; <span class="comment">// Zookeeper 重新连上</span></div><div class="line">            <span class="comment">// 持久化作业服务器上线信息</span></div><div class="line">            serverService.persistOnline(serverService.isEnableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp()));</div><div class="line">            <span class="comment">// 持久化作业运行实例上线相关信息</span></div><div class="line">            instanceService.persistOnline();</div><div class="line">            <span class="comment">// 清除本地分配的作业分片项运行中的标记</span></div><div class="line">            executionService.clearRunningInfo(shardingService.getLocalShardingItems());</div><div class="line">            <span class="comment">// 恢复作业调度</span></div><div class="line">            jobScheduleController.resumeJob();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>当注册中心连接 SUSPENDED 或 LOST 时，暂停<strong>本地</strong>作业调度：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// JobScheduleController.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">pauseJob</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       <span class="keyword">if</span> (!scheduler.isShutdown()) &#123;</div><div class="line">           scheduler.pauseAll();</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>当注册中心重新连接成功( RECONNECTED )，恢复<strong>本地</strong>作业调度：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 恢复作业.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">resumeJob</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">      <span class="keyword">if</span> (!scheduler.isShutdown()) &#123;</div><div class="line">          scheduler.resumeAll();</div><div class="line">      &#125;</div><div class="line">  &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+</ul>
+<h1>666. 彩蛋</h1>
+<p>旁白君：芋道君，你又水更了！<br>
+芋道君：是是是，是是是！</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_14/02.png" alt=""></p>
+<p>道友，赶紧上车，分享一波朋友圈！</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. ListenerManager&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a 
+    
+    </summary>
+    
+      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>Elastic-Job-Lite 源码分析 —— 作业数据存储</title>
     <link href="http://www.yunai.me/Elastic-Job/job-storage/"/>
     <id>http://www.yunai.me/Elastic-Job/job-storage/</id>
     <published>2017-10-06T16:00:00.000Z</published>
-    <updated>2017-08-23T17:01:37.000Z</updated>
+    <updated>2017-08-23T17:12:06.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -200,6 +388,7 @@
 <h1 id="10-GuaranteeNode"><a href="#10-GuaranteeNode" class="headerlink" title="10. GuaranteeNode"></a>10. GuaranteeNode</h1><p>GuaranteeNode，保证分布式任务全部开始和结束状态节点路径。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码分析 —— 保证分布式任务全部开始和结束状态》</a>详细解析。</p>
 <h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>旁白君：芋道君，你又水更了！<br>芋道君：屁屁屁，劳资怼死你！如下是作业数据存储整理，哼哼哈兮！</p>
 <p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_07/02.png" alt=""></p>
+<p>道友，赶紧上车，分享一波朋友圈！</p>
 ]]></content>
     
     <summary type="html">
@@ -1182,37 +1371,34 @@
     <link href="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/"/>
     <id>http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/</id>
     <published>2017-08-31T16:00:00.000Z</published>
-    <updated>2017-08-23T09:14:34.000Z</updated>
+    <updated>2017-08-23T17:46:28.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
-<h2>为什么阅读 Elastic-Job 源码？</h2>
-<ol>
+<h2 id="为什么阅读-Elastic-Job-源码？"><a href="#为什么阅读-Elastic-Job-源码？" class="headerlink" title="为什么阅读 Elastic-Job 源码？"></a>为什么阅读 Elastic-Job 源码？</h2><ol>
 <li>之前断断续续读过 Quartz 源码，团队里也对 Quartz 做过一些封装管理，很多 Quartz 二次封装开源项目，想了解 Elastic-Job 做了哪些功能，是怎么实现的</li>
 <li>Quartz 多节点通过数据库锁实现任务抢占，Elastic-Job 基于什么策略实现任务调度与分配</li>
 <li>任务分片如何实现</li>
 <li>Elastic-Job-Cloud 如何实现任务动态扩容和缩容</li>
 <li>任务超时如何处理？任务假死怎么判断？</li>
 </ol>
-<h2>使用公司</h2>
-<h2>步骤/功能</h2>
-<ul>
+<h2 id="使用公司"><a href="#使用公司" class="headerlink" title="使用公司"></a>使用公司</h2><h2 id="步骤-功能"><a href="#步骤-功能" class="headerlink" title="步骤/功能"></a>步骤/功能</h2><ul>
 <li>[ ] 分布式调度协调</li>
 <li>[ ] 弹性扩容缩容</li>
 <li>[ ] 失效转移</li>
 <li>[x] 错过执行作业重触发</li>
 <li>[ ] 作业分片策略</li>
-<li>[ ] 作业唯一节点执行</li>
+<li>[x] 作业唯一节点执行</li>
 <li>[ ] 自诊断并修复分布式不稳定造成的问题</li>
 <li>[x] 支持并行调度</li>
 <li>[ ] 支持作业生命周期操作</li>
@@ -1225,14 +1411,13 @@
 <li>[ ] 基于 Docker 的进程隔离（TBD）</li>
 <li>[x] 高可用</li>
 </ul>
-<h2>XXL-JOB</h2>
-<p>基于 V1.8，会逐渐和 Elastic-Job 功能做对比</p>
+<h2 id="XXL-JOB"><a href="#XXL-JOB" class="headerlink" title="XXL-JOB"></a>XXL-JOB</h2><p>基于 V1.8，会逐渐和 Elastic-Job 功能做对比</p>
 <ul>
 <li>[ ] 1、简单：支持通过Web页面对任务进行CRUD操作，操作简单，一分钟上手；</li>
 <li>[ ] 2、动态：支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，即时生效；</li>
 <li>[ ] 3、调度中心HA（中心式）：调度采用中心式设计，“调度中心”基于集群Quartz实现，可保证调度中心HA；</li>
-<li>[ ] 4、执行器HA（分布式）：任务分布式执行，任务&quot;执行器&quot;支持集群部署，可保证任务执行HA；</li>
-<li>[ ] 5、任务Failover：执行器集群部署时，任务路由策略选择&quot;故障转移&quot;情况下调度失败时将会平滑切换执行器进行Failover；</li>
+<li>[ ] 4、执行器HA（分布式）：任务分布式执行，任务”执行器”支持集群部署，可保证任务执行HA；</li>
+<li>[ ] 5、任务Failover：执行器集群部署时，任务路由策略选择”故障转移”情况下调度失败时将会平滑切换执行器进行Failover；</li>
 <li>[ ] 6、一致性：“调度中心”通过DB锁保证集群分布式调度的一致性, 一次任务调度只会触发一次执行；</li>
 <li>[ ] 7、自定义任务参数：支持在线配置调度任务入参，即时生效；</li>
 <li>[ ] 8、调度线程池：调度系统多线程触发调度运行，确保调度精确执行，不被堵塞；</li>
@@ -1250,7 +1435,7 @@
 <li>[ ] 20、脚本任务：支持以GLUE模式开发和运行脚本任务，包括Shell、Python等类型脚本;</li>
 <li>[ ] 21、阻塞处理策略：调度过于密集执行器来不及处理时的处理策略，策略包括：单机串行（默认）、丢弃后续调度、覆盖之前调度；</li>
 <li>[ ] 22、失败处理策略；调度失败时的处理策略，策略包括：失败告警（默认）、失败重试；</li>
-<li>[ ] 23、分片广播任务：执行器集群部署时，任务路由策略选择&quot;分片广播&quot;情况下，一次任务调度将会广播触发对应集群中所有执行器执行一次任务，同时传递分片参数；可根据分片参数开发分片任务；</li>
+<li>[ ] 23、分片广播任务：执行器集群部署时，任务路由策略选择”分片广播”情况下，一次任务调度将会广播触发对应集群中所有执行器执行一次任务，同时传递分片参数；可根据分片参数开发分片任务；</li>
 <li>[ ] 24、动态分片：分片广播任务以执行器为维度进行分片，支持动态扩容执行器集群从而动态增加分片数量，协同进行业务处理；在进行大数据量业务操作时可显著提升任务处理能力和速度。</li>
 </ul>
 ]]></content>
@@ -1259,9 +1444,7 @@
     
       &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：&lt;/p&gt;
-&lt;ol&gt;
-&lt;
+&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋道源码】&lt;/strong&gt;有福
     
     </summary>
     
@@ -3343,197 +3526,6 @@
 <h2 id="3-3-parseWhere"><a href="#3-3-parseWhere" class="headerlink" title="3.3 #parseWhere()"></a>3.3 #parseWhere()</h2><p>解析 WHERE 条件。解析代码：<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的#parseWhere()小节</a>。</p>
 <h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>道友，帮我分享一波怎么样？</p>
 <p><strong>后面 SQL 路由和改写会更加有趣哟！</strong></p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋道源码】&lt;/strong&gt;有
-    
-    </summary>
-    
-      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Sharding-JDBC 源码分析 —— SQL 解析（五）之更新SQL</title>
-    <link href="http://www.yunai.me/Sharding-JDBC/sql-parse-5/"/>
-    <id>http://www.yunai.me/Sharding-JDBC/sql-parse-5/</id>
-    <published>2017-07-30T16:00:00.000Z</published>
-    <updated>2017-08-14T18:34:13.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<p><strong>本文主要基于 Sharding-JDBC 1.5.0 正式版</strong>  </p>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. UpdateStatement</a></li>
-<li><a href="#">3. #parse()</a><ul>
-<li><a href="#">3.1 #skipBetweenUpdateAndTable()</a></li>
-<li><a href="#">3.2 #parseSingleTable()</a></li>
-<li><a href="#">3.3 #parseSetItems()</a></li>
-<li><a href="#">3.4 #parseWhere()</a></li>
-</ul>
-</li>
-<li><a href="#">666. 彩蛋</a></li>
-</ul>
-<hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文前置阅读：</p>
-<ul>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self">《SQL 解析（一）之词法解析》</a></li>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》</a></li>
-</ul>
-<p>本文分享<strong>更新SQL解析</strong>的源码实现。</p>
-<p>更新SQL解析比查询SQL解析复杂度低的多的多。不同数据库在插入SQL语法上也统一的多。<strong>本文分享 MySQL 更新SQL解析器 MySQLUpdateParser</strong>。</p>
-<p>MySQL UPDATE 语法一共有 2 种 ：</p>
-<ul>
-<li>第一种：<strong>Single-table syntax</strong></li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">UPDATE</span> [<span class="keyword">LOW_PRIORITY</span>] [<span class="keyword">IGNORE</span>] table_reference</div><div class="line">    <span class="keyword">SET</span> col_name1=&#123;expr1|<span class="keyword">DEFAULT</span>&#125; [, col_name2=&#123;expr2|<span class="keyword">DEFAULT</span>&#125;] ...</div><div class="line">    [<span class="keyword">WHERE</span> where_condition]</div><div class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> ...]</div><div class="line">    [<span class="keyword">LIMIT</span> <span class="keyword">row_count</span>]</div></pre></td></tr></table></figure>
-<ul>
-<li>第二种：<strong>Multiple-table syntax</strong></li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">UPDATE</span> [<span class="keyword">LOW_PRIORITY</span>] [<span class="keyword">IGNORE</span>] table_references</div><div class="line">    <span class="keyword">SET</span> col_name1=&#123;expr1|<span class="keyword">DEFAULT</span>&#125; [, col_name2=&#123;expr2|<span class="keyword">DEFAULT</span>&#125;] ...</div><div class="line">    [<span class="keyword">WHERE</span> where_condition]</div></pre></td></tr></table></figure>
-<p>Sharding-JDBC 目前仅支持第一种。业务场景上使用第二种的很少很少。</p>
-<p>Sharding-JDBC 更新SQL解析主流程如下：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_31/01.png" alt=""></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractUpdateParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> UpdateStatement <span class="title">parse</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.getLexer().nextToken(); <span class="comment">// 跳过 UPDATE</span></div><div class="line">   skipBetweenUpdateAndTable(); <span class="comment">// 跳过关键字，例如：MYSQL 里的 LOW_PRIORITY、IGNORE</span></div><div class="line">   sqlParser.parseSingleTable(updateStatement); <span class="comment">// 解析表</span></div><div class="line">   parseSetItems(); <span class="comment">// 解析 SET</span></div><div class="line">   sqlParser.skipUntil(DefaultKeyword.WHERE);</div><div class="line">   sqlParser.setParametersIndex(parametersIndex);</div><div class="line">   sqlParser.parseWhere(updateStatement);</div><div class="line">   <span class="keyword">return</span> updateStatement; <span class="comment">// 解析 WHERE</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<blockquote>
-<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
-</blockquote>
-<h1 id="2-UpdateStatement"><a href="#2-UpdateStatement" class="headerlink" title="2. UpdateStatement"></a>2. UpdateStatement</h1><p>更新SQL 解析结果。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">UpdateStatement</span> <span class="keyword">extends</span> <span class="title">AbstractSQLStatement</span> </span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>😈 对，没有其他属性。</p>
-<p>我们来看下 <code>UPDATE t_user SET nickname = ?, age = ? WHERE user_id = ?</code> 的<strong>解析结果</strong>：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_31/02.png" alt=""></p>
-<h1 id="3-parse"><a href="#3-parse" class="headerlink" title="3. #parse()"></a>3. #parse()</h1><h2 id="3-1-skipBetweenUpdateAndTable"><a href="#3-1-skipBetweenUpdateAndTable" class="headerlink" title="3.1 #skipBetweenUpdateAndTable()"></a>3.1 #skipBetweenUpdateAndTable()</h2><p>在 <code>UPDATE</code> 和 表名 之间有些词法，对 SQL 路由和改写无影响，进行跳过。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// MySQLUpdateParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">skipBetweenUpdateAndTable</span><span class="params">()</span> </span>&#123;</div><div class="line">   getSqlParser().skipAll(MySQLKeyword.LOW_PRIORITY, MySQLKeyword.IGNORE);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// OracleUpdateParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">skipBetweenUpdateAndTable</span><span class="params">()</span> </span>&#123;</div><div class="line">   getSqlParser().skipIfEqual(OracleKeyword.ONLY);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-2-parseSingleTable"><a href="#3-2-parseSingleTable" class="headerlink" title="3.2 #parseSingleTable()"></a>3.2 #parseSingleTable()</h2><p>解析<strong>表</strong>，请看<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的 <code>#parseSingleTable()</code> 小节</a>。</p>
-<h2 id="3-3-parseSetItems"><a href="#3-3-parseSetItems" class="headerlink" title="3.3 #parseSetItems()"></a>3.3 #parseSetItems()</h2><p>解析<code>SET</code>后语句。 </p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractUpdateParser.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析多个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetItems</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.accept(DefaultKeyword.SET);</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       parseSetItem();</div><div class="line">   &#125; <span class="keyword">while</span> (sqlParser.skipIfEqual(Symbol.COMMA)); <span class="comment">// 以 "," 分隔</span></div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetItem</span><span class="params">()</span> </span>&#123;</div><div class="line">   parseSetColumn();</div><div class="line">   sqlParser.skipIfEqual(Symbol.EQ, Symbol.COLON_EQ);</div><div class="line">   parseSetValue();</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 项</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetColumn</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">       sqlParser.skipParentheses();</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">int</span> beginPosition = sqlParser.getLexer().getCurrentToken().getEndPosition();</div><div class="line">   String literals = sqlParser.getLexer().getCurrentToken().getLiterals();</div><div class="line">   sqlParser.getLexer().nextToken();</div><div class="line">   <span class="keyword">if</span> (sqlParser.skipIfEqual(Symbol.DOT)) &#123; <span class="comment">// 字段有别名</span></div><div class="line">       <span class="comment">// TableToken</span></div><div class="line">       <span class="keyword">if</span> (updateStatement.getTables().getSingleTableName().equalsIgnoreCase(SQLUtil.getExactlyValue(literals))) &#123;</div><div class="line">           updateStatement.getSqlTokens().add(<span class="keyword">new</span> TableToken(beginPosition - literals.length(), literals));</div><div class="line">       &#125;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析单个 SET 值</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSetValue</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.parseExpression(updateStatement);</div><div class="line">   parametersIndex = sqlParser.getParametersIndex();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-4-parseWhere"><a href="#3-4-parseWhere" class="headerlink" title="3.4 #parseWhere()"></a>3.4 #parseWhere()</h2><p>解析 WHERE 条件。解析代码：<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的#parseWhere()小节</a>。</p>
-<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😝 比更新SQL解析是不是简单，更不用对比查询SQL解析。😳有一种在水更的感觉。嘿嘿，下一篇（<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《删除SQL解析》</a>）会更加容易。</p>
-<p>道友，帮我分享一波怎么样？</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋道源码】&lt;/strong&gt;有
-    
-    </summary>
-    
-      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Sharding-JDBC 源码分析 —— SQL 解析（四）之插入SQL</title>
-    <link href="http://www.yunai.me/Sharding-JDBC/sql-parse-4/"/>
-    <id>http://www.yunai.me/Sharding-JDBC/sql-parse-4/</id>
-    <published>2017-07-28T16:00:00.000Z</published>
-    <updated>2017-08-14T18:34:12.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<p><strong>本文主要基于 Sharding-JDBC 1.5.0 正式版</strong>  </p>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. InsertStatement</a></li>
-<li><a href="#">3. #parse()</a><ul>
-<li><a href="#">3.1 #parseInfo()</a></li>
-<li><a href="#">3.2 #parseColumns()</a></li>
-<li><a href="#">3.3 #parseValues()</a></li>
-<li><a href="#">3.4 #parseCustomizedInsert()</a></li>
-<li><a href="#">3.5 #appendGenerateKey()</a></li>
-</ul>
-</li>
-<li><a href="#">666. 彩蛋</a></li>
-</ul>
-<hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文前置阅读：</p>
-<ul>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self">《SQL 解析（一）之词法解析》</a></li>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》</a></li>
-</ul>
-<p>本文分享<strong>插入SQL解析</strong>的源码实现。</p>
-<p>不考虑 INSERT SELECT 情况下，插入SQL解析比查询SQL解析复杂度低的多的多。不同数据库在插入SQL语法上也统一的多。<strong>本文分享 MySQL 插入SQL解析器 MySQLInsertParser</strong>。</p>
-<p>MySQL INSERT 语法一共有 3 种 ：</p>
-<ul>
-<li>第一种：<code>INSERT {VALUES | VALUES}</code></li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    &#123;<span class="keyword">VALUES</span> | <span class="keyword">VALUE</span>&#125; (&#123;expr | <span class="keyword">DEFAULT</span>&#125;,...),(...),...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
-<ul>
-<li>第二种：<code>INSERT SET</code></li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">DELAYED</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    <span class="keyword">SET</span> col_name=&#123;expr | <span class="keyword">DEFAULT</span>&#125;, ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
-<ul>
-<li>第三种：<code>INSERT SELECT</code></li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> [<span class="keyword">LOW_PRIORITY</span> | <span class="keyword">HIGH_PRIORITY</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    [<span class="keyword">INTO</span>] tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [(col_name,...)]</div><div class="line">    <span class="keyword">SELECT</span> ...</div><div class="line">    [ <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span></div><div class="line">      col_name=expr</div><div class="line">        [, col_name=expr] ... ]</div></pre></td></tr></table></figure>
-<p>Sharding-JDBC 目前支持：</p>
-<ul>
-<li>第一种：<code>INSERT {VALUES | VALUES}</code> <strong>单条记录</strong></li>
-<li>第二种：<code>INSERT SET</code></li>
-</ul>
-<p>Sharding-JDBC 插入SQL解析主流程如下：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/01.png" alt=""></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> InsertStatement <span class="title">parse</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.getLexer().nextToken(); <span class="comment">// 跳过 INSERT 关键字</span></div><div class="line">   parseInto(); <span class="comment">// 解析INTO</span></div><div class="line">   parseColumns(); <span class="comment">// 解析表</span></div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(DefaultKeyword.SELECT, Symbol.LEFT_PAREN)) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support subquery"</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (getValuesKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第一种插入SQL情况</span></div><div class="line">       parseValues();</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getCustomizedInsertKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123; <span class="comment">// 第二种插入SQL情况</span></div><div class="line">       parseCustomizedInsert();</div><div class="line">   &#125;</div><div class="line">   appendGenerateKey(); <span class="comment">// 自增主键</span></div><div class="line">   <span class="keyword">return</span> insertStatement;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<blockquote>
-<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
-</blockquote>
-<h1 id="2-InsertStatement"><a href="#2-InsertStatement" class="headerlink" title="2. InsertStatement"></a>2. InsertStatement</h1><p>插入SQL 解析结果。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertStatement</span> <span class="keyword">extends</span> <span class="title">AbstractSQLStatement</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Collection&lt;Column&gt; columns = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">    <span class="comment">/**</span></div><div class="line">     *</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> GeneratedKey generatedKey;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 插入字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> columnsListLastPosition;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值字段 下一个Token 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> valuesListLastPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>我们来看下 <code>INSERT INTO t_order (uid, nickname) VALUES (?, ?)</code> 的<strong>解析结果</strong>：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_07_29/02.png" alt=""></p>
-<h1 id="3-parse"><a href="#3-parse" class="headerlink" title="3. #parse()"></a>3. #parse()</h1><h2 id="3-1-parseInto"><a href="#3-1-parseInto" class="headerlink" title="3.1 #parseInto()"></a>3.1 #parseInto()</h2><p>解析<strong>表</strong>。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 解析表</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInto</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 例如，Oracle，INSERT FIRST/ALL 目前不支持</span></div><div class="line">   <span class="keyword">if</span> (getUnsupportedKeywords().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> SQLParsingUnsupportedException(sqlParser.getLexer().getCurrentToken().getType());</div><div class="line">   &#125;</div><div class="line">   sqlParser.skipUntil(DefaultKeyword.INTO);</div><div class="line">   sqlParser.getLexer().nextToken();</div><div class="line">   <span class="comment">// 解析表</span></div><div class="line">   sqlParser.parseSingleTable(insertStatement);</div><div class="line">   skipBetweenTableAndValues();</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 跳过 表 和 插入字段 中间的 Token</div><div class="line">* 例如 MySQL ：[PARTITION (partition_name,...)]</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">skipBetweenTableAndValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">while</span> (getSkippedKeywordsBetweenTableAndValues().contains(sqlParser.getLexer().getCurrentToken().getType())) &#123;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">           sqlParser.skipParentheses();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>其中 <code>#parseSingleTable()</code> 请看<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的 <code>#parseSingleTable()</code> 小节</a>。</p>
-<h2 id="3-2-parseColumns"><a href="#3-2-parseColumns" class="headerlink" title="3.2 #parseColumns()"></a>3.2 #parseColumns()</h2><p>解析<strong>插入字段</strong>。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractInsertParser.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseColumns</span><span class="params">()</span> </span>&#123;</div><div class="line">   Collection&lt;Column&gt; result = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">   <span class="keyword">if</span> (sqlParser.equalAny(Symbol.LEFT_PAREN)) &#123;</div><div class="line">       String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">       Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName); <span class="comment">// 自动生成键信息</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           <span class="comment">// Column 插入字段</span></div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           String columnName = SQLUtil.getExactlyValue(sqlParser.getLexer().getCurrentToken().getLiterals());</div><div class="line">           result.add(<span class="keyword">new</span> Column(columnName, tableName));</div><div class="line">           sqlParser.getLexer().nextToken();</div><div class="line">           <span class="comment">// 自动生成键</span></div><div class="line">           <span class="keyword">if</span> (generateKeyColumn.isPresent() &amp;&amp; generateKeyColumn.get().equalsIgnoreCase(columnName)) &#123;</div><div class="line">               generateKeyColumnIndex = count;</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125; <span class="keyword">while</span> (!sqlParser.equalAny(Symbol.RIGHT_PAREN) &amp;&amp; !sqlParser.equalAny(Assist.END));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setColumnsListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">//</span></div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">   &#125;</div><div class="line">   insertStatement.getColumns().addAll(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-3-parseValues"><a href="#3-3-parseValues" class="headerlink" title="3.3 #parseValues()"></a>3.3 #parseValues()</h2><p>解析<strong>值字段</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 解析值字段</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseValues</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">boolean</span> parsed = <span class="keyword">false</span>;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       <span class="keyword">if</span> (parsed) &#123; <span class="comment">// 只允许INSERT INTO 一条</span></div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"Cannot support multiple insert"</span>);</div><div class="line">       &#125;</div><div class="line">       sqlParser.getLexer().nextToken();</div><div class="line">       sqlParser.accept(Symbol.LEFT_PAREN);</div><div class="line">       <span class="comment">// 解析表达式</span></div><div class="line">       List&lt;SQLExpression&gt; sqlExpressions = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line">       <span class="keyword">do</span> &#123;</div><div class="line">           sqlExpressions.add(sqlParser.parseExpression());</div><div class="line">       &#125; <span class="keyword">while</span> (sqlParser.skipIfEqual(Symbol.COMMA));</div><div class="line">       <span class="comment">//</span></div><div class="line">       insertStatement.setValuesListLastPosition(sqlParser.getLexer().getCurrentToken().getEndPosition() - sqlParser.getLexer().getCurrentToken().getLiterals().length());</div><div class="line">       <span class="comment">// 解析值字段</span></div><div class="line">       <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">       <span class="keyword">for</span> (Column each : insertStatement.getColumns()) &#123;</div><div class="line">           SQLExpression sqlExpression = sqlExpressions.get(count);</div><div class="line">           insertStatement.getConditions().add(<span class="keyword">new</span> Condition(each, sqlExpression), shardingRule);</div><div class="line">           <span class="keyword">if</span> (generateKeyColumnIndex == count) &#123; <span class="comment">// 自动生成键</span></div><div class="line">               insertStatement.setGeneratedKey(createGeneratedKey(each, sqlExpression));</div><div class="line">           &#125;</div><div class="line">           count++;</div><div class="line">       &#125;</div><div class="line">       sqlParser.accept(Symbol.RIGHT_PAREN);</div><div class="line">       parsed = <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">while</span> (sqlParser.equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">* 创建 自动生成键</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> column 字段</div><div class="line">* <span class="doctag">@param</span> sqlExpression 表达式</div><div class="line">* <span class="doctag">@return</span> 自动生成键</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">private</span> GeneratedKey <span class="title">createGeneratedKey</span><span class="params">(<span class="keyword">final</span> Column column, <span class="keyword">final</span> SQLExpression sqlExpression)</span> </span>&#123;</div><div class="line">   GeneratedKey result;</div><div class="line">   <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLPlaceholderExpression) &#123; <span class="comment">// 占位符</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), ((SQLPlaceholderExpression) sqlExpression).getIndex(), <span class="keyword">null</span>);</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sqlExpression <span class="keyword">instanceof</span> SQLNumberExpression) &#123; <span class="comment">// 数字</span></div><div class="line">       result = <span class="keyword">new</span> GeneratedKey(column.getName(), -<span class="number">1</span>, ((SQLNumberExpression) sqlExpression).getNumber());</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> ShardingJdbcException(<span class="string">"Generated key only support number."</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="3-4-1-GeneratedKey"><a href="#3-4-1-GeneratedKey" class="headerlink" title="3.4.1 GeneratedKey"></a>3.4.1 GeneratedKey</h3><p>自动生成键，<strong>属于分片上下文信息</strong>。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKey</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String column;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 第几个占位符</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> index;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 值</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Number value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="3-4-2-Condition"><a href="#3-4-2-Condition" class="headerlink" title="3.4.2 Condition"></a>3.4.2 Condition</h3><p>条件对象，<strong>属于分片上下文信息</strong>。在<strong>插入SQL解析</strong>里存储<strong>影响分片的值字段</strong>。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 路由》</a> 会专门分享这块。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Condition</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 字段</div><div class="line">     */</div><div class="line">    <span class="meta">@Getter</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Column column;</div><div class="line">    </div><div class="line">    <span class="comment">// ... 省略其它属性</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Column</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 列名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String name;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 表名</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String tableName;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-4-parseCustomizedInsert"><a href="#3-4-parseCustomizedInsert" class="headerlink" title="3.4 #parseCustomizedInsert()"></a>3.4 #parseCustomizedInsert()</h2><p>解析<strong>第二种插入SQL</strong>：<code>INSERT SET</code>。例如：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>  <span class="keyword">ON</span> <span class="keyword">DUPLICATE</span> <span class="keyword">KEY</span> <span class="keyword">UPDATE</span> <span class="keyword">name</span> = <span class="string">'doubi'</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">test</span> <span class="keyword">SET</span> <span class="keyword">id</span> = <span class="number">4</span>, <span class="keyword">name</span> = <span class="string">'hehe'</span>;</div></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseInsertSet</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 插入字段</span></div><div class="line">       Column column = <span class="keyword">new</span> Column(SQLUtil.getExactlyValue(getSqlParser().getLexer().getCurrentToken().getLiterals()), getInsertStatement().getTables().getSingleTableName());</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// 等号</span></div><div class="line">       getSqlParser().accept(Symbol.EQ);</div><div class="line">       <span class="comment">// 【值】表达式</span></div><div class="line">       SQLExpression sqlExpression;</div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Literals.INT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Integer.parseInt(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.FLOAT)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLNumberExpression(Double.parseDouble(getSqlParser().getLexer().getCurrentToken().getLiterals()));</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Literals.CHARS)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLTextExpression(getSqlParser().getLexer().getCurrentToken().getLiterals());</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(DefaultKeyword.NULL)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLIgnoreExpression();</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.QUESTION)) &#123;</div><div class="line">           sqlExpression = <span class="keyword">new</span> SQLPlaceholderExpression(getSqlParser().getParametersIndex());</div><div class="line">           getSqlParser().increaseParametersIndex();</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">""</span>);</div><div class="line">       &#125;</div><div class="line">       getSqlParser().getLexer().nextToken();</div><div class="line">       <span class="comment">// Condition</span></div><div class="line">       <span class="keyword">if</span> (getSqlParser().equalAny(Symbol.COMMA, DefaultKeyword.ON, Assist.END)) &#123;</div><div class="line">           getInsertStatement().getConditions().add(<span class="keyword">new</span> Condition(column, sqlExpression), getShardingRule());</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           getSqlParser().skipUntil(Symbol.COMMA, DefaultKeyword.ON);</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">while</span> (getSqlParser().equalAny(Symbol.COMMA)); <span class="comment">// 字段以 "," 分隔</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-5-appendGenerateKey"><a href="#3-5-appendGenerateKey" class="headerlink" title="3.5 #appendGenerateKey()"></a>3.5 #appendGenerateKey()</h2><p>当表设置<strong>自动生成键</strong>，并且插入SQL<strong>没</strong>写自增字段，增加该字段。例如：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">// 主键为user_id</div><div class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> t_user(nickname, age) <span class="keyword">VALUES</span> (?, ?)</div></pre></td></tr></table></figure>
-<p>后续 SQL 改写会生成该自增编号，并改写该 SQL。后续<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《SQL 改写》</a> 会专门分享这块。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">appendGenerateKey</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 当表设置自动生成键，并且插入SQL没写自增字段</span></div><div class="line">   String tableName = insertStatement.getTables().getSingleTableName();</div><div class="line">   Optional&lt;String&gt; generateKeyColumn = shardingRule.getGenerateKeyColumn(tableName);</div><div class="line">   <span class="keyword">if</span> (!generateKeyColumn.isPresent() || <span class="keyword">null</span> != insertStatement.getGeneratedKey()) &#123;</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// ItemsToken</span></div><div class="line">   ItemsToken columnsToken = <span class="keyword">new</span> ItemsToken(insertStatement.getColumnsListLastPosition());</div><div class="line">   columnsToken.getItems().add(generateKeyColumn.get());</div><div class="line">   insertStatement.getSqlTokens().add(columnsToken);</div><div class="line">   <span class="comment">// GeneratedKeyToken</span></div><div class="line">   insertStatement.getSqlTokens().add(<span class="keyword">new</span> GeneratedKeyToken(insertStatement.getValuesListLastPosition()));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="3-5-1-GeneratedKeyToken"><a href="#3-5-1-GeneratedKeyToken" class="headerlink" title="3.5.1 GeneratedKeyToken"></a>3.5.1 GeneratedKeyToken</h3><p>自增主键标记对象。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">GeneratedKeyToken</span> <span class="keyword">implements</span> <span class="title">SQLToken</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 开始位置</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> beginPosition;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>😈 是不是比<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-3/?self">《SQL 解析（三）之插入SQL》</a>简单很多。</p>
-<p><strong>道友，可否分享一波【本文】到朋友圈</strong>。</p>
-<p><strong>继续加油更新！</strong></p>
 ]]></content>
     
     <summary type="html">
