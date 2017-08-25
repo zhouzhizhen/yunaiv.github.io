@@ -4,12 +4,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Elastic-Job/job-sharding-strategy/</loc>
-    <lastmod>2017-08-25T07:59:20.000Z</lastmod>
+    <loc>http://www.yunai.me/Elastic-Job/job-sharding/</loc>
+    <lastmod>2017-08-25T19:53:32.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Lite 源码分析 —— 作业分片策略</title>
-        <pubTime>2017-10-25T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）</title>
+        <pubTime>2017-10-30T16:00:00.000Z</pubTime>
         
          
            
@@ -22,12 +22,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Elastic-Job/job-sharding/</loc>
-    <lastmod>2017-08-25T07:55:04.000Z</lastmod>
+    <loc>http://www.yunai.me/Elastic-Job/job-sharding-strategy/</loc>
+    <lastmod>2017-08-25T07:59:20.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）</title>
-        <pubTime>2017-10-30T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Lite 源码分析 —— 作业分片策略</title>
+        <pubTime>2017-10-25T16:00:00.000Z</pubTime>
         
          
            

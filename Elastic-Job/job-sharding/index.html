@@ -1,3 +1,490 @@
-<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E"><meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0"><meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214"><meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1"><meta name="sogou_site_verification" content="MpPsku240L"><title>Elastic-Job-Lite 源码分析 —— 作业分片（编辑中） | 芋艿V的博客</title><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3,minimum-scale=1"><meta name="author" content="王文斌"><meta name="description" content="本文基于 Elastic-Job V2.1.5 版本分享
-占位编辑
-你懂的"><meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表"><link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml"><link rel="icon" href="/images/favicon.ico"><link rel="stylesheet" href="/css/style.css"><script>var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="//hm.baidu.com/hm.js?ef4ed89f6dc83d01803a2440ae21e666";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script>!function(){var t="http:"==document.location.protocol?"http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";document.write('<script src="'+t+'" id="sozz"><\/script>')}()</script><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></head></html><body><header><div><div id="textlogo"><h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1><a class="blog-motto">愿编码半生，如老友相伴！</a></div><div class="navbar"><a class="navbutton navmobile" href="#" title="菜单"></a></div><nav class="animated"><ul><ul><li><a href="/">文章</a></li><li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li><li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li></ul></ul></nav></div></header><div id="container"><div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div><div id="toc" class="toc-aside"><strong class="toc-title">文章目录</strong></div><div id="asidepart"><aside class="clearfix"><div id="authorInfo"><div><img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"></div><div class="social-list"></div></div><div class="categorieslist"><p class="asidetitle">微信公众号福利：芋道源码</p><ul><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">0. 阅读源码葵花宝典</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">2. 您对于源码的疑问每条留言都将得到认真回复</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">3. 新的源码解析文章实时收到通知，每周六十点更新</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群</a></li></ul></div><div class="categorieslist"><p class="asidetitle">分类</p><ul><li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li><li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>10</sup></a></li><li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li><li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li><li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li><li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li><li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li></ul></div></aside></div><div id="main" class="post" itemscope="" itemprop="blogPost"><article itemprop="articleBody"><header class="article-info clearfix"><h1 itemprop="name"><a href="/Elastic-Job/job-sharding/" title="Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）" itemprop="url">Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）</a></h1><p class="article-author"></p><p class="article-time">总阅读量:<span id="busuanzi_value_page_pv"></span>次</p></header><div class="article-content"><p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p><p>占位编辑 你懂的</p></div><footer class="article-footer clearfix"><div class="article-categories"><span></span> <a class="article-category-link" href="/categories/Elastic-Job/">Elastic-Job</a></div><div class="article-share" id="share"><div data-url="http://www.yunai.me/Elastic-Job/job-sharding/" data-title="Elastic-Job-Lite 源码分析 —— 作业分片（编辑中） | 芋艿V的博客" data-tsina="null" class="share clearfix"></div></div></footer></article><nav class="article-nav clearfix"><div class="next"><a href="/Elastic-Job/job-sharding-strategy/" title="Elastic-Job-Lite 源码分析 —— 作业分片策略"><strong>NEXT:</strong><br><span>Elastic-Job-Lite 源码分析 —— 作业分片策略</span></a></div></nav></div></div><footer><div id="footer"><p class="copyright">© 2017 <a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a> && <span style="display:inline" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span> && <span style="display:inline" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span> && Hosted by <a href="https://pages.coding.me" style="font-weight:700" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a> && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a></p></div></footer><script src="/js/jquery-2.1.0.min.js"></script><script type="text/javascript">$(document).ready(function(){function e(){"number"==typeof window.innerWidth?n=window.innerWidth:document.documentElement&&document.documentElement.clientWidth&&(n=document.documentElement.clientWidth)}$(".navbar").click(function(){$("header nav").toggleClass("shownav")});var n=0,s=$("#main"),a=$("#asidepart"),o=$(".closeaside"),d=$(".openaside");$(window).resize(function(){e(),n>=1024?$("header nav").removeClass("shownav"):(s.removeClass("moveMain"),a.css("display","block").removeClass("fadeOut"),d.css("display","none"),$("#toc.toc-aside").css("display","none"))}),o.click(function(){a.addClass("fadeOut").css("display","none"),d.css("display","block").addClass("fadeIn"),s.addClass("moveMain")}),d.click(function(){d.css("display","none").removeClass("beforeFadeIn"),a.css("display","block").removeClass("fadeOut").addClass("fadeIn"),s.removeClass("moveMain")}),$(window).scroll(function(){d.css("top",Math.max(80,260-$(this).scrollTop()))})})</script><script type="text/javascript">$(document).ready(function(){var a=$(".article-content>iframe"),t=$(".article-content>embed"),n=$("#toc");$("article h2");ah=$("article h2"),ta=$("#toc.toc-aside"),o=$(".openaside"),c=$(".closeaside"),a.length>0&&a.wrap('<div class="video-container" />'),t.length>0&&t.wrap('<div class="video-container" />'),0==ah.length?n.css("display","none"):(c.click(function(){ta.css("display","block").addClass("fadeIn")}),o.click(function(){ta.css("display","none")}),$(window).scroll(function(){ta.css("top",Math.max(140,320-$(this).scrollTop()))}))})</script><script type="text/javascript">$(document).ready(function(){var t=$(".share"),a=t.attr("data-url"),e=encodeURIComponent(a),r=['<a href="#" class="overlay" id="qrcode"></a>','<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url='+e+'"/></div>','<a href="#textlogo" class="article-back-to-top" title="Top"></a>','<a href="https://www.facebook.com/sharer.php?u='+e+'" class="article-share-facebook" target="_blank" title="Facebook"></a>','<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>','<a href="https://twitter.com/intent/tweet?url='+e+'" class="article-share-twitter" target="_blank" title="Twitter"></a>','<a href="http://service.weibo.com/share/share.php?title='+t.attr("data-title")+"&url="+e+"&ralateUid="+t.attr("data-tsina")+'&searchPic=true&style=number" class="article-share-weibo" target="_blank" title="Weibo"></a>','<span title="Share to"></span>'].join("");t.append(r),$(".article-share-qrcode").click(function(){var t=$("#qrcode-pic").attr("data-src");$("#qrcode-pic").attr("src",t),$("#qrcode-pic").load(function(){$(".qrcode strong").text(" ")})})})</script><link rel="stylesheet" href="/alert/css/alert.css"><script src="/alert/js/alert.js"></script><script src="/js/jquery.cookie.js"></script><script>$(document).ready(function(){function e(){var e=jqueryAlert({title:"👼每周六更新一篇源码解析，【扫一扫】关注公众号👼",width:"500",height:"580",modal:!0,content:n+'<p style="color: red">今日'+c+"已关注人数："+p+'</p><img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" /><p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p><p style="color: red">一起看源码，读源码，提升技术！</p>',buttons:{"已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）":function(){e.close()}}});$.cookie(o,i+1,{expires:1,path:"/"})}if(!(location.href.indexOf("vip")>=0||location.href.indexOf("127.0.0.1")>=0)){var o="doubi",i=$.cookie(o);i?i=parseInt(i):($.cookie(o,0,{expires:1,path:"/"}),i=0),$.cookie(o,i,{expires:1,path:"/"});var t="default",r={juejin:"掘金",oschina:"开源中国",sjdbc:"Sharding-JDBC",jianshu:"简书",csdn:"CSDN",iteye:"iteye",cnblogs:"博客园"};for(var a in r)if(location.search.indexOf(a)>=0){t=a;break}"default"===t&&(t=$.cookie("from")||"default"),$.cookie("from",t,{expires:365,path:"/"});var n="",c="";if(t&&r[t]&&(n='<p style="color: red">欢迎来自【'+r[t]+"】的同学</p>",c="【"+r[t]+"】"),i<=3){var p=103+5*(new Date).getHours();setTimeout(e,1e4*(i+1))}}})</script></body>
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+
+  
+    <title>Elastic-Job-Lite 源码分析 —— 作业分片（编辑中） | 芋艿V的博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="王文斌">
+    
+    <meta name="description" content="本文基于 Elastic-Job V2.1.5 版本分享
+
+1. 概述本文主要分享 Elastic-Job-Lite 作业分片。
+涉及到主要类的类图如下( 打开大图 )：
+
+
+粉色的类在 com.dangdang.ddframe.job.lite.internal.sharding 包下，实现了 E">
+    
+
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表">
+    
+
+    
+    
+    <link rel="alternate" href="atom.xml" title="芋艿V的博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/images/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='ef4ed89f6dc83d01803a2440ae21e666';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</head>
+</html>
+  <body>
+    <header>
+      <div>
+    
+    <div id="textlogo">
+        <h1 class="site-name"><a href="/" title="芋艿V的博客">芋艿V的博客</a></h1>
+        <a class="blog-motto">
+            
+            愿编码半生，如老友相伴！
+            
+        </a>
+    </div>
+    <div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+        </a></div>
+    <nav class="animated">
+        <ul>
+            <ul>
+                
+                <li><a href="/">文章</a></li>
+                
+                <li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li>
+                
+                <li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li>
+                
+                <!--<li>-->
+                    <!---->
+                        <!--<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">-->
+                            <!--<label>Search</label>-->
+                            <!--<input type="text" id="search" name="q" autocomplete="off" maxlength="20"-->
+                                   <!--placeholder="搜索"/>-->
+                            <!--<input type="hidden" name="q" value="site:www.yunai.me">-->
+                        <!--</form>-->
+                        <!---->
+                <!--</li>-->
+            </ul>
+    </ul></nav>
+</div>
+
+    </header>
+    <div id="container">
+        <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="toc" class="toc-aside">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-作业分片条件"><span class="toc-number">2.</span> <span class="toc-text">2. 作业分片条件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-作业分片分配"><span class="toc-number">3.</span> <span class="toc-text">3. 作业分片分配</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-作业分片获取"><span class="toc-number">4.</span> <span class="toc-text">4. 作业分片获取</span></a></li></ol>
+</div>
+
+<div id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!---->
+            <!--<div class="author-logo"></div>-->
+            <!---->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"> </div>
+
+            <div class="social-list">
+                
+                
+                
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="categorieslist">
+    <p class="asidetitle">微信公众号福利：芋道源码</p>
+    <ul>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 0. 阅读源码葵花宝典 </a></li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 2. 您对于源码的疑问每条留言都将得到认真回复 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 3. 新的源码解析文章实时收到通知，每周六十点更新 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群 </a> </li>
+
+
+    </ul>
+</div>
+        
+        
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>10</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li>
+		
+			<li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+        
+    </aside>
+</div>
+        <div id="main" class="post" itemscope="" itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/Elastic-Job/job-sharding/" title="Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）" itemprop="url">Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）</a>
+  </h1>
+  <p class="article-author">
+      <!--By-->
+    <!---->
+      <!--<a href="http://www.yunai.me" title="王文斌">王文斌</a>-->
+    <!---->
+  </p>
+  <p class="article-time">
+    <!--<time datetime="2017-10-30T16:00:00.000Z" itemprop="datePublished">2017-10-31</time>-->
+    <!--更新日期:<time datetime="2017-08-25T19:53:32.000Z" itemprop="dateModified">2017-08-26</time>-->
+    <!---->
+      总阅读量:<span id="busuanzi_value_page_pv"></span>次
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Lite 作业分片</strong>。</p>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_31/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_31/01.png" alt=""></p>
+<ul>
+<li>粉色的类在 <code>com.dangdang.ddframe.job.lite.internal.sharding</code> 包下，实现了 Elastic-Job-Lite 作业分片。</li>
+<li>ShardingService，作业分片服务。</li>
+</ul>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>同理，开源项目贡献者会因为 Star 而更加有动力<br>为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1 id="2-作业分片条件"><a href="#2-作业分片条件" class="headerlink" title="2. 作业分片条件"></a>2. 作业分片条件</h1><p>当作业满足分片条件时，不会<strong>立即</strong>进行作业分片分配，而是设置需要重新进行分片的<strong>标记</strong>，等到作业分片获取时，判断有该标记后进行分配。</p>
+<p>设置需要重新进行分片的<strong>标记</strong>的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 设置需要重新分片的标记.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setReshardingFlag</span><span class="params">()</span> </span>&#123;</div><div class="line">   jobNodeStorage.createJobNodeIfNeeded(ShardingNode.NECESSARY);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 如果存在则创建作业节点.</div><div class="line">* </div><div class="line">* &lt;p&gt;如果作业根节点不存在表示作业已经停止, 不再继续创建节点.&lt;/p&gt;</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> node 作业节点名称</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createJobNodeIfNeeded</span><span class="params">(<span class="keyword">final</span> String node)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (isJobRootNodeExisted() &amp;&amp; !isJobNodeExisted(node)) &#123;</div><div class="line">       regCenter.persist(jobNodePath.getFullPath(node), <span class="string">""</span>);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>调用 <code>#setReshardingFlag()</code> 方法设置需要重新分片的标记 <code>/${JOB_NAME}/leader/sharding/necessary</code>。该 Zookeeper 数据节点是<strong>永久</strong>节点，存储空串( <code>&quot;&quot;</code> )，使用 zkClient 查看如下：</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><div class="line">[zk: localhost:2181(CONNECTED) 2] ls /elastic-job-example-lite-java/javaSimpleJob/leader/sharding</div><div class="line">[necessary]</div><div class="line">[zk: localhost:2181(CONNECTED) 3] get /elastic-job-example-lite-java/javaSimpleJob/leader/sharding/necessary</div></pre></td></tr></table></figure>
+</li>
+<li><p>设置标记之后，通过调用 <code>#isNeedSharding()</code> 方法即可判断是否需要重新分片。</p>
+  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 判断是否需要重分片.</div><div class="line">* </div><div class="line">* <span class="doctag">@return</span> 是否需要重分片</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isNeedSharding</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> jobNodeStorage.isJobNodeExisted(ShardingNode.NECESSARY);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 判断作业节点是否存在.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> node 作业节点名称</div><div class="line">* <span class="doctag">@return</span> 作业节点是否存在</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isJobNodeExisted</span><span class="params">(<span class="keyword">final</span> String node)</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> regCenter.isExisted(jobNodePath.getFullPath(node));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong>设置需要重新进行分片有 4 种情况</strong></p>
+<p><strong>第一种</strong>，注册作业启动信息时。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// SchedulerFacade.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerStartUpInfo</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> enabled)</span> </span>&#123;</div><div class="line">   <span class="comment">// ... 省略无关代码</span></div><div class="line">   <span class="comment">// 设置 需要重新分片的标记</span></div><div class="line">   shardingService.setReshardingFlag();</div><div class="line">  <span class="comment">// ... 省略无关代码</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>第二种</strong>，作业分片总数( <code>JobCoreConfiguration.shardingTotalCount</code> )变化时。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingTotalCountChangedJobListener.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShardingTotalCountChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (configNode.isConfigPath(path)</div><div class="line">               &amp;&amp; <span class="number">0</span> != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123;</div><div class="line">           <span class="keyword">int</span> newShardingTotalCount = LiteJobConfigurationGsonFactory.fromJson(data).getTypeConfig().getCoreConfig().getShardingTotalCount();</div><div class="line">           <span class="keyword">if</span> (newShardingTotalCount != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123; <span class="comment">// 作业分片总数变化</span></div><div class="line">               <span class="comment">// 设置需要重新分片的标记</span></div><div class="line">               shardingService.setReshardingFlag();</div><div class="line">               <span class="comment">// 设置当前分片总数</span></div><div class="line">               JobRegistry.getInstance().setCurrentShardingTotalCount(jobName, newShardingTotalCount);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>第三种</strong>，服务器变化时。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ShardingListenerManager.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ListenServersChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; (isInstanceChange(eventType, path)</div><div class="line">                   || isServerChange(path))) &#123;</div><div class="line">           shardingService.setReshardingFlag();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isInstanceChange</span><span class="params">(<span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> instanceNode.isInstancePath(path) &amp;&amp; Type.NODE_UPDATED != eventType;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isServerChange</span><span class="params">(<span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> serverNode.isServerPath(path);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>服务器变化有<strong>两种</strong>情况。</li>
+<li>第一种，<code>#isServerChange(...)</code> 服务器被开启或禁用。</li>
+<li>第二种，<code>#isInstanceChange(...)</code> 作业节点新增或者移除。</li>
+</ul>
+<p><strong>第四种</strong>，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 自诊断修复》</a>详细分享。</p>
+<h1 id="3-作业分片分配"><a href="#3-作业分片分配" class="headerlink" title="3. 作业分片分配"></a>3. 作业分片分配</h1><h1 id="4-作业分片获取"><a href="#4-作业分片获取" class="headerlink" title="4. 作业分片获取"></a>4. 作业分片获取</h1>  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Elastic-Job/">Elastic-Job</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.yunai.me/Elastic-Job/job-sharding/" data-title="Elastic-Job-Lite 源码分析 —— 作业分片（编辑中） | 芋艿V的博客" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/Elastic-Job/job-sharding-strategy/" title="Elastic-Job-Lite 源码分析 —— 作业分片策略">
+ <strong>NEXT:</strong><br> 
+ <span>Elastic-Job-Lite 源码分析 —— 作业分片策略
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+    </div>
+    <footer><div id="footer">
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a>
+		
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a>
+            </p></div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/alert/css/alert.css">
+<script src="/alert/js/alert.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+
+<script>
+
+    $(document).ready(function(){
+//        alert('啦啦啦');
+        if (location.href.indexOf('vip') >= 0
+            || location.href.indexOf('127.0.0.1')>= 0) {
+            return;
+        }
+
+        var key = 'doubi';
+        var count = $.cookie(key);
+        if (!count) {
+            $.cookie(key, 0, { expires: 1, path: '/' });
+            count = 0;
+        } else {
+            count = parseInt(count);
+        }
+        $.cookie(key, count, { expires: 1, path: '/' });
+
+        var from = 'default';
+        var map = {
+            'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
+            'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
+        };
+        for (var item in map) {
+            if (location.search.indexOf(item) >= 0) {
+                from = item;
+                break;
+            }
+        }
+        if (from === 'default') {
+            from = $.cookie('from') || 'default';
+        }
+        $.cookie('from', from, { expires: 365, path: '/' });
+        var prefix = '';
+        var prefix2 = '';
+        if (from && map[from]) {
+            prefix = '<p style="color: red">欢迎来自【' + map[from] + '】的同学</p>';
+            prefix2 = '【' +  map[from] + '】';
+        }
+//        count = 1;
+        if (count <= 3) {
+            var hour = new Date().getHours();
+            var numbers = 103 + hour * 5;
+            function explode() {
+
+                var doubi = jqueryAlert({
+                    'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
+                    'width'   : '500',
+                    'height'  : '580',
+                    'modal': true,
+                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>',
+                    'buttons' :{
+                        '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
+                            doubi.close();
+                        }
+                    }
+                });
+                $.cookie(key, count + 1, { expires: 1 , path: '/'});
+            }
+            setTimeout(explode, ( count + 1 ) * 10000);
+        }
+    })
+</script>
+
+
+
+
+  </body>
+
+
