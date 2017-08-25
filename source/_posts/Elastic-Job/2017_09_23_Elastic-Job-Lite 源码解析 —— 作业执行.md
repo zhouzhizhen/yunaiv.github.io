@@ -456,7 +456,7 @@ public void checkJobExecutionEnvironment() throws JobExecutionEnvironmentExcepti
 
 ## 4.2 获取当前作业服务器的分片上下文
 
-调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所分配执行的分片项**，在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+调用 `LiteJobFacade#getShardingContexts()` 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得**其所分配执行的分片项**，在[《Elastic-Job-Lite 源码解析 —— 作业分片》](http://www.yunai.me/Elastic-Job/ob-sharding/?self)详细分享。
 
 ## 4.3 发布作业状态追踪事件
 
@@ -1046,7 +1046,7 @@ public void afterJobExecuted(final ShardingContexts shardingContexts) {
 
 下面会更新如下两篇文章，为后续的主节点选举、失效转移、作业分片策略等文章做铺垫：
 
-* [《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)
+* [《Elastic-Job-Lite 源码解析 —— 注册中心》](http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self)
 * [《Elastic-Job-Lite 源码解析 —— 作业数据存储》](http://www.yunai.me/Elastic-Job/job-storage/?self)
 
 道友，赶紧上车，分享一波朋友圈！

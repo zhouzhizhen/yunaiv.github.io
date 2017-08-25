@@ -114,7 +114,7 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
     使用方法: echo “dump” | nc 127.0.0.1 9888
 
 * `maxTimeDiffSeconds`：设置最大容忍的本机与注册中心的时间误差秒数。默认为 `-1`，不检查时间误差。选填。
-* `jobShardingStrategyClass`：作业分片策略实现类全路径。默认为使用分配侧路。选填。在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `jobShardingStrategyClass`：作业分片策略实现类全路径。默认为使用分配侧路。选填。在[《Elastic-Job-Lite 源码解析 —— 作业分片策略》](http://www.yunai.me/Elastic-Job/ob-sharding-strategy/?self)详细分享。
 * `reconcileIntervalMinutes`：修复作业服务器不一致状态服务调度间隔时间，配置为小于1的任意值表示不执行修复。默认为 `10`。在[《Elastic-Job-Lite 源码解析 —— 作业不一致修复 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
 
 * `disabled`：作业是否禁用执行。默认为 `false`。选填。
@@ -177,7 +177,7 @@ public final class JobCoreConfiguration {
 
 * `jobName`：作业名称。**必填。**
 * `cron`：cron表达式，用于控制作业触发时间。**必填。**
-* `shardingTotalCount`：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 `shardingTotalCount` 会执行作业。**必填。**在[《Elastic-Job-Lite 源码解析 —— 作业分片策略 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `shardingTotalCount`：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 `shardingTotalCount` 会执行作业。**必填。**在[《Elastic-Job-Lite 源码解析 —— 作业分片策略 》](http://www.yunai.me/Elastic-Job/ob-sharding-strategy/?self)详细分享。
 * `shardingItemParameters`：分片序列号和参数。选填。
 
     > 分片序列号和参数用等号分隔，多个键值对用逗号分隔  

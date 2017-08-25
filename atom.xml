@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-24T20:18:19.000Z</updated>
+  <updated>2017-08-25T07:55:04.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,25 +16,146 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Elastic-Job-Lite 源码分析 —— 主节点选举</title>
-    <link href="http://www.yunai.me/Elastic-Job/job-sharding-str/"/>
-    <id>http://www.yunai.me/Elastic-Job/job-sharding-str/</id>
-    <published>2017-10-24T16:00:00.000Z</published>
-    <updated>2017-08-24T20:18:19.000Z</updated>
+    <title>Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）</title>
+    <link href="http://www.yunai.me/Elastic-Job/job-sharding/"/>
+    <id>http://www.yunai.me/Elastic-Job/job-sharding/</id>
+    <published>2017-10-30T16:00:00.000Z</published>
+    <updated>2017-08-25T07:55:04.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
-<hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Lite 作业分片策略</strong>。</p>
-<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png">打开大图</a> )：</p>
-<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png" alt=""></p>
-<p>【未完待续】</p>
+<p>占位编辑
+你懂的</p>
 ]]></content>
     
     <summary type="html">
     
       &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
-&lt;hr&gt;
-&lt;h1 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h1&gt;&lt;p&gt;本文
+&lt;p&gt;占位编辑
+你懂的&lt;/p&gt;
+
+    
+    </summary>
+    
+      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Elastic-Job-Lite 源码分析 —— 作业分片策略</title>
+    <link href="http://www.yunai.me/Elastic-Job/job-sharding-strategy/"/>
+    <id>http://www.yunai.me/Elastic-Job/job-sharding-strategy/</id>
+    <published>2017-10-25T16:00:00.000Z</published>
+    <updated>2017-08-25T07:59:20.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. 自带作业分片策略</a>
+<ul>
+<li><a href="#">2.1 AverageAllocationJobShardingStrategy</a></li>
+<li><a href="#">2.2 OdevitySortByNameJobShardingStrategy</a></li>
+<li><a href="#">2.3 RotateServerByNameJobShardingStrategy</a></li>
+</ul>
+</li>
+<li><a href="#">3. 自定义作业分片策略</a></li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 作业分片策略</strong>。</p>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png" alt=""></p>
+<h1>2. 自带作业分片策略</h1>
+<p>JobShardingStrategy，作业分片策略<strong>接口</strong>。分片策略通过实现接口的 <code>#sharding(...)</code> 方法提供作业分片的<strong>计算</strong>。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">JobShardingStrategy</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 作业分片.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@param</span> jobInstances 所有参与分片的单元列表</div><div class="line">     * <span class="doctag">@param</span> jobName 作业名称</div><div class="line">     * <span class="doctag">@param</span> shardingTotalCount 分片总数</div><div class="line">     * <span class="doctag">@return</span> 分片结果</div><div class="line">     */</div><div class="line">    Map&lt;JobInstance, List&lt;Integer&gt;&gt; sharding(List&lt;JobInstance&gt; jobInstances, String jobName, <span class="keyword">int</span> shardingTotalCount);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Elastic-Job-Lite 提供三种自带的作业分片策略：</p>
+<ul>
+<li>AverageAllocationJobShardingStrategy：基于平均分配算法的分片策略。</li>
+<li>OdevitySortByNameJobShardingStrategy：根据作业名的哈希值奇偶数决定IP升降序算法的分片策略。</li>
+<li>RotateServerByNameJobShardingStrategy：根据作业名的哈希值对作业节点列表进行轮转的分片策略。</li>
+</ul>
+<h2>2.1 AverageAllocationJobShardingStrategy</h2>
+<p>AverageAllocationJobShardingStrategy，基于平均分配算法的分片策略。<strong>Elastic-Job-Lite 默认的作业分片策略</strong>。</p>
+<blockquote>
+<p>如果分片不能整除，则不能整除的多余分片将依次追加到序号小的作业节点。如：<br>
+如果有3台作业节点，分成9片，则每台作业节点分到的分片是：1=[0,1,2], 2=[3,4,5], 3=[6,7,8]<br>
+如果有3台作业节点，分成8片，则每台作业节点分到的分片是：1=[0,1,6], 2=[2,3,7], 3=[4,5]<br>
+如果有3台作业节点，分成10片，则每台作业节点分到的分片是：1=[0,1,2,9], 2=[3,4,5], 3=[6,7,8]</p>
+</blockquote>
+<p>代码实现如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">AverageAllocationJobShardingStrategy</span> <span class="keyword">implements</span> <span class="title">JobShardingStrategy</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="keyword">public</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; sharding(<span class="keyword">final</span> List&lt;JobInstance&gt; jobInstances, <span class="keyword">final</span> String jobName, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount) &#123;</div><div class="line">        <span class="comment">// 不存在 作业运行实例</span></div><div class="line">        <span class="keyword">if</span> (jobInstances.isEmpty()) &#123;</div><div class="line">            <span class="keyword">return</span> Collections.emptyMap();</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 分配能被整除的部分</span></div><div class="line">        Map&lt;JobInstance, List&lt;Integer&gt;&gt; result = shardingAliquot(jobInstances, shardingTotalCount);</div><div class="line">        <span class="comment">// 分配不能被整除的部分</span></div><div class="line">        addAliquant(jobInstances, shardingTotalCount, result);</div><div class="line">        <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>调用 <code>#shardingAliquot(...)</code> 方法分配能<strong>被整除</strong>的部分。能整除的咱就不举例子。如果有 3 台作业节点，分成 8 片，被整除的部分是前 6 片 [0, 1, 2, 3, 4, 5]，调用该方法结果：1=[0,1], 2=[2,3], 3=[4,5]。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">private</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; shardingAliquot(<span class="keyword">final</span> List&lt;JobInstance&gt; shardingUnits, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount) &#123;</div><div class="line">   Map&lt;JobInstance, List&lt;Integer&gt;&gt; result = <span class="keyword">new</span> LinkedHashMap&lt;&gt;(shardingTotalCount, <span class="number">1</span>);</div><div class="line">   <span class="keyword">int</span> itemCountPerSharding = shardingTotalCount / shardingUnits.size(); <span class="comment">// 每个作业运行实例分配的平均分片数</span></div><div class="line">   <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">   <span class="keyword">for</span> (JobInstance each : shardingUnits) &#123;</div><div class="line">       List&lt;Integer&gt; shardingItems = <span class="keyword">new</span> ArrayList&lt;&gt;(itemCountPerSharding + <span class="number">1</span>);</div><div class="line">       <span class="comment">// 顺序向下分配</span></div><div class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = count * itemCountPerSharding; i &lt; (count + <span class="number">1</span>) * itemCountPerSharding; i++) &#123;</div><div class="line">           shardingItems.add(i);</div><div class="line">       &#125;</div><div class="line">       result.put(each, shardingItems);</div><div class="line">       count++;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>调用 <code>#addAliquant(...)</code> 方法分配能<strong>不被整除</strong>的部分。继续上面的例子。不能被整除的部分是后 2 片 [6, 7]，调用该方法结果：1=[0,1] + <strong>[6]</strong>, 2=[2,3] + <strong>[7]</strong>, 3=[4,5]。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addAliquant</span><span class="params">(<span class="keyword">final</span> List&lt;JobInstance&gt; shardingUnits, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount, <span class="keyword">final</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; shardingResults)</span> </span>&#123;</div><div class="line">   <span class="keyword">int</span> aliquant = shardingTotalCount % shardingUnits.size(); <span class="comment">// 余数</span></div><div class="line">   <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">   <span class="keyword">for</span> (Map.Entry&lt;JobInstance, List&lt;Integer&gt;&gt; entry : shardingResults.entrySet()) &#123;</div><div class="line">       <span class="keyword">if</span> (count &lt; aliquant) &#123;</div><div class="line">           entry.getValue().add(shardingTotalCount / shardingUnits.size() * shardingUnits.size() + count);</div><div class="line">       &#125;</div><div class="line">       count++;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+</ul>
+<p><strong>如何实现主备</strong></p>
+<p>通过作业配置设置总分片数为 1 ( <code>JobCoreConfiguration.shardingTotalCount = 1</code> )，只有一个作业分片能够分配到作业分片项，从而达到<strong>一主N备</strong>。</p>
+<h2>2.2 OdevitySortByNameJobShardingStrategy</h2>
+<p>OdevitySortByNameJobShardingStrategy，根据作业名的哈希值奇偶数决定IP升降序算法的分片策略。</p>
+<blockquote>
+<p>作业名的哈希值为奇数则IP <strong>降序</strong>.<br>
+作业名的哈希值为偶数则IP <strong>升序</strong>.<br>
+用于不同的作业平均分配负载至不同的作业节点.<br>
+如:</p>
+<ol>
+<li>如果有3台作业节点, 分成2片, 作业名称的哈希值为奇数, 则每台作业节点分到的分片是: 1=[ ], 2=[1], 3=[0].</li>
+<li>如果有3台作业节点, 分成2片, 作业名称的哈希值为偶数, 则每台作业节点分到的分片是: 1=[0], 2=[1], 3=[ ].</li>
+</ol>
+</blockquote>
+<p>实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="keyword">public</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; sharding(<span class="keyword">final</span> List&lt;JobInstance&gt; jobInstances, <span class="keyword">final</span> String jobName, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount) &#123;</div><div class="line">   <span class="keyword">long</span> jobNameHash = jobName.hashCode();</div><div class="line">   <span class="keyword">if</span> (<span class="number">0</span> == jobNameHash % <span class="number">2</span>) &#123;</div><div class="line">       Collections.reverse(jobInstances);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> averageAllocationJobShardingStrategy.sharding(jobInstances, jobName, shardingTotalCount);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>从实现代码上，仿佛和 IP 升降序没什么关系？答案在传递进来的参数 <code>jobInstances</code>。<code>jobInstances</code> 已经是按照 IP 进行<strong>降序</strong>的数组。所以当判断到作业名的哈希值为偶数时，进行数组反转( <code>Collections#reverse(...)</code> )实现按照 IP <strong>升序</strong>。下面看下为什么说<code>jobInstances</code> 已经按照 IP 进行<strong>降序</strong>：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// ZookeeperRegistryCenter.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">getChildrenKeys</span><span class="params">(<span class="keyword">final</span> String key)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       List&lt;String&gt; result = client.getChildren().forPath(key);</div><div class="line">       Collections.sort(result, <span class="keyword">new</span> Comparator&lt;String&gt;() &#123;</div><div class="line">           </div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(<span class="keyword">final</span> String o1, <span class="keyword">final</span> String o2)</span> </span>&#123;</div><div class="line">               <span class="keyword">return</span> o2.compareTo(o1);</div><div class="line">           &#125;</div><div class="line">       &#125;);</div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       RegExceptionHandler.handleException(ex);</div><div class="line">       <span class="keyword">return</span> Collections.emptyList();</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>调用 <code>AverageAllocationJobShardingStrategy#sharding(...)</code> 方法完成最终作业分片计算。</p>
+</li>
+</ul>
+<h2>2.3 RotateServerByNameJobShardingStrategy</h2>
+<p>RotateServerByNameJobShardingStrategy，根据作业名的哈希值对作业节点列表进行<strong>轮转</strong>的分片策略。这里的<strong>轮转</strong>怎么定义呢？如果有 3 台作业节点，顺序为 [0, 1, 2]，如果作业名的哈希值根据作业分片总数取模为 1, 作业节点顺序变为 [1, 2, 0]。</p>
+<p><strong>分片的目的</strong>，是将作业的负载合理的分配到不同的作业节点上，要避免分片策略总是让固定的作业节点负载特别大，其它工作节点负载特别小。这个也是为什么<strong>官方</strong>对比 RotateServerByNameJobShardingStrategy、AverageAllocationJobShardingStrategy 如下：</p>
+<blockquote>
+<p>AverageAllocationJobShardingStrategy的缺点是，一旦分片数小于作业作业节点数，作业将永远分配至IP地址靠前的作业节点，导致IP地址靠后的作业节点空闲。如：<br>
+OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作业节点负载。<br>
+如果有3台作业节点，分成2片，作业名称的哈希值为奇数，则每台作业节点分到的分片是：1=[0], 2=[1], 3=[]<br>
+如果有3台作业节点，分成2片，作业名称的哈希值为偶数，则每台作业节点分到的分片是：3=[0], 2=[1], 1=[]</p>
+</blockquote>
+<p>实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">RotateServerByNameJobShardingStrategy</span> <span class="keyword">implements</span> <span class="title">JobShardingStrategy</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> AverageAllocationJobShardingStrategy averageAllocationJobShardingStrategy = <span class="keyword">new</span> AverageAllocationJobShardingStrategy();</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="keyword">public</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; sharding(<span class="keyword">final</span> List&lt;JobInstance&gt; jobInstances, <span class="keyword">final</span> String jobName, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount) &#123;</div><div class="line">        <span class="keyword">return</span> averageAllocationJobShardingStrategy.sharding(rotateServerList(jobInstances, jobName), jobName, shardingTotalCount);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">private</span> List&lt;JobInstance&gt; <span class="title">rotateServerList</span><span class="params">(<span class="keyword">final</span> List&lt;JobInstance&gt; shardingUnits, <span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> shardingUnitsSize = shardingUnits.size();</div><div class="line">        <span class="keyword">int</span> offset = Math.abs(jobName.hashCode()) % shardingUnitsSize; <span class="comment">// 轮转开始位置</span></div><div class="line">        <span class="keyword">if</span> (<span class="number">0</span> == offset) &#123;</div><div class="line">            <span class="keyword">return</span> shardingUnits;</div><div class="line">        &#125;</div><div class="line">        List&lt;JobInstance&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;(shardingUnitsSize);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; shardingUnitsSize; i++) &#123;</div><div class="line">            <span class="keyword">int</span> index = (i + offset) % shardingUnitsSize;</div><div class="line">            result.add(shardingUnits.get(index));</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>调用 <code>#rotateServerList(...)</code> 实现作业节点数组<strong>轮转</strong>。</li>
+<li>调用 <code>AverageAllocationJobShardingStrategy#sharding(...)</code> 方法完成最终作业分片计算。</li>
+</ul>
+<h1>3. 自定义作业分片策略</h1>
+<p>可能在你的业务场景下，需要实现自定义的作业分片策略。通过定义类实现 JobShardingStrategy 接口即可：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">OOXXShardingStrategy</span> <span class="keyword">implements</span> <span class="title">JobShardingStrategy</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="keyword">public</span> Map&lt;JobInstance, List&lt;Integer&gt;&gt; sharding(<span class="keyword">final</span> List&lt;JobInstance&gt; jobInstances, <span class="keyword">final</span> String jobName, <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount) &#123;</div><div class="line">        <span class="comment">// 实现逻辑</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>实现后，配置实现类的<strong>全路径</strong>到 Lite作业配置( LiteJobConfiguration )的 <code>jobShardingStrategyClass</code> 属性。</p>
+<p>作业进行分片计算时，作业分片策略工厂( JobShardingStrategyFactory ) 会创建作业分片策略实例：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobShardingStrategyFactory</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 获取作业分片策略实例.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@param</span> jobShardingStrategyClassName 作业分片策略类名</div><div class="line">     * <span class="doctag">@return</span> 作业分片策略实例</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> JobShardingStrategy <span class="title">getStrategy</span><span class="params">(<span class="keyword">final</span> String jobShardingStrategyClassName)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (Strings.isNullOrEmpty(jobShardingStrategyClassName)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> AverageAllocationJobShardingStrategy();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Class&lt;?&gt; jobShardingStrategyClass = Class.forName(jobShardingStrategyClassName);</div><div class="line">            <span class="keyword">if</span> (!JobShardingStrategy.class.isAssignableFrom(jobShardingStrategyClass)) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> JobConfigurationException(<span class="string">"Class '%s' is not job strategy class"</span>, jobShardingStrategyClassName);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> (JobShardingStrategy) jobShardingStrategyClass.newInstance();</div><div class="line">        &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> ClassNotFoundException | InstantiationException | IllegalAccessException ex) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> JobConfigurationException(<span class="string">"Sharding strategy class '%s' config error, message details are '%s'"</span>, jobShardingStrategyClassName, ex.getMessage());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1>666. 彩蛋</h1>
+<p>旁白君：雾草，刚夸奖你，就又开始水更。<br>
+芋道君：咳咳咳，作业分片策略炒鸡重要的好不好！嘿嘿嘿，为<a href="http://www.yunai.me/Elastic-Job/ob-sharding/?self">《Elastic-Job-Lite 源码分析 —— 作业分片》</a>做个铺垫嘛。</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_26/02.png" alt=""></p>
+<p>道友，赶紧上车，分享一波朋友圈！</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 自带作业分片策略&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#
     
     </summary>
     
@@ -59,7 +180,8 @@
 <li><a href="">666. 彩蛋</a></li>
 </ul>
 <hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Lite 主节点选举</strong>。</p>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 主节点选举</strong>。</p>
 <p>建议前置阅读：</p>
 <ul>
 <li><a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》</a></li>
@@ -72,51 +194,65 @@
 <li>粉色的类在 <code>com.dangdang.ddframe.job.lite.internal.election</code> 包下，实现了 Elastic-Job-Lite 主节点选举。</li>
 </ul>
 <blockquote>
-<p>你行好事会因为得到赞赏而愉悦<br>同理，开源项目贡献者会因为 Star 而更加有动力<br>为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
 </blockquote>
-<h1 id="2-为什么需要选举主节点"><a href="#2-为什么需要选举主节点" class="headerlink" title="2. 为什么需要选举主节点"></a>2. 为什么需要选举主节点</h1><p>首先我们来看一段<strong>官方</strong>对 Elastic-Job-Lite 的介绍：</p>
+<h1>2. 为什么需要选举主节点</h1>
+<p>首先我们来看一段<strong>官方</strong>对 Elastic-Job-Lite 的介绍：</p>
 <blockquote>
 <p>Elastic-Job-Lite 定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。</p>
 </blockquote>
 <p><strong>无中心化</strong>，意味着 Elastic-Job-Lite 不存在<strong>一个中心</strong>执行一些操作，例如：分配作业分片项。Elastic-Job-Lite 选举主节点，通过主节点进行作业分片项分配。目前，必须在主节点执行的操作有：分配作业分片项，调解分布式作业不一致状态。</p>
 <p>另外，主节点的选举是以<strong>作业为维度</strong>。例如：有一个 Elastic-Job-Lite 集群有三个作业节点 <code>A</code>、<code>B</code>、<code>C</code>，存在两个作业 <code>a</code>、<code>b</code>，可能 <code>a</code> 作业的主节点是 <code>C</code>，<code>b</code> 作业的主节点是 <code>A</code>。</p>
-<h1 id="3-选举主节点"><a href="#3-选举主节点" class="headerlink" title="3. 选举主节点"></a>3. 选举主节点</h1><p>调用 <code>LeaderService#electLeader()</code> 选举主节点。</p>
-<p>大体流程如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png">打开大图</a> )：<br><img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png" alt=""></p>
+<h1>3. 选举主节点</h1>
+<p>调用 <code>LeaderService#electLeader()</code> 选举主节点。</p>
+<p>大体流程如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png">打开大图</a> )：
+<img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/02.png" alt=""></p>
 <p>实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 选举主节点.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">electLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">   log.debug(<span class="string">"Elect a new leader now."</span>);</div><div class="line">   jobNodeStorage.executeInLeader(LeaderNode.LATCH, <span class="keyword">new</span> LeaderElectionExecutionCallback());</div><div class="line">   log.debug(<span class="string">"Leader election completed."</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeInLeader</span><span class="params">(<span class="keyword">final</span> String latchNode, <span class="keyword">final</span> LeaderExecutionCallback callback)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> (LeaderLatch latch = <span class="keyword">new</span> LeaderLatch(getClient(), jobNodePath.getFullPath(latchNode))) &#123;</div><div class="line">       latch.start();</div><div class="line">       latch.await();</div><div class="line">       callback.execute();</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       handleException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// LeaderElectionExecutionCallback.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderElectionExecutionCallback</span> <span class="keyword">implements</span> <span class="title">LeaderExecutionCallback</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!hasLeader()) &#123; <span class="comment">// 当前无主节点</span></div><div class="line">           jobNodeStorage.fillEphemeralJobNode(LeaderNode.INSTANCE, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 选举主节点.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">electLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">   log.debug(<span class="string">"Elect a new leader now."</span>);</div><div class="line">   jobNodeStorage.executeInLeader(LeaderNode.LATCH, <span class="keyword">new</span> LeaderElectionExecutionCallback());</div><div class="line">   log.debug(<span class="string">"Leader election completed."</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeInLeader</span><span class="params">(<span class="keyword">final</span> String latchNode, <span class="keyword">final</span> LeaderExecutionCallback callback)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> (LeaderLatch latch = <span class="keyword">new</span> LeaderLatch(getClient(), jobNodePath.getFullPath(latchNode))) &#123;</div><div class="line">       latch.start();</div><div class="line">       latch.await();</div><div class="line">       callback.execute();</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       handleException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// LeaderElectionExecutionCallback.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderElectionExecutionCallback</span> <span class="keyword">implements</span> <span class="title">LeaderExecutionCallback</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!hasLeader()) &#123; <span class="comment">// 当前无主节点</span></div><div class="line">           jobNodeStorage.fillEphemeralJobNode(LeaderNode.INSTANCE, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>使用 Curator LeaderLatch 分布式锁，<strong>保证同一时间有且仅有一个工作节点</strong>能够调用 <code>LeaderElectionExecutionCallback#execute()</code> 方法执行主节点设置。Curator LeaderLatch 在<a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》「3.1 在主节点执行操作」</a>有详细解析。</li>
-<li><p>在 <code>LeaderElectionExecutionCallback#execute()</code> 为什么要调用 <code>#hasLeader()</code> 呢？LeaderLatch <strong>只保证同一时间有且仅有一个工作节点</strong>，在获得分布式锁的工作节点结束逻辑后，第二个工作节点会开始逻辑，如果不判断当前是否有主节点，原来的主节点会被覆盖。</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 判断是否已经有主节点.</div><div class="line"> * </div><div class="line"> * <span class="doctag">@return</span> 是否已经有主节点</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> jobNodeStorage.isJobNodeExisted(LeaderNode.INSTANCE);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>使用 Curator LeaderLatch 分布式锁，<strong>保证同一时间有且仅有一个工作节点</strong>能够调用 <code>LeaderElectionExecutionCallback#execute()</code> 方法执行主节点设置。Curator LeaderLatch 在<a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码分析 —— 注册中心》「3.1 在主节点执行操作」</a>有详细解析。</p>
 </li>
-<li><p>选举成功后，Zookeeper 存储<strong>作业</strong>的主节点：<code>/${JOB_NAME}/leader/electron/instance</code> 为当前节点。该节点为<strong>临时</strong>节点。</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><div class="line">[zk: localhost:2181(CONNECTED) 7] get /elastic-job-example-lite-java/javaSimpleJob/leader/election/instance</div><div class="line">192.168.16.137@-@82496</div></pre></td></tr></table></figure>
+<li>
+<p>在 <code>LeaderElectionExecutionCallback#execute()</code> 为什么要调用 <code>#hasLeader()</code> 呢？LeaderLatch <strong>只保证同一时间有且仅有一个工作节点</strong>，在获得分布式锁的工作节点结束逻辑后，第二个工作节点会开始逻辑，如果不判断当前是否有主节点，原来的主节点会被覆盖。</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 判断是否已经有主节点.</div><div class="line"> * </div><div class="line"> * <span class="doctag">@return</span> 是否已经有主节点</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> jobNodeStorage.isJobNodeExisted(LeaderNode.INSTANCE);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>选举成功后，Zookeeper 存储<strong>作业</strong>的主节点：<code>/${JOB_NAME}/leader/electron/instance</code> 为当前节点。该节点为<strong>临时</strong>节点。</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line">[zk: localhost:2181(CONNECTED) 7] get /elastic-job-example-lite-java/javaSimpleJob/leader/election/instance</div><div class="line">192.168.16.137@-@82496</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
 <p><strong>选举主节点时机</strong></p>
 <p><strong>第一种</strong>，注册作业启动信息时。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 注册作业启动信息.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> enabled 作业是否启用</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerStartUpInfo</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> enabled)</span> </span>&#123;</div><div class="line">   <span class="comment">// .... 省略部分方法</span></div><div class="line">   <span class="comment">// 选举 主节点</span></div><div class="line">   leaderService.electLeader();</div><div class="line">   <span class="comment">// .... 省略部分方法</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 注册作业启动信息.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> enabled 作业是否启用</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerStartUpInfo</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> enabled)</span> </span>&#123;</div><div class="line">   <span class="comment">// .... 省略部分方法</span></div><div class="line">   <span class="comment">// 选举 主节点</span></div><div class="line">   leaderService.electLeader();</div><div class="line">   <span class="comment">// .... 省略部分方法</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>新的作业启动时，即能保证选举出主节点。<ul>
+<li>新的作业启动时，即能保证选举出主节点。
+<ul>
 <li>当该作业<strong>不存在</strong>主节点时，当前作业节点<strong>成为</strong>主节点。</li>
 <li>当该作业<strong>存在</strong>主节点，当前作业节主节点<strong>不变</strong>。</li>
 </ul>
 </li>
 </ul>
 <p><strong>第二种</strong>，节点数据发生变化时。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderElectionJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName) &amp;&amp; (isActiveElection(path, data) || isPassiveElection(path, eventType))) &#123;</div><div class="line">           leaderService.electLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderElectionJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName) &amp;&amp; (isActiveElection(path, data) || isPassiveElection(path, eventType))) &#123;</div><div class="line">           leaderService.electLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>符合重新选举主节点分成两种情况。</li>
-<li><p><strong>主动</strong>选举 <code>#isActiveElection(...)</code></p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isActiveElection</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> !leaderService.hasLeader() <span class="comment">// 不存在主节点</span></div><div class="line">          &amp;&amp; isLocalServerEnabled(path, data); <span class="comment">// 开启作业</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalServerEnabled</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> serverNode.isLocalServerPath(path) </div><div class="line">       &amp;&amp; !ServerStatus.DISABLED.name().equals(data);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>符合重新选举主节点分成两种情况。</p>
+</li>
+<li>
+<p><strong>主动</strong>选举 <code>#isActiveElection(...)</code></p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isActiveElection</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> !leaderService.hasLeader() <span class="comment">// 不存在主节点</span></div><div class="line">          &amp;&amp; isLocalServerEnabled(path, data); <span class="comment">// 开启作业</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalServerEnabled</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> serverNode.isLocalServerPath(path) </div><div class="line">       &amp;&amp; !ServerStatus.DISABLED.name().equals(data);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>当作业被禁用( <code>LiteJobConfiguration.disabled = true</code> )时，作业是不存在主节点的。那有同学就有疑问了？<code>LeaderService#electLeader()</code> 没做这个限制呀，作业<strong>注册作业启动信息时</strong>也进行了选举。在「4. 删除主节点」小结，我们会解开这个答案。这里大家先记住这个结论。</li>
 <li>根据上面我们说的结论，这里就很好理解了，<code>#isActiveElection()</code> 方法判断了两个条件：( 1 ) 不存在主节点；( 2 ) 开启作业，不再禁用，因此需要进行主节点选举落。</li>
 <li>这里判断开启作业的方法 <code>#isLocalServerEnabled(...)</code> 有点特殊，它不是通过作业节点是否处于开启状态，而是该数据不是将作业节点更新成关闭状态。举个例子：作业节点处于<strong>禁用</strong>状态，使用<strong>运维平台</strong>设置作业节点开启，会进行主节点选举；作业节点处于<strong>开启</strong>状态，使用<strong>运维平台</strong>设置作业节点禁用，不会进行主节点选举。</li>
 </ul>
 </li>
-<li><p><strong>被动</strong>选举 <code>#isPassiveElection(...)</code></p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isPassiveElection</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> isLeaderCrashed(path, eventType) <span class="comment">// 主节点 Crashed</span></div><div class="line">          &amp;&amp; serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp()); <span class="comment">// 当前节点正在运行中（未挂掉）</span></div><div class="line">&#125;</div><div class="line">   </div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLeaderCrashed</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> leaderNode.isLeaderInstancePath(path) &amp;&amp; Type.NODE_REMOVED == eventType;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p><strong>被动</strong>选举 <code>#isPassiveElection(...)</code></p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isPassiveElection</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> isLeaderCrashed(path, eventType) <span class="comment">// 主节点 Crashed</span></div><div class="line">          &amp;&amp; serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp()); <span class="comment">// 当前节点正在运行中（未挂掉）</span></div><div class="line">&#125;</div><div class="line">   </div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLeaderCrashed</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> leaderNode.isLeaderInstancePath(path) &amp;&amp; Type.NODE_REMOVED == eventType;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>当主节点因为各种情况( 「4. 删除主节点」会列举 )被删除，需要重新进行选举。对的，<strong>必须主节点被删除后才可以重新进行选举</strong>。</li>
 <li><code>#isPassiveElection(...)</code> 方法判断了两个条件：( 1 ) 原主节点被删除；( 2 ) 当前节点正在运行中（未挂掉），可以参加主节点选举。</li>
@@ -127,36 +263,41 @@
 <p><strong>等待主节点选举完成</strong></p>
 <p>必须在主节点执行的操作，执行之前，需要判断当前节点是否为主节点。如果主节点已经选举好，可以直接进行判断。但是，不排除主节点还没选举到，因而需要阻塞等待到主节点选举完成后才能进行判断。</p>
 <p>实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 判断当前节点是否是主节点.</div><div class="line">* </div><div class="line">* 如果主节点正在选举中而导致取不到主节点, 则阻塞至主节点选举完成再返回.</div><div class="line">* </div><div class="line">* <span class="doctag">@return</span> 当前节点是否是主节点</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isLeaderUntilBlock</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 不存在主节点 &amp;&amp; 有可用的服务器节点</span></div><div class="line">   <span class="keyword">while</span> (!hasLeader() &amp;&amp; serverService.hasAvailableServers()) &#123;</div><div class="line">       log.info(<span class="string">"Leader is electing, waiting for &#123;&#125; ms"</span>, <span class="number">100</span>);</div><div class="line">       BlockUtils.waitingShortTime();</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) &#123; <span class="comment">// 当前服务器节点可用</span></div><div class="line">           electLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 返回当前节点是否是主节点</span></div><div class="line">   <span class="keyword">return</span> isLeader();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 判断当前节点是否是主节点.</div><div class="line">* </div><div class="line">* 如果主节点正在选举中而导致取不到主节点, 则阻塞至主节点选举完成再返回.</div><div class="line">* </div><div class="line">* <span class="doctag">@return</span> 当前节点是否是主节点</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isLeaderUntilBlock</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 不存在主节点 &amp;&amp; 有可用的服务器节点</span></div><div class="line">   <span class="keyword">while</span> (!hasLeader() &amp;&amp; serverService.hasAvailableServers()) &#123;</div><div class="line">       log.info(<span class="string">"Leader is electing, waiting for &#123;&#125; ms"</span>, <span class="number">100</span>);</div><div class="line">       BlockUtils.waitingShortTime();</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) &#123; <span class="comment">// 当前服务器节点可用</span></div><div class="line">           electLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 返回当前节点是否是主节点</span></div><div class="line">   <span class="keyword">return</span> isLeader();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>TODO </li>
+<li>TODO</li>
 </ul>
-<h1 id="4-删除主节点"><a href="#4-删除主节点" class="headerlink" title="4. 删除主节点"></a>4. 删除主节点</h1><p>有主节点的选举，必然有主节点的删除，否则怎么进行<strong>重新选举</strong>。</p>
+<h1>4. 删除主节点</h1>
+<p>有主节点的选举，必然有主节点的删除，否则怎么进行<strong>重新选举</strong>。</p>
 <p>实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 删除主节点供重新选举.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removeLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">   jobNodeStorage.removeJobNodeIfExisted(LeaderNode.INSTANCE);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 删除主节点供重新选举.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removeLeader</span><span class="params">()</span> </span>&#123;</div><div class="line">   jobNodeStorage.removeJobNodeIfExisted(LeaderNode.INSTANCE);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p><strong>删除主节点时机</strong></p>
 <p><strong>第一种</strong>，主节点进程<strong>正常</strong>关闭时。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobShutdownHookPlugin</span> <span class="keyword">extends</span> <span class="title">ShutdownHookPlugin</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</div><div class="line">        CoordinatorRegistryCenter regCenter = JobRegistry.getInstance().getRegCenter(jobName);</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == regCenter) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        LeaderService leaderService = <span class="keyword">new</span> LeaderService(regCenter, jobName);</div><div class="line">        <span class="keyword">if</span> (leaderService.isLeader()) &#123;</div><div class="line">            leaderService.removeLeader(); <span class="comment">// 移除主节点</span></div><div class="line">        &#125;</div><div class="line">        <span class="keyword">new</span> InstanceService(regCenter, jobName).removeInstance();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobShutdownHookPlugin</span> <span class="keyword">extends</span> <span class="title">ShutdownHookPlugin</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</div><div class="line">        CoordinatorRegistryCenter regCenter = JobRegistry.getInstance().getRegCenter(jobName);</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == regCenter) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        LeaderService leaderService = <span class="keyword">new</span> LeaderService(regCenter, jobName);</div><div class="line">        <span class="keyword">if</span> (leaderService.isLeader()) &#123;</div><div class="line">            leaderService.removeLeader(); <span class="comment">// 移除主节点</span></div><div class="line">        &#125;</div><div class="line">        <span class="keyword">new</span> InstanceService(regCenter, jobName).removeInstance();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>这个比较好理解，退出进程，若该进程为主节点，需要将自己移除。</li>
 </ul>
 <p><strong>第二种</strong>，主节点进程 CRASHED 时。</p>
 <p><code>${JOB_NAME}/leader/electron/instance</code> 是<strong>临时</strong>节点，主节点进程 CRASHED 后，超过最大会话时间，Zookeeper 自动进行删除，触发重新选举逻辑。</p>
 <p><strong>第三种</strong>，作业被<strong>禁用</strong>时。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderAbdicationJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (leaderService.isLeader() &amp;&amp; isLocalServerDisabled(path, data)) &#123;</div><div class="line">           leaderService.removeLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalServerDisabled</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> serverNode.isLocalServerPath(path) &amp;&amp; ServerStatus.DISABLED.name().equals(data);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LeaderAbdicationJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">   </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (leaderService.isLeader() &amp;&amp; isLocalServerDisabled(path, data)) &#123;</div><div class="line">           leaderService.removeLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalServerDisabled</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> serverNode.isLocalServerPath(path) &amp;&amp; ServerStatus.DISABLED.name().equals(data);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>这里就解答上面我们遗留的疑问。被禁用的作业<strong>注册作业启动信息时</strong>即使进行了主节点选举，也会被该监听器处理，移除该选举的主节点。</li>
 </ul>
 <p><strong>第四种</strong>，主节点进程<strong>远程</strong>关闭。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// InstanceShutdownStatusJobListener.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">InstanceShutdownStatusJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused() <span class="comment">// 作业未暂停调度</span></div><div class="line">               &amp;&amp; isRemoveInstance(path, eventType) <span class="comment">// 移除【运行实例】事件</span></div><div class="line">               &amp;&amp; !isReconnectedRegistryCenter()) &#123; <span class="comment">// 运行实例被移除</span></div><div class="line">           schedulerFacade.shutdownInstance();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isRemoveInstance</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> instanceNode.isLocalInstancePath(path) &amp;&amp; Type.NODE_REMOVED == eventType;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isReconnectedRegistryCenter</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> instanceService.isLocalJobInstanceExisted();</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// SchedulerFacade.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 终止作业调度.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shutdownInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (leaderService.isLeader()) &#123;</div><div class="line">       leaderService.removeLeader(); <span class="comment">// 移除主节点</span></div><div class="line">   &#125;</div><div class="line">   monitorService.close();</div><div class="line">   <span class="keyword">if</span> (reconcileService.isRunning()) &#123;</div><div class="line">       reconcileService.stopAsync();</div><div class="line">   &#125;</div><div class="line">   JobRegistry.getInstance().shutdown(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// InstanceShutdownStatusJobListener.java</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">InstanceShutdownStatusJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">   <span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused() <span class="comment">// 作业未暂停调度</span></div><div class="line">               &amp;&amp; isRemoveInstance(path, eventType) <span class="comment">// 移除【运行实例】事件</span></div><div class="line">               &amp;&amp; !isReconnectedRegistryCenter()) &#123; <span class="comment">// 运行实例被移除</span></div><div class="line">           schedulerFacade.shutdownInstance();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isRemoveInstance</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> instanceNode.isLocalInstancePath(path) &amp;&amp; Type.NODE_REMOVED == eventType;</div><div class="line">   &#125;</div><div class="line">   </div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isReconnectedRegistryCenter</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> instanceService.isLocalJobInstanceExisted();</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// SchedulerFacade.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 终止作业调度.</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shutdownInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (leaderService.isLeader()) &#123;</div><div class="line">       leaderService.removeLeader(); <span class="comment">// 移除主节点</span></div><div class="line">   &#125;</div><div class="line">   monitorService.close();</div><div class="line">   <span class="keyword">if</span> (reconcileService.isRunning()) &#123;</div><div class="line">       reconcileService.stopAsync();</div><div class="line">   &#125;</div><div class="line">   JobRegistry.getInstance().shutdown(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><strong>远程</strong>关闭作业节点有两种方式：<ul>
+<li><strong>远程</strong>关闭作业节点有两种方式：
+<ul>
 <li>zkClient 发起命令：<code>rmr /${NAMESPACE}/${JOB_NAME}/instances/${JOB_INSTANCE_ID}</code>。</li>
-<li>运维平台发起 <code>Shutdown</code> 操作。<code>Shutdown</code> 操作实质上就是第一种。<br>  <img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/04.png" alt=""></li>
+<li>运维平台发起 <code>Shutdown</code> 操作。<code>Shutdown</code> 操作实质上就是第一种。
+<img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/04.png" alt=""></li>
 </ul>
 </li>
 </ul>
-<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>旁白君：哎哟，这次竟然分享了点干货 😈<br>芋道君：嘿呀嘿呀，必须的啊，虽然有点焦头烂额啦。  </p>
+<h1>666. 彩蛋</h1>
+<p>旁白君：哎哟，这次竟然分享了点干货 😈<br>
+芋道君：嘿呀嘿呀，必须的啊，虽然有点焦头烂额啦。</p>
 <p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_21/03.png" alt=""></p>
 <p>道友，赶紧上车，分享一波朋友圈！</p>
 ]]></content>
@@ -181,7 +322,7 @@
     <link href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/"/>
     <id>http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/</id>
     <published>2017-10-13T16:00:00.000Z</published>
-    <updated>2017-08-24T08:19:25.000Z</updated>
+    <updated>2017-08-25T07:46:30.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -251,7 +392,7 @@
 <p>我们再拿 ShardingListenerManager 举例子：</p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingListenerManager</span> <span class="keyword">extends</span> <span class="title">AbstractListenerManager</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ShardingTotalCountChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (configNode.isConfigPath(path) &amp;&amp; <span class="number">0</span> != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123;</div><div class="line">                <span class="keyword">int</span> newShardingTotalCount = LiteJobConfigurationGsonFactory.fromJson(data).getTypeConfig().getCoreConfig().getShardingTotalCount();</div><div class="line">                <span class="keyword">if</span> (newShardingTotalCount != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) &#123;</div><div class="line">                    shardingService.setReshardingFlag();</div><div class="line">                    JobRegistry.getInstance().setCurrentShardingTotalCount(jobName, newShardingTotalCount);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ListenServersChangedJobListener</span> <span class="keyword">extends</span> <span class="title">AbstractJobListener</span> </span>&#123;</div><div class="line">        </div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">dataChanged</span><span class="params">(<span class="keyword">final</span> String path, <span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String data)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName) &amp;&amp; (isInstanceChange(eventType, path) || isServerChange(path))) &#123;</div><div class="line">                shardingService.setReshardingFlag();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isInstanceChange</span><span class="params">(<span class="keyword">final</span> Type eventType, <span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> instanceNode.isInstancePath(path) &amp;&amp; Type.NODE_UPDATED != eventType;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isServerChange</span><span class="params">(<span class="keyword">final</span> String path)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> serverNode.isServerPath(path);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 任务分片策略》</a>详细解析。</li>
+<li>在<a href="http://www.yunai.me/Elastic-Job/ob-sharding/?self">《Elastic-Job-Lite 源码解析 —— 任务分片》</a>详细解析。</li>
 </ul>
 <h1>5. RegistryCenterConnectionStateListener</h1>
 <p>RegistryCenterConnectionStateListener，实现 Curator ConnectionStateListener 接口，注册中心连接状态监听器。</p>
@@ -293,7 +434,7 @@
     <link href="http://www.yunai.me/Elastic-Job/job-storage/"/>
     <id>http://www.yunai.me/Elastic-Job/job-storage/</id>
     <published>2017-10-06T16:00:00.000Z</published>
-    <updated>2017-08-23T17:12:06.000Z</updated>
+    <updated>2017-08-25T07:51:33.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -437,7 +578,7 @@
 <p><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line">[zk: localhost:2181(CONNECTED) 1] ls /elastic-job-example-lite-java/javaSimpleJob/sharding</div><div class="line">[0, 1, 2]</div><div class="line">[zk: localhost:2181(CONNECTED) 2] ls /elastic-job-example-lite-java/javaSimpleJob/sharding/0</div><div class="line">[running, instance, misfire]</div><div class="line">[zk: localhost:2181(CONNECTED) 3] get /elastic-job-example-lite-java/javaSimpleJob/sharding/0/instance</div><div class="line">192.168.16.137@-@56010</div></pre></td></tr></table></figure></p>
 <ul>
 <li><code>/sharding/${ITEM_ID}</code> 目录下以作业分片项序号( <code>ITEM_ID</code> ) 为数据节点路径存储作业分片项的 <code>instance</code> / <code>running</code> / <code>misfire</code> / <code>disable</code> <strong>数据节点</strong>信息。</li>
-<li><code>/sharding/${ITEM_ID}/instance</code> 是<strong>临时</strong>节点，存储该作业分片项<strong>分配到的作业实例主键</strong>( <code>JOB_INSTANCE_ID</code> )。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码分析 —— 作业分片策略》</a>详细解析。</li>
+<li><code>/sharding/${ITEM_ID}/instance</code> 是<strong>临时</strong>节点，存储该作业分片项<strong>分配到的作业实例主键</strong>( <code>JOB_INSTANCE_ID</code> )。在<a href="http://www.yunai.me/Elastic-Job/ob-sharding/?self">《Elastic-Job-Lite 源码分析 —— 作业分片》</a>详细解析。</li>
 <li><code>/sharding/${ITEM_ID}/running</code> 是<strong>临时</strong>节点，当该作业分片项<strong>正在运行</strong>，存储空串( <code>&quot;&quot;</code> )；当该作业分片项<strong>不在运行</strong>，移除该数据节点。<a href="http://www.yunai.me/Elastic-Job/job-init/?self">《Elastic-Job-Lite 源码分析 —— 作业执行》的「4.6」执行普通触发的作业</a>已经详细解析。</li>
 <li><code>/sharding/${ITEM_ID}/misfire</code> 是<strong>永久节点</strong>，当该作业分片项<strong>被错过执行</strong>，存储空串( <code>&quot;&quot;</code> )；当该作业分片项重新执行，移除该数据节点。<a href="http://www.yunai.me/Elastic-Job/job-init/?self">《Elastic-Job-Lite 源码分析 —— 作业执行》的「4.7」执行被错过触发的作业</a>已经详细解析。</li>
 <li><code>/sharding/${ITEM_ID}/disable</code> 是<strong>永久节点</strong>，当该作业分片项<strong>被禁用</strong>，存储空串( <code>&quot;&quot;</code> )；当该作业分片项<strong>被开启</strong>，移除数据节点。</li>
@@ -468,7 +609,7 @@
 <ul>
 <li><code>/leader/sharding/necessary</code> 是<strong>永久节点</strong>，当<strong>相同作业</strong>有新的作业节点加入或者移除时，存储空串( <code>&quot;&quot;</code> )，标记需要进行作业分片项重新分配；当重新分配完成后，移除该数据节点。</li>
 <li><code>/leader/sharding/processing</code> 是<strong>临时节点</strong>，当开始重新分配作业分片项时，存储空串( <code>&quot;&quot;</code> )，标记正在进行重新分配；当重新分配完成后，移除该数据节点。</li>
-<li>当且仅当作业节点为主节点时，才可以执行作业分片项分配，<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码分析 —— 作业分片策略》</a>详细解析。</li>
+<li>当且仅当作业节点为主节点时，才可以执行作业分片项分配，<a href="http://www.yunai.me/Elastic-Job/job-sharding/?self">《Elastic-Job-Lite 源码分析 —— 作业分片》</a>详细解析。</li>
 </ul>
 <p><strong>作业失效转移</strong></p>
 <p>作业失效转移数据节点在 FailoverNode，放在「9」<strong>FailoverNode</strong> 解析。</p>
@@ -514,7 +655,7 @@
     <link href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/"/>
     <id>http://www.yunai.me/Elastic-Job/reg-center-zookeeper/</id>
     <published>2017-09-29T16:00:00.000Z</published>
-    <updated>2017-08-23T16:32:01.000Z</updated>
+    <updated>2017-08-25T07:44:29.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -652,7 +793,7 @@
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 在主节点执行操作.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> latchNode 分布式锁使用的节点，例如：leader/election/latch</div><div class="line">* <span class="doctag">@param</span> callback 执行操作的回调</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeInLeader</span><span class="params">(<span class="keyword">final</span> String latchNode, <span class="keyword">final</span> LeaderExecutionCallback callback)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> (LeaderLatch latch = <span class="keyword">new</span> LeaderLatch(getClient(), jobNodePath.getFullPath(latchNode))) &#123;</div><div class="line">       latch.start();</div><div class="line">       latch.await();</div><div class="line">       callback.execute();</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       handleException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p><a href="https://curator.apache.org/" rel="external nofollow noopener noreferrer" target="_blank">Apache Curator</a> 使用 Zookeeper 实现了两种分布式锁，LeaderLatch 是其中的一种。使用<strong>一个</strong> Zookeeper 节点路径创建<strong>一个</strong> LeaderLatch，<code>#start()</code> 后，调用 <code>#await()</code> 等待拿到这把<strong>锁</strong>。如果有多个线程执行了<strong>相同节点路径</strong>的 LeaderLatch 的 <code>#await()</code> 后，同一时刻有且仅有一个线程可以继续执行，其他线程需要等待。当该线程释放( <code>LeaderLatch#close()</code> )后，下一个线程可以拿到该<strong>锁</strong>继续执行。用 Java 并发包 Lock 举例子：</p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeInLeader</span><span class="params">(Lock lock)</span> </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        lock.lock();</div><div class="line">        <span class="comment">// doSomething();</span></div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p><a href="https://github.com/Netflix/curator/wiki/Leader-Latch" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— LeaderLatch》</a>，有兴趣的同学可以看看。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 主节点选举》</a>中，我们会看到 <code>#executeInLeader(...)</code> 的使用。</p>
+<p><a href="https://github.com/Netflix/curator/wiki/Leader-Latch" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— LeaderLatch》</a>，有兴趣的同学可以看看。在<a href="http://www.yunai.me/Elastic-Job/election/?self">《Elastic-Job-Lite 源码解析 —— 主节点选举》</a>中，我们会看到 <code>#executeInLeader(...)</code> 的使用。</p>
 <p>另一种分布式锁实现，<a href="https://github.com/Netflix/curator/wiki/Leader-Election" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— LeaderElection》</a>，有兴趣也可以看看。在 Elastic-Job-Cloud 中使用到了，后续进行解析。</p>
 <h2>3.2 在事务中执行操作</h2>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// JobNodeStorage.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeInTransaction</span><span class="params">(<span class="keyword">final</span> TransactionExecutionCallback callback)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       CuratorTransactionFinal curatorTransactionFinal = getClient().inTransaction().check().forPath(<span class="string">"/"</span>).and();</div><div class="line">       callback.execute(curatorTransactionFinal);</div><div class="line">       curatorTransactionFinal.commit();</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception ex) &#123;</div><div class="line">       RegExceptionHandler.handleException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
@@ -685,7 +826,7 @@
     <link href="http://www.yunai.me/Elastic-Job/job-execute/"/>
     <id>http://www.yunai.me/Elastic-Job/job-execute/</id>
     <published>2017-09-22T16:00:00.000Z</published>
-    <updated>2017-08-23T16:31:43.000Z</updated>
+    <updated>2017-08-25T07:42:42.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -833,7 +974,7 @@
 <li>当校验本机时间不合法时，抛出异常。若使用 DefaultJobExceptionHandler 作为异常处理，<strong>只打印日志，不会终止作业执行</strong>。如果你的作业对时间精准度有比较高的要求，期望作业<strong>终止</strong>执行，可以自定义 JobExceptionHandler 实现对异常的处理。</li>
 </ul>
 <h2>4.2 获取当前作业服务器的分片上下文</h2>
-<p>调用 <code>LiteJobFacade#getShardingContexts()</code> 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得<strong>其所分配执行的分片项</strong>，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</p>
+<p>调用 <code>LiteJobFacade#getShardingContexts()</code> 方法获取当前作业服务器的分片上下文。通过这个方法，作业获得<strong>其所分配执行的分片项</strong>，在<a href="http://www.yunai.me/Elastic-Job/ob-sharding/?self">《Elastic-Job-Lite 源码解析 —— 作业分片》</a>详细分享。</p>
 <h2>4.3 发布作业状态追踪事件</h2>
 <p>调用 <code>LiteJobFacade#postJobStatusTraceEvent()</code> 方法发布作业状态追踪事件，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业事件与追踪》</a>详细分享。</p>
 <h2>4.4 跳过正在运行中的被错过执行的作业</h2>
@@ -976,7 +1117,7 @@
 <p>呼！略长略长略长！</p>
 <p>下面会更新如下两篇文章，为后续的主节点选举、失效转移、作业分片策略等文章做铺垫：</p>
 <ul>
-<li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 注册中心》</a></li>
+<li><a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码解析 —— 注册中心》</a></li>
 <li><a href="http://www.yunai.me/Elastic-Job/job-storage/?self">《Elastic-Job-Lite 源码解析 —— 作业数据存储》</a></li>
 </ul>
 <p>道友，赶紧上车，分享一波朋友圈！</p>
@@ -1004,7 +1145,7 @@
     <link href="http://www.yunai.me/Elastic-Job/job-init/"/>
     <id>http://www.yunai.me/Elastic-Job/job-init/</id>
     <published>2017-09-15T16:00:00.000Z</published>
-    <updated>2017-08-23T16:28:46.000Z</updated>
+    <updated>2017-08-25T07:49:27.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1125,13 +1266,13 @@
 <p>开启所有监听器。每个功能模块都有其相应的监听器，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">模块对应「文章」</a>详细分享。</p>
 </li>
 <li>
-<p>选举主节点，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 主从选举》</a>详细分享。</p>
+<p>选举主节点，在<a href="http://www.yunai.me/Elastic-Job/election/?self">《Elastic-Job-Lite 源码解析 —— 主节点选举》</a>详细分享。</p>
 </li>
 <li>
 <p>调用 <code>ServerService#persistOnline()</code> 方法，持久化作业服务器上线信息。</p>
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ServerService</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 持久化作业服务器上线信息.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@param</span> enabled 作业是否启用</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">persistOnline</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> enabled)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)) &#123;</div><div class="line">            jobNodeStorage.fillJobNode(serverNode.getServerNode(JobRegistry.getInstance().getJobInstance(jobName).getIp()), enabled ? <span class="string">""</span> : ServerStatus.DISABLED.name());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>当作业配置设置作业<strong>禁用</strong>时( <code>LiteJobConfiguration.disabled = true</code> )，作业调度但<strong>调度作业分片为空</strong>。不太好理解？<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</li>
+<li>当作业配置设置作业<strong>禁用</strong>时( <code>LiteJobConfiguration.disabled = true</code> )，作业调度但<strong>调度作业分片为空</strong>。不太好理解？<a href="http://www.yunai.me/Elastic-Job/job-sharding/?self">《Elastic-Job-Lite 源码解析 —— 作业分片》</a>详细分享。</li>
 </ul>
 </li>
 <li>
@@ -1139,7 +1280,7 @@
 <p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InstanceService</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 持久化作业运行实例上线相关信息.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">persistOnline</span><span class="params">()</span> </span>&#123;</div><div class="line">        jobNodeStorage.fillEphemeralJobNode(instanceNode.getLocalInstanceNode(), <span class="string">""</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
 <li>
-<p>设置需要重新分片的标记，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</p>
+<p>设置需要重新分片的标记，在<a href="http://www.yunai.me/Elastic-Job/ob-sharding/?self">《Elastic-Job-Lite 源码解析 —— 作业分片》</a>详细分享。</p>
 </li>
 <li>
 <p>初始化作业监听服务，在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业监控服务》</a>详细分享。</p>
@@ -1179,7 +1320,7 @@
     <link href="http://www.yunai.me/Elastic-Job/job-config/"/>
     <id>http://www.yunai.me/Elastic-Job/job-config/</id>
     <published>2017-09-08T16:00:00.000Z</published>
-    <updated>2017-08-23T16:30:29.000Z</updated>
+    <updated>2017-08-25T07:39:57.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1274,7 +1415,7 @@
 <p><code>maxTimeDiffSeconds</code>：设置最大容忍的本机与注册中心的时间误差秒数。默认为 <code>-1</code>，不检查时间误差。选填。</p>
 </li>
 <li>
-<p><code>jobShardingStrategyClass</code>：作业分片策略实现类全路径。默认为使用分配侧路。选填。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</p>
+<p><code>jobShardingStrategyClass</code>：作业分片策略实现类全路径。默认为使用分配侧路。选填。在<a href="http://www.yunai.me/Elastic-Job/ob-sharding-strategy/?self">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</p>
 </li>
 <li>
 <p><code>reconcileIntervalMinutes</code>：修复作业服务器不一致状态服务调度间隔时间，配置为小于1的任意值表示不执行修复。默认为 <code>10</code>。在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业不一致修复 》</a>详细分享。</p>
@@ -1378,7 +1519,7 @@
 <p><code>cron</code>：cron表达式，用于控制作业触发时间。<strong>必填。</strong></p>
 </li>
 <li>
-<p><code>shardingTotalCount</code>：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 <code>shardingTotalCount</code> 会执行作业。**必填。**在<a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">《Elastic-Job-Lite 源码解析 —— 作业分片策略 》</a>详细分享。</p>
+<p><code>shardingTotalCount</code>：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 <code>shardingTotalCount</code> 会执行作业。**必填。**在<a href="http://www.yunai.me/Elastic-Job/ob-sharding-strategy/?self">《Elastic-Job-Lite 源码解析 —— 作业分片策略 》</a>详细分享。</p>
 </li>
 <li>
 <p><code>shardingItemParameters</code>：分片序列号和参数。选填。</p>
@@ -3829,43 +3970,6 @@ BindingTable关系的多表关联查询不会出现笛卡尔积关联，关联�
 <p>本文看似在水更，实是为<a href="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg">《分表分库路由》</a>做铺垫（一阵脸红😳）。</p>
 <p>But，无论怎么说，道友，我做了新的关注二维码（感谢猫🐱先生），是不是可以推荐一波公众号给基佬。</p>
 <p>恩，继续更新。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：&lt;/p&gt;
-&lt;ol&gt;
-
-    
-    </summary>
-    
-      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Sharding-JDBC 源码分析 —— SQL 解析（七）之DDL</title>
-    <link href="http://www.yunai.me/Sharding-JDBC/sql-parse-7/"/>
-    <id>http://www.yunai.me/Sharding-JDBC/sql-parse-7/</id>
-    <published>2017-08-02T16:00:00.000Z</published>
-    <updated>2017-08-14T18:34:13.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<p>抱歉，站坑文。近期看情况更新。</p>
 ]]></content>
     
     <summary type="html">
