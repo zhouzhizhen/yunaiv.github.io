@@ -180,6 +180,39 @@ class LeaderElectionJobListener extends AbstractJobListener {
     * `#isPassiveElection(...)` 方法判断了两个条件：( 1 ) 原主节点被删除；( 2 ) 当前节点正在运行中（未挂掉），可以参加主节点选举。
     * `#isLeaderCrashed(...)` 方法虽然命名带有 `Crashed` 英文，实际主作业节点**正常**退出也符合**被动**选举条件。
 
+**等待主节点选举完成**
+
+必须在主节点执行的操作，执行之前，需要判断当前节点是否为主节点。如果主节点已经选举好，可以直接进行判断。但是，不排除主节点还没选举到，因而需要阻塞等待到主节点选举完成后才能进行判断。
+
+实现代码如下：
+
+```Java
+// LeaderService.java
+    
+/**
+* 判断当前节点是否是主节点.
+* 
+* 如果主节点正在选举中而导致取不到主节点, 则阻塞至主节点选举完成再返回.
+* 
+* @return 当前节点是否是主节点
+*/
+public boolean isLeaderUntilBlock() {
+   // 不存在主节点 && 有可用的服务器节点
+   while (!hasLeader() && serverService.hasAvailableServers()) {
+       log.info("Leader is electing, waiting for {} ms", 100);
+       BlockUtils.waitingShortTime();
+       if (!JobRegistry.getInstance().isShutdown(jobName)
+               && serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) { // 当前服务器节点可用
+           electLeader();
+       }
+   }
+   // 返回当前节点是否是主节点
+   return isLeader();
+}
+```
+
+* TODO 
+
 # 4. 删除主节点
 
 有主节点的选举，必然有主节点的删除，否则怎么进行**重新选举**。

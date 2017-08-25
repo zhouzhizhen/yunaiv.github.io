@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-24T18:30:00.000Z</updated>
+  <updated>2017-08-24T20:18:19.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -17,10 +17,38 @@
   
   <entry>
     <title>Elastic-Job-Lite 源码分析 —— 主节点选举</title>
+    <link href="http://www.yunai.me/Elastic-Job/job-sharding-str/"/>
+    <id>http://www.yunai.me/Elastic-Job/job-sharding-str/</id>
+    <published>2017-10-24T16:00:00.000Z</published>
+    <updated>2017-08-24T20:18:19.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Lite 作业分片策略</strong>。</p>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_10_26/01.png" alt=""></p>
+<p>【未完待续】</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h1 id=&quot;1-概述&quot;&gt;&lt;a href=&quot;#1-概述&quot; class=&quot;headerlink&quot; title=&quot;1. 概述&quot;&gt;&lt;/a&gt;1. 概述&lt;/h1&gt;&lt;p&gt;本文
+    
+    </summary>
+    
+      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Elastic-Job-Lite 源码分析 —— 主节点选举</title>
     <link href="http://www.yunai.me/Elastic-Job/election/"/>
     <id>http://www.yunai.me/Elastic-Job/election/</id>
     <published>2017-10-20T16:00:00.000Z</published>
-    <updated>2017-08-24T18:30:00.000Z</updated>
+    <updated>2017-08-24T20:16:12.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -95,6 +123,13 @@
 <li><code>#isLeaderCrashed(...)</code> 方法虽然命名带有 <code>Crashed</code> 英文，实际主作业节点<strong>正常</strong>退出也符合<strong>被动</strong>选举条件。</li>
 </ul>
 </li>
+</ul>
+<p><strong>等待主节点选举完成</strong></p>
+<p>必须在主节点执行的操作，执行之前，需要判断当前节点是否为主节点。如果主节点已经选举好，可以直接进行判断。但是，不排除主节点还没选举到，因而需要阻塞等待到主节点选举完成后才能进行判断。</p>
+<p>实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LeaderService.java</span></div><div class="line">    </div><div class="line"><span class="comment">/**</span></div><div class="line">* 判断当前节点是否是主节点.</div><div class="line">* </div><div class="line">* 如果主节点正在选举中而导致取不到主节点, 则阻塞至主节点选举完成再返回.</div><div class="line">* </div><div class="line">* <span class="doctag">@return</span> 当前节点是否是主节点</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isLeaderUntilBlock</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="comment">// 不存在主节点 &amp;&amp; 有可用的服务器节点</span></div><div class="line">   <span class="keyword">while</span> (!hasLeader() &amp;&amp; serverService.hasAvailableServers()) &#123;</div><div class="line">       log.info(<span class="string">"Leader is electing, waiting for &#123;&#125; ms"</span>, <span class="number">100</span>);</div><div class="line">       BlockUtils.waitingShortTime();</div><div class="line">       <span class="keyword">if</span> (!JobRegistry.getInstance().isShutdown(jobName)</div><div class="line">               &amp;&amp; serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) &#123; <span class="comment">// 当前服务器节点可用</span></div><div class="line">           electLeader();</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 返回当前节点是否是主节点</span></div><div class="line">   <span class="keyword">return</span> isLeader();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>TODO </li>
 </ul>
 <h1 id="4-删除主节点"><a href="#4-删除主节点" class="headerlink" title="4. 删除主节点"></a>4. 删除主节点</h1><p>有主节点的选举，必然有主节点的删除，否则怎么进行<strong>重新选举</strong>。</p>
 <p>实现代码如下：</p>
@@ -3831,100 +3866,6 @@ BindingTable关系的多表关联查询不会出现笛卡尔积关联，关联�
 </blockquote>
 <hr>
 <p>抱歉，站坑文。近期看情况更新。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;img src=&quot;https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：&lt;/p&gt;
-&lt;ol&gt;
-
-    
-    </summary>
-    
-      <category term="Sharding-JDBC" scheme="http://www.yunai.me/categories/Sharding-JDBC/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Sharding-JDBC 源码分析 —— SQL 解析（六）之删除SQL</title>
-    <link href="http://www.yunai.me/Sharding-JDBC/sql-parse-6/"/>
-    <id>http://www.yunai.me/Sharding-JDBC/sql-parse-6/</id>
-    <published>2017-08-01T16:00:00.000Z</published>
-    <updated>2017-08-14T18:34:12.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="https://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<p><strong>本文主要基于 Sharding-JDBC 1.5.0 正式版</strong></p>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. DeleteStatement</a></li>
-<li><a href="#">3. #parse()</a>
-<ul>
-<li><a href="#">3.1 #skipBetweenDeleteAndTable()</a></li>
-<li><a href="#">3.2 #parseSingleTable()</a></li>
-<li><a href="#">3.3 #parseWhere()</a></li>
-</ul>
-</li>
-<li><a href="#">666. 彩蛋</a></li>
-</ul>
-<hr>
-<h1>1. 概述</h1>
-<p>本文前置阅读：</p>
-<ul>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-1/?self">《SQL 解析（一）之词法解析》</a></li>
-<li><a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》</a></li>
-</ul>
-<p>本文分享<strong>删除SQL解析</strong>的源码实现。</p>
-<p>🙂 如果你已经理解<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-3/?self">《SQL 解析（三）之查询SQL》</a>，那本文会是一篇水文，当成一种放松吧。还是跟前文一样，以 MySQL 举例子。我们来一起看看 MySQLDeleteParser。</p>
-<p>MySQL DELETE 语法一共有 2 种 ：</p>
-<ul>
-<li>第一种：<strong>Single-table syntax</strong></li>
-</ul>
-<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">DELETE</span> [<span class="keyword">LOW_PRIORITY</span>] [<span class="keyword">QUICK</span>] [<span class="keyword">IGNORE</span>] <span class="keyword">FROM</span> tbl_name</div><div class="line">    [<span class="keyword">PARTITION</span> (partition_name,...)]</div><div class="line">    [<span class="keyword">WHERE</span> where_condition]</div><div class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> ...]</div><div class="line">    [<span class="keyword">LIMIT</span> <span class="keyword">row_count</span>]</div></pre></td></tr></table></figure></p>
-<ul>
-<li>第二种：<strong>Multiple-table syntax</strong></li>
-</ul>
-<p><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">DELETE</span> [<span class="keyword">LOW_PRIORITY</span>] [<span class="keyword">QUICK</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    tbl_name[.*] [, tbl_name[.*]] ...</div><div class="line">    <span class="keyword">FROM</span> table_references</div><div class="line">    [<span class="keyword">WHERE</span> where_condition]</div><div class="line">    </div><div class="line">【<span class="keyword">OR</span>】</div><div class="line"></div><div class="line"><span class="keyword">DELETE</span> [<span class="keyword">LOW_PRIORITY</span>] [<span class="keyword">QUICK</span>] [<span class="keyword">IGNORE</span>]</div><div class="line">    <span class="keyword">FROM</span> tbl_name[.*] [, tbl_name[.*]] ...</div><div class="line">    <span class="keyword">USING</span> table_references</div><div class="line">    [<span class="keyword">WHERE</span> where_condition]</div></pre></td></tr></table></figure></p>
-<p>Sharding-JDBC 目前仅支持第一种。业务场景上使用第二种的很少很少。</p>
-<p>Sharding-JDBC 更新SQL解析主流程如下：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_02/01.png" alt=""></p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// AbstractDeleteParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> DeleteStatement <span class="title">parse</span><span class="params">()</span> </span>&#123;</div><div class="line">   sqlParser.getLexer().nextToken(); <span class="comment">// 跳过 DELETE</span></div><div class="line">   skipBetweenDeleteAndTable(); <span class="comment">// // 跳过关键字，例如：MYSQL 里的 LOW_PRIORITY、IGNORE 和 FROM</span></div><div class="line">   sqlParser.parseSingleTable(deleteStatement); <span class="comment">// 解析表</span></div><div class="line">   sqlParser.skipUntil(DefaultKeyword.WHERE); <span class="comment">// 跳到 WHERE</span></div><div class="line">   sqlParser.parseWhere(deleteStatement); <span class="comment">// 解析 WHERE</span></div><div class="line">   <span class="keyword">return</span> deleteStatement;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<blockquote>
-<p><strong>Sharding-JDBC 正在收集使用公司名单：<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a>。<br>
-🙂 你的登记，会让更多人参与和使用 Sharding-JDBC。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
-Sharding-JDBC 也会因此，能够覆盖更多的业务场景。<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a><br>
-登记吧，骚年！<a href="https://github.com/dangdangdotcom/sharding-jdbc/issues/234" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></strong></p>
-</blockquote>
-<h1>2. DeleteStatement</h1>
-<p>删除SQL 解析结果。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">UpdateStatement</span> <span class="keyword">extends</span> <span class="title">AbstractSQLStatement</span> </span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>😈 对，没有其他属性。</p>
-<p>我们来看下 <code>DELETE IGNORE FROM t_user WHERE user_id = ?</code> 的<strong>解析结果</strong>：</p>
-<p><img src="http://www.yunai.me/images/Sharding-JDBC/2017_08_02/02.png" alt=""></p>
-<h1>3. #parse()</h1>
-<h2>3.1 #skipBetweenDeleteAndTable()</h2>
-<p>在 <code>DELETE</code> 和 表名 之间有些词法，对 SQL 路由和改写无影响，进行跳过。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// MySQLDeleteParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">skipBetweenDeleteAndTable</span><span class="params">()</span> </span>&#123;</div><div class="line">   getSqlParser().skipAll(MySQLKeyword.LOW_PRIORITY, MySQLKeyword.QUICK, MySQLKeyword.IGNORE);</div><div class="line">   getSqlParser().skipIfEqual(DefaultKeyword.FROM);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// OracleDeleteParser.java</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">skipBetweenDeleteAndTable</span><span class="params">()</span> </span>&#123;</div><div class="line">   getSqlParser().skipIfEqual(DefaultKeyword.FROM);</div><div class="line">   getSqlParser().skipIfEqual(OracleKeyword.ONLY);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2>3.2 #parseSingleTable()</h2>
-<p>解析<strong>表</strong>，请看<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的 <code>#parseSingleTable()</code> 小节</a>。</p>
-<h2>3.3 #parseWhere()</h2>
-<p>解析 WHERE 条件。解析代码：<a href="http://www.yunai.me/Sharding-JDBC/sql-parse-2/?self">《SQL 解析（二）之SQL解析》的#parseWhere()小节</a>。</p>
-<h1>666. 彩蛋</h1>
-<p>道友，帮我分享一波怎么样？</p>
-<p><strong>后面 SQL 路由和改写会更加有趣哟！</strong></p>
 ]]></content>
     
     <summary type="html">
