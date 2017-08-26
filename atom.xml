@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>芋道源码 —— 纯源码解析部落格</title>
+  <title>芋道源码 —— 纯源码解析BLOG</title>
   <subtitle>愿半生编码，如一生老友！</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-26T13:36:47.000Z</updated>
+  <updated>2017-08-26T15:57:37.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,31 +16,51 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Elastic-Job 源码分析 —— 作业失效转移【编辑中】</title>
+    <title>Elastic-Job-Lite 源码分析 —— 作业失效转移【编辑中】</title>
     <link href="http://www.yunai.me/Elastic-Job/job-failover/"/>
     <id>http://www.yunai.me/Elastic-Job/job-failover/</id>
     <published>2017-11-06T16:00:00.000Z</published>
-    <updated>2017-08-26T13:36:47.000Z</updated>
+    <updated>2017-08-26T15:57:37.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
-<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
+<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
 <ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
 <li><strong>认真的</strong>源码交流微信群。</li>
 </ol>
 </blockquote>
 <hr>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Lite 作业失效转移</strong>。</p>
+<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_11_07/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_11_07/01.png" alt=""></p>
+<ul>
+<li>粉色的类在 <code>com.dangdang.ddframe.job.lite.internal.failover</code> 包下，实现了 Elastic-Job-Lite 作业失效转移。</li>
+<li>FailoverService，作业失效转移服务。</li>
+<li>FailoverNode，作业失效转移数据存储路径。</li>
+<li>FailoverListenerManager，作业失效转移监听管理器。</li>
+</ul>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1>2. 作业失效转移条件</h1>
+<h1>3. 获取作业分片上下文集合</h1>
+<h1>666. 彩蛋</h1>
 ]]></content>
     
     <summary type="html">
     
       &lt;p&gt;&lt;img src=&quot;http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg&quot; alt=&quot;&quot;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;🙂🙂🙂关注&lt;strong&gt;微信公众号：【芋道源码】&lt;/strong&gt;有福
+&lt;p&gt;🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：&lt;/p&gt;
+&lt;ol&gt;
+&lt;
     
     </summary>
     

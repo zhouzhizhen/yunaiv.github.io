@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.yunai.me/Elastic-Job/job-failover/</loc>
+    
+    <lastmod>2017-08-26T15:57:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.yunai.me/Elastic-Job/job-sharding/</loc>
     
     <lastmod>2017-08-26T13:40:04.000Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>http://www.yunai.me/Elastic-Job/job-config/</loc>
     
     <lastmod>2017-08-26T13:38:39.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Elastic-Job/job-failover/</loc>
-    
-    <lastmod>2017-08-26T13:36:47.000Z</lastmod>
     
   </url>
   
