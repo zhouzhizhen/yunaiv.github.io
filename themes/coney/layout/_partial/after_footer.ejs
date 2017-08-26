@@ -216,7 +216,7 @@ $(document).ready(function(){
                 var doubi = jqueryAlert({
                     'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
                     'width'   : '500',
-                    'height'  : '580',
+                    'height'  : '600',
                     'modal': true,
                     'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
                         + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>',
@@ -228,7 +228,7 @@ $(document).ready(function(){
                 });
                 $.cookie(key, count + 1, { expires: 1 , path: '/'});
             }
-            setTimeout(explode, ( count + 1 ) * 10000);
+            setTimeout(explode, ( count + 1 ) * 20000);
         }
     })
 </script>

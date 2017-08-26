@@ -4,21 +4,35 @@
   <url>
     <loc>http://www.yunai.me/Elastic-Job/job-sharding/</loc>
     
-    <lastmod>2017-08-25T19:53:32.000Z</lastmod>
+    <lastmod>2017-08-26T10:25:52.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://www.yunai.me/Elastic-Job/job-sharding-strategy/</loc>
     
-    <lastmod>2017-08-25T07:59:20.000Z</lastmod>
+    <lastmod>2017-08-26T05:44:07.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Elastic-Job/election/</loc>
+    
+    <lastmod>2017-08-26T05:43:50.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/</loc>
+    
+    <lastmod>2017-08-26T05:43:40.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://www.yunai.me/Elastic-Job/job-storage/</loc>
     
-    <lastmod>2017-08-25T07:51:33.000Z</lastmod>
+    <lastmod>2017-08-26T05:43:30.000Z</lastmod>
     
   </url>
   
@@ -26,13 +40,6 @@
     <loc>http://www.yunai.me/Elastic-Job/job-init/</loc>
     
     <lastmod>2017-08-25T07:49:27.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/</loc>
-    
-    <lastmod>2017-08-25T07:46:30.000Z</lastmod>
     
   </url>
   
@@ -54,13 +61,6 @@
     <loc>http://www.yunai.me/Elastic-Job/job-config/</loc>
     
     <lastmod>2017-08-25T07:39:57.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.yunai.me/Elastic-Job/election/</loc>
-    
-    <lastmod>2017-08-24T20:16:12.000Z</lastmod>
     
   </url>
   
