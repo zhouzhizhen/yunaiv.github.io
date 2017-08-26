@@ -1,4 +1,4 @@
-title: Elastic-Job-Lite 源码分析 —— 作业分片（编辑中）
+title: Elastic-Job-Lite 源码分析 —— 作业分片
 date: 2017-10-31
 tags:
 categories: Elastic-Job
@@ -408,5 +408,122 @@ public ShardingContexts getShardingContexts() {
 
 * 调用 `ExecutionContextService#getJobShardingContext(...)` 方法，获取**当前**作业服务器分片上下文。
 
+**获取当前作业服务器分片上下文**
+
+调用 `ExecutionContextService#getJobShardingContext(...)` 方法，获取**当前**作业服务器分片上下文：
+
+```Java
+// ExecutionContextService.java
+public ShardingContexts getJobShardingContext(final List<Integer> shardingItems) {
+   LiteJobConfiguration liteJobConfig = configService.load(false);
+   // 移除 正在运行中的作业分片项
+   removeRunningIfMonitorExecution(liteJobConfig.isMonitorExecution(), shardingItems);
+   //
+   if (shardingItems.isEmpty()) {
+       return new ShardingContexts(buildTaskId(liteJobConfig, shardingItems), liteJobConfig.getJobName(), liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(), 
+               liteJobConfig.getTypeConfig().getCoreConfig().getJobParameter(), Collections.<Integer, String>emptyMap());
+   }
+   // 解析分片参数
+   Map<Integer, String> shardingItemParameterMap = new ShardingItemParameters(liteJobConfig.getTypeConfig().getCoreConfig().getShardingItemParameters()).getMap();
+   // 创建 分片上下文集合
+   return new ShardingContexts(buildTaskId(liteJobConfig, shardingItems), //
+           liteJobConfig.getJobName(), liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(),
+           liteJobConfig.getTypeConfig().getCoreConfig().getJobParameter(),
+           getAssignedShardingItemParameterMap(shardingItems, shardingItemParameterMap)); // 获得当前作业节点的分片参数
+}
+```
+
+* 调用 `#removeRunningIfMonitorExecution()` 方法，移除正在运行中的作业分片项。
+
+    ```Java
+    private void removeRunningIfMonitorExecution(final boolean monitorExecution, final List<Integer> shardingItems) {
+       if (!monitorExecution) {
+           return;
+       }
+       List<Integer> runningShardingItems = new ArrayList<>(shardingItems.size());
+       for (int each : shardingItems) {
+           if (isRunning(each)) {
+               runningShardingItems.add(each); // /${JOB_NAME}/sharding/${ITEM_ID}/running
+           }
+       }
+       shardingItems.removeAll(runningShardingItems);
+    }
+        
+    private boolean isRunning(final int shardingItem) {
+       return jobNodeStorage.isJobNodeExisted(ShardingNode.getRunningNode(shardingItem));
+    }
+    ```
+
+* 使用 ShardingItemParameters 解析作业分片参数。例如作业分片参数( `JobCoreConfiguration.shardingItemParameters="0=Beijing,1=Shanghai,2=Guangzhou"` ) 解析结果：
+    ![](http://www.yunai.me/images/Elastic-Job/2017_10_31/04.png)
+    * ShardingItemParameters 代码清晰易懂，点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/fd45d3799565f69c6b604db83f78629d8c9a70cd/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/util/config/ShardingItemParameters.java)直接查看。
+
+* 调用 `#buildTaskId(...)` 方法，创建作业任务ID( `ShardingContexts.taskId` )：
+
+    ```Java
+    private String buildTaskId(final LiteJobConfiguration liteJobConfig, final List<Integer> shardingItems) {
+       JobInstance jobInstance = JobRegistry.getInstance().getJobInstance(jobName);
+       return Joiner.on("@-@").join(liteJobConfig.getJobName(), Joiner.on(",").join(shardingItems), "READY", 
+               null == jobInstance.getJobInstanceId() ? "127.0.0.1@-@1" : jobInstance.getJobInstanceId()); 
+    }
+    ```
+    * `taskId` = `${JOB_NAME}` + `@-@` + `${SHARDING_ITEMS}` + `@-@` + `READY` + `@-@` + `${IP}` + `@-@` + `${PID}`。例如：`javaSimpleJob@-@0,1,2@-@READY@-@192.168.3.2@-@38330`。
+
+* 调用 `#getAssignedShardingItemParameterMap(...)` 方法，获得当前作业节点的分片参数。
+
+    ```Java
+    private Map<Integer, String> getAssignedShardingItemParameterMap(final List<Integer> shardingItems, final Map<Integer, String> shardingItemParameterMap) {
+       Map<Integer, String> result = new HashMap<>(shardingItemParameterMap.size(), 1);
+       for (int each : shardingItems) {
+           result.put(each, shardingItemParameterMap.get(each));
+       }
+       return result;
+    }
+    ```    
+
+* ShardingContexts，分片上下文集合。
+    ```Java
+    public final class ShardingContexts implements Serializable {
+        
+        private static final long serialVersionUID = -4585977349142082152L;
+        
+        /**
+         * 作业任务ID.
+         */
+        private final String taskId;
+        /**
+         * 作业名称.
+         */
+        private final String jobName;
+        /**
+         * 分片总数.
+         */
+        private final int shardingTotalCount;
+        /**
+         * 作业自定义参数.
+         * 可以配置多个相同的作业, 但是用不同的参数作为不同的调度实例.
+         */
+        private final String jobParameter;
+        /**
+         * 分配于本作业实例的分片项和参数的Map.
+         */
+        private final Map<Integer, String> shardingItemParameters;
+        /**
+         * 作业事件采样统计数.
+         */
+        private int jobEventSamplingCount;
+        /**
+         * 当前作业事件采样统计数.
+         */
+        @Setter
+        private int currentJobEventSamplingCount;
+        /**
+         * 是否允许可以发送作业事件.
+         */
+        @Setter
+        private boolean allowSendJobEvent = true;
+    }
+    ```
+    * `jobEventSamplingCount`，`currentJobEventSamplingCount` 在 Elastic-Job-Lite 暂未还使用，在 Elastic-Job-Cloud 使用。
 
 
