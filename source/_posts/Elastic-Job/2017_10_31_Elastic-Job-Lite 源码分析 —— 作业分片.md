@@ -8,6 +8,12 @@ permalink: Elastic-Job/job-sharding
 
 **本文基于 Elastic-Job V2.1.5 版本分享**
 
+- [1. 概述](#)
+- [2. 作业分片条件](#)
+- [3. 分配作业分片项](#)
+- [4. 获取作业分片上下文集合](#)
+- [666. 彩蛋](#)
+
 -------
 
 ![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
@@ -31,6 +37,8 @@ permalink: Elastic-Job/job-sharding
 
 * 粉色的类在 `com.dangdang.ddframe.job.lite.internal.sharding` 包下，实现了 Elastic-Job-Lite 作业分片。
 * ShardingService，作业分片服务。
+* ShardingNode，作业分片数据存储路径。
+* ShardingListenerManager，作业分片监听管理器。
 
 > 你行好事会因为得到赞赏而愉悦  
 > 同理，开源项目贡献者会因为 Star 而更加有动力  
@@ -38,7 +46,7 @@ permalink: Elastic-Job/job-sharding
 
 # 2. 作业分片条件
 
-当作业满足分片条件时，不会**立即**进行作业分片分配，而是设置需要重新进行分片的**标记**，等到作业分片获取时，判断有该标记后进行分配。
+当作业满足分片条件时，不会**立即**进行作业分片分配，而是设置需要重新进行分片的**标记**，等到作业分片获取时，判断有该标记后**执行**作业分配。
 
 设置需要重新进行分片的**标记**的代码如下：
 
@@ -71,7 +79,7 @@ public void createJobNodeIfNeeded(final String node) {
     [zk: localhost:2181(CONNECTED) 2] ls /elastic-job-example-lite-java/javaSimpleJob/leader/sharding
     [necessary]
     [zk: localhost:2181(CONNECTED) 3] get /elastic-job-example-lite-java/javaSimpleJob/leader/sharding/necessary
-    
+    　
     ```
 * 设置标记之后，通过调用 `#isNeedSharding()` 方法即可判断是否需要重新分片。
 
@@ -212,10 +220,10 @@ public void shardingIfNecessary() {
 ```
 
 * 调用 `#isNeedSharding()` 方法判断是否需要重新分片。
-* 调用 `#LeaderService#isLeaderUntilBlock()` 方法判断是否为**主节点**。作业分片项的分配过程：
+* 调用 `LeaderService#isLeaderUntilBlock()` 方法判断是否为**主节点**。作业分片项的分配过程：
     * 【主节点】**执行**作业分片项分配。
     * 【非主节点】**等待**作业分片项分配完成。
-    * `#LeaderService#isLeaderUntilBlock()` 方法在[《Elastic-Job-Lite 源码分析 —— 主节点选举》「3. 选举主节点」](http://www.yunai.me/Elastic-Job/election/?self)有详细分享。
+    * `LeaderService#isLeaderUntilBlock()` 方法在[《Elastic-Job-Lite 源码分析 —— 主节点选举》「3. 选举主节点」](http://www.yunai.me/Elastic-Job/election/?self)有详细分享。
 * 调用 `#blockUntilShardingCompleted()` 方法【非主节点】**等待**作业分片项分配完成。
 
     ```Java
@@ -254,7 +262,7 @@ public void shardingIfNecessary() {
     ```
 
 * 调用 `JobShardingStrategy#sharding(...)` 方法**计算**每个节点分配的作业分片项。[《Elastic-Job-Lite 源码分析 —— 作业分片策略》](http://www.yunai.me/Elastic-Job/job-sharding-strategy/?self)有详细分享。
-* 调用 `JobNodeStorage#executeInTransaction(...)` + `PersistShardingInfoTransactionExecutionCallback#execute()` 方法实现**事务**中**设置**每个节点分配的作业分片项。
+* 调用 `JobNodeStorage#executeInTransaction(...)` + `PersistShardingInfoTransactionExecutionCallback#execute()` 方法实现在**事务**中**设置**每个节点分配的作业分片项。
 
     ```Java
     // PersistShardingInfoTransactionExecutionCallback.java
@@ -525,5 +533,14 @@ public ShardingContexts getJobShardingContext(final List<Integer> shardingItems)
     }
     ```
     * `jobEventSamplingCount`，`currentJobEventSamplingCount` 在 Elastic-Job-Lite 暂未还使用，在 Elastic-Job-Cloud 使用。
+
+# 666. 彩蛋
+
+旁白君：小伙伴，更新了干货嘛，双击 666。  
+芋道君：那必须的嘛，而且这么勤快更新！是不是应该分享一波朋友圈。
+
+![](http://www.yunai.me/images/Elastic-Job/2017_10_31/05.png)
+
+道友，赶紧上车，分享一波朋友圈！
 
 

@@ -54,3 +54,4 @@ http://www.yunai.me/Architecture/talk-about-global-id/
 http://www.yunai.me/Docker/docker-network-flannel/
 http://www.yunai.me/Nginx/nginx-dynamic-upstream/
 http://www.yunai.me/Docker/docker-learning-notes/
+http://www.yunai.me/link_url/
