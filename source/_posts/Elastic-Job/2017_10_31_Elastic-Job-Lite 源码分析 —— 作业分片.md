@@ -321,7 +321,7 @@ public void shardingIfNecessary() {
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_10_31/03.png)
 
-* 橘色叉叉在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)有详细分享。
+* 橘色叉叉在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/Elastic-Job/job-failover/?self)有详细分享。
 
 实现代码如下：
 

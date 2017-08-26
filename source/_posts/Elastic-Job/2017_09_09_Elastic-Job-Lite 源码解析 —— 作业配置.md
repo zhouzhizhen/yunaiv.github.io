@@ -190,7 +190,7 @@ public final class JobCoreConfiguration {
     > 作业自定义参数，可通过传递该参数为作业调度的业务方法传参，用于实现带参数的作业  
     例：每次获取的数据量、作业实例从数据库读取的主键等
 
-* `failover`：是否开启作业执行失效转移。**开启表示如果作业在一次作业执行中途宕机，允许将该次未完成的作业在另一作业节点上补偿执行**。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业失效转移 》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* `failover`：是否开启作业执行失效转移。**开启表示如果作业在一次作业执行中途宕机，允许将该次未完成的作业在另一作业节点上补偿执行**。默认为 `false`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业失效转移 》](http://www.yunai.me/Elastic-Job/job-failover/?self)详细分享。
 * `misfire`：是否开启错过作业重新执行。默认为 `true`。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。
 * `description`：作业描述。选填。
 * `jobProperties`：作业属性配置。选填。在[《Elastic-Job-Lite 源码解析 —— 作业执行 》](http://www.yunai.me/Elastic-Job/job-execute/?self)详细分享。

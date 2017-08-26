@@ -348,7 +348,7 @@ FailoverNode，失效转移节点路径。
 ```
 
 * `/leader/failover/latch` 作业失效转移分布式锁，和 `/leader/failover/latch` 是一致的。
-* `/leader/items/${ITEM_ID}` 是**永久节点**，当某台作业节点 CRASH 时，其分配的作业分片项标记需要进行失效转移，存储其分配的作业分片项的 `/leader/items/${ITEM_ID}` 为空串( `""` )；当失效转移标记，移除 `/leader/items/${ITEM_ID}`，存储 `/sharding/${ITEM_ID}/failover` 为空串( `""` )，**临时**节点，需要进行失效转移执行。[《Elastic-Job-Lite 源码分析 —— 作业失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细解析。
+* `/leader/items/${ITEM_ID}` 是**永久节点**，当某台作业节点 CRASH 时，其分配的作业分片项标记需要进行失效转移，存储其分配的作业分片项的 `/leader/items/${ITEM_ID}` 为空串( `""` )；当失效转移标记，移除 `/leader/items/${ITEM_ID}`，存储 `/sharding/${ITEM_ID}/failover` 为空串( `""` )，**临时**节点，需要进行失效转移执行。[《Elastic-Job-Lite 源码分析 —— 作业失效转移》](http://www.yunai.me/Elastic-Job/job-failover/?self)详细解析。
 
 FailoverNode 代码如下：
 

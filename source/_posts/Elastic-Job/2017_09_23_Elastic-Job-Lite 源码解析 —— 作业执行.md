@@ -1024,7 +1024,7 @@ public void failoverIfNecessary() {
 }
 ```
 
-* 调用作业失效转移服务( FailoverService )执行作业失效转移( `#failoverIfNecessary()` )，在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 调用作业失效转移服务( FailoverService )执行作业失效转移( `#failoverIfNecessary()` )，在[《Elastic-Job-Lite 源码解析 —— 作业失效转移》](http://www.yunai.me/Elastic-Job/job-failover/?self)详细分享。
 
 ## 4.9 执行作业执行后的方法
 
