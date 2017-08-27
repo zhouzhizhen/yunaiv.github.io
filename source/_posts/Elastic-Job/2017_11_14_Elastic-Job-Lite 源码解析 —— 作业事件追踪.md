@@ -1,8 +1,22 @@
-title: Elastic-Job-Lite 源码分析 —— 作业事件追踪【编辑中】
+title: Elastic-Job-Lite 源码分析 —— 作业事件追踪
 date: 2017-11-14
 tags:
 categories: Elastic-Job
 permalink: Elastic-Job/job-event-trace
+
+-------
+
+**本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#)
+- [2. 作业事件总线](#)
+- [3. 作业事件](#)
+  - [3.1 作业状态追踪事件](#)
+  - [3.2 作业执行追踪事件](#)
+  - [3.3 作业事件数据库存储](#)
+  - [3.4 作业事件数据库查询](#)
+- [4. 作业监听器](#)
+- [6. 彩蛋](#)
 
 -------
 
@@ -79,7 +93,7 @@ public final class JobEventBus {
 }
 ```
 
-* JobEventBus 基于 [Google Guava EventBus](https://github.com/google/guava/wiki/EventBusExplained)，在[《Sharding-JDBC 源码分析 —— SQL 执行》「4.1 EventBus」](http://www.yunai.me/Sharding-JDBC/sql-execute)有详细分享。这里要注意的是 AsyncEventBus( **异步事件总线** )，注册在其上面的监听器是**异步**监听执行，不会同步阻塞事件发布。
+* JobEventBus 基于 [Google Guava EventBus](https://github.com/google/guava/wiki/EventBusExplained)，在[《Sharding-JDBC 源码分析 —— SQL 执行》「4.1 EventBus」](http://www.yunai.me/Sharding-JDBC/sql-execute)有详细分享。这里要注意的是 AsyncEventBus( **异步事件总线** )，注册在其上面的监听器是**异步**监听执行，事件发布无需阻塞等待监听器执行完逻辑，所以对性能不存在影响。
 * 使用 JobEventConfiguration( 作业事件配置 ) 创建事件监听器，调用 `#register()` 方法进行注册监听。
 
     ```Java
@@ -284,9 +298,9 @@ CREATE TABLE `JOB_STATUS_TRACE_LOG` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
 ```
 
-* Elastic-Job-Lite 一次作业执行记录如下：
+* Elastic-Job-Lite 一次作业执行记录如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/02.png) )：
 
-    ![](../../../images/Elastic-Job/2017_11_14/02.png)
+    ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/02.png)
 
 JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
 
@@ -303,7 +317,7 @@ JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
         // ... 省略无关代码
     }
     ```
-* State.TASK_FINISHED：
+* State.TASK_RUNNING：
 
     ```Java
     // AbstractElasticJobExecutor.java
@@ -317,7 +331,7 @@ JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
     }
     ```
 
-* State.TASK_FINISHED、State.TASK_ERROR：
+* State.TASK_FINISHED、State.TASK_ERROR【第一种】：
 
     ```Java
     // AbstractElasticJobExecutor.java
@@ -336,27 +350,27 @@ JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
     }
     ```
     
-    或者
-    
+* State.TASK_FINISHED、State.TASK_ERROR【第二种】：
+
     ```Java
     // AbstractElasticJobExecutor.java
     private void execute(final ShardingContexts shardingContexts, final JobExecutionEvent.ExecutionSource executionSource) {
-       // ... 省略无关代码
-       try {
-           process(shardingContexts, executionSource);
-       } finally {
-           // ... 省略无关代码
-           // 根据是否有异常，发布作业状态追踪事件(State.TASK_FINISHED / State.TASK_ERROR)
-           if (itemErrorMessages.isEmpty()) {
-               if (shardingContexts.isAllowSendJobEvent()) {
-                   jobFacade.postJobStatusTraceEvent(taskId, State.TASK_FINISHED, "");
-               }
-           } else {
-               if (shardingContexts.isAllowSendJobEvent()) {
-                   jobFacade.postJobStatusTraceEvent(taskId, State.TASK_ERROR, itemErrorMessages.toString());
-               }
-           }
-       }
+      // ... 省略无关代码
+      try {
+          process(shardingContexts, executionSource);
+      } finally {
+          // ... 省略无关代码
+          // 根据是否有异常，发布作业状态追踪事件(State.TASK_FINISHED / State.TASK_ERROR)
+          if (itemErrorMessages.isEmpty()) {
+              if (shardingContexts.isAllowSendJobEvent()) {
+                  jobFacade.postJobStatusTraceEvent(taskId, State.TASK_FINISHED, "");
+              }
+          } else {
+              if (shardingContexts.isAllowSendJobEvent()) {
+                  jobFacade.postJobStatusTraceEvent(taskId, State.TASK_ERROR, itemErrorMessages.toString());
+              }
+          }
+      }
     }
     ```
 
@@ -457,9 +471,9 @@ CREATE TABLE `JOB_EXECUTION_LOG` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
 ```
 
-* Elastic-Job-Lite 一次作业**多作业分片项**执行记录如下：
+* Elastic-Job-Lite 一次作业**多作业分片项**执行记录如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/03.png) )：
 
-    ![](../../../images/Elastic-Job/2017_11_14/03.png)
+    ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/03.png)
 
 JobExecutionEvent 在 Elastic-Job-Lite 发布时机：
 
@@ -649,5 +663,14 @@ public final class JobEventRdbListener extends JobEventRdbIdentity implements Jo
 **如何自定义作业监听器？**
 
 有些同学可能希望使用 ES 或者其他数据库存储作业事件，这个时候可以通过实现 JobEventConfiguration、JobEventListener 进行拓展。
+
+# 666. 彩蛋
+
+旁白君：瞎比比了这么长，能不能简单粗暴一点。  
+芋道君：是是是。
+
+![](http://www.yunai.me/images/Elastic-Job/2017_11_14/04.png)
+
+道友，赶紧上车，分享一波朋友圈！
 
 

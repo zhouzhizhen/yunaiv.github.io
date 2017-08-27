@@ -1,3 +1,4 @@
+http://www.yunai.me/Elastic-Job/job-event-trace/
 http://www.yunai.me/Elastic-Job/job-failover/
 http://www.yunai.me/Elastic-Job/job-sharding/
 http://www.yunai.me/Elastic-Job/job-sharding-strategy/
