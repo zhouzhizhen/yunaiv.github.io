@@ -108,6 +108,28 @@ public void post(final JobEvent event) {
 }
 ```
 
+在 Elaistc-Job-Lite 里，LiteJobFacade 对 `JobEventBus#post(...)` 进行封装，提供给作业执行器( AbstractElasticJobExecutor )调用( Elastic-Job-Cloud 实际也进行了封装 )：
+
+```Java
+// LiteJobFacade.java
+@Override
+public void postJobExecutionEvent(final JobExecutionEvent jobExecutionEvent) {
+   jobEventBus.post(jobExecutionEvent);
+}
+    
+@Override
+public void postJobStatusTraceEvent(final String taskId, final State state, final String message) {
+   TaskContext taskContext = TaskContext.from(taskId);
+   jobEventBus.post(new JobStatusTraceEvent(taskContext.getMetaInfo().getJobName(), taskContext.getId(),
+           taskContext.getSlaveId(), Source.LITE_EXECUTOR, taskContext.getType(), taskContext.getMetaInfo().getShardingItems().toString(), state, message));
+   if (!Strings.isNullOrEmpty(message)) {
+       log.trace(message);
+   }
+}
+```
+
+* TaskContext 通过 `#from(...)` 方法，对作业任务ID( `taskId` ) 解析，获取任务上下文。TaskContext 代码注释很完整，点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/8926e94aa7c48dc635a36518da2c4b10194420a5/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/context/TaskContext.java)直接查看。
+
 # 3. 作业事件
 
 目前有两种作业事件( JobEvent )：
@@ -465,5 +487,167 @@ JobExecutionEvent 在 Elastic-Job-Lite 发布时机：
     }
     ```
 
-# 4. 
+## 3.3 作业事件数据库存储
+
+JobEventRdbStorage，作业事件数据库存储。
+
+**创建** JobEventRdbStorage 代码如下：
+
+```Java
+JobEventRdbStorage(final DataSource dataSource) throws SQLException {
+   this.dataSource = dataSource;
+   initTablesAndIndexes();
+}
+    
+private void initTablesAndIndexes() throws SQLException {
+   try (Connection conn = dataSource.getConnection()) {
+       createJobExecutionTableAndIndexIfNeeded(conn);
+       createJobStatusTraceTableAndIndexIfNeeded(conn);
+       databaseType = DatabaseType.valueFrom(conn.getMetaData().getDatabaseProductName());
+   }
+}
+```
+
+* 调用 `#createJobExecutionTableAndIndexIfNeeded(...)` 创建 `JOB_EXECUTION_LOG` 表和索引。
+* 调用 `#createJobStatusTraceTableAndIndexIfNeeded(...)` 创建 `JOB_STATUS_TRACE_LOG` 表和索引。
+
+**存储** JobStatusTraceEvent 代码如下：
+
+```Java
+// JobEventRdbStorage.java
+boolean addJobStatusTraceEvent(final JobStatusTraceEvent jobStatusTraceEvent) {
+   String originalTaskId = jobStatusTraceEvent.getOriginalTaskId();
+   if (State.TASK_STAGING != jobStatusTraceEvent.getState()) {
+       originalTaskId = getOriginalTaskId(jobStatusTraceEvent.getTaskId());
+   }
+   boolean result = false;
+   String sql = "INSERT INTO `" + TABLE_JOB_STATUS_TRACE_LOG + "` (`id`, `job_name`, `original_task_id`, `task_id`, `slave_id`, `source`, `execution_type`, `sharding_item`,  " 
+           + "`state`, `message`, `creation_time`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+   // ... 省略你懂的代码
+}
+    
+private String getOriginalTaskId(final String taskId) {
+   String sql = String.format("SELECT original_task_id FROM %s WHERE task_id = '%s' and state='%s'", TABLE_JOB_STATUS_TRACE_LOG, taskId, State.TASK_STAGING);
+   // ... 省略你懂的代码
+   return original_task_id;
+}
+```
+
+* `originalTaskId`，原任务作业ID。
+    * Elastic-Job-Lite 暂未使用到该字段，存储空串( `""` )。
+    * Elastic-Job-Cloud 使用到，笔者暂未研究到。嘿嘿。
+
+**存储** JobExecutionEvent 代码如下：     
+
+```Java
+// JobEventRdbStorage.java
+boolean addJobExecutionEvent(final JobExecutionEvent jobExecutionEvent) {
+   if (null == jobExecutionEvent.getCompleteTime()) { // 作业分片项执行开始
+       return insertJobExecutionEvent(jobExecutionEvent);
+   } else {
+       if (jobExecutionEvent.isSuccess()) { // 作业分片项执行完成（正常）
+           return updateJobExecutionEventWhenSuccess(jobExecutionEvent);
+       } else { // 作业分片项执行完成（异常）
+           return updateJobExecutionEventFailure(jobExecutionEvent);
+       }
+   }
+}
+```
+
+* 作业分片项执行完成进行的是**更新**操作。
+
+## 3.4 作业事件数据库查询
+
+JobEventRdbSearch，作业事件数据库查询，提供给运维平台调用查询数据。感兴趣的同学点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/8283acf01548222f39f7bfc202a8f89d27728e6c/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/event/rdb/JobEventRdbSearch.java)直接查看。
+
+# 4. 作业监听器
+
+在上文我们看到，作业监听器通过传递作业事件配置( JobEventConfiguration )给作业事件总线( JobEventBus ) **进行创建监听器，并注册监听器到事件总线**。
+
+我们来看下 Elastic-Job 提供的基于**关系数据库**的事件配置实现。
+
+```Java
+// JobEventConfiguration.java
+public interface JobEventConfiguration extends JobEventIdentity {
+    
+    /**
+     * 创建作业事件监听器.
+     * 
+     * @return 作业事件监听器.
+     * @throws JobEventListenerConfigurationException 作业事件监听器配置异常
+     */
+    JobEventListener createJobEventListener() throws JobEventListenerConfigurationException;
+}
+
+// JobEventRdbConfiguration.java
+public final class JobEventRdbConfiguration extends JobEventRdbIdentity implements JobEventConfiguration, Serializable {
+    
+    private final transient DataSource dataSource;
+    
+    @Override
+    public JobEventListener createJobEventListener() throws JobEventListenerConfigurationException {
+        try {
+            return new JobEventRdbListener(dataSource);
+        } catch (final SQLException ex) {
+            throw new JobEventListenerConfigurationException(ex);
+        }
+    }
+
+}
+```
+
+* JobEventRdbConfiguration，作业数据库事件配置。调用 `#createJobEventListener()` 创建作业事件数据库监听器( JobEventRdbListener )。
+
+JobEventRdbListener，作业事件数据库监听器。实现代码如下：
+
+```Java
+// JobEventListener.java
+public interface JobEventListener extends JobEventIdentity {
+    
+    /**
+     * 作业执行事件监听执行.
+     *
+     * @param jobExecutionEvent 作业执行事件
+     */
+    @Subscribe
+    @AllowConcurrentEvents
+    void listen(JobExecutionEvent jobExecutionEvent);
+    
+    /**
+     * 作业状态痕迹事件监听执行.
+     *
+     * @param jobStatusTraceEvent 作业状态痕迹事件
+     */
+    @Subscribe
+    @AllowConcurrentEvents
+    void listen(JobStatusTraceEvent jobStatusTraceEvent);
+}
+
+// JobEventRdbListener.java
+public final class JobEventRdbListener extends JobEventRdbIdentity implements JobEventListener {
+    
+    private final JobEventRdbStorage repository;
+    
+    public JobEventRdbListener(final DataSource dataSource) throws SQLException {
+        repository = new JobEventRdbStorage(dataSource);
+    }
+    
+    @Override
+    public void listen(final JobExecutionEvent executionEvent) {
+        repository.addJobExecutionEvent(executionEvent);
+    }
+    
+    @Override
+    public void listen(final JobStatusTraceEvent jobStatusTraceEvent) {
+        repository.addJobStatusTraceEvent(jobStatusTraceEvent);
+    }
+}
+```
+
+* 通过 JobEventRdbStorage 存储作业事件到关系型数据库。
+
+**如何自定义作业监听器？**
+
+有些同学可能希望使用 ES 或者其他数据库存储作业事件，这个时候可以通过实现 JobEventConfiguration、JobEventListener 进行拓展。
+
 
