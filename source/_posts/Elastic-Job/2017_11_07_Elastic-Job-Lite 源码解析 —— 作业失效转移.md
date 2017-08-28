@@ -279,7 +279,7 @@ public ShardingContexts getShardingContexts() {
 }
 ```
 
-* 调用 `FailoverService#getLocalFailoverItems()` 方法，获取运行在本作业服务器的失效转移分片项集合。
+* 调用 `FailoverService#getLocalFailoverItems()` 方法，获取运行在本作业节点的失效转移分片项集合。
 
     ```Java
     // FailoverService.java
@@ -292,7 +292,41 @@ public ShardingContexts getShardingContexts() {
     ```
 
 * 调用 `ExecutionContextService#getJobShardingContext()` 方法，获取当前作业服务器分片上下文。在[《Elastic-Job-Lite 源码解析 —— 作业分片》「4. 获取作业分片上下文集合」](http://www.yunai.me/Elastic-Job/job-sharding/?self)有详细解析。
-* TODO
+* 当本作业节点不存在抓取的失效转移分片项，则获得分配给本作业分解的作业分片项。此时你会看到略奇怪的方法调用，`shardingItems.removeAll(failoverService.getLocalTakeOffItems())`。为什么呢？举个例子，作业节点A持有作业分片项[0, 1]，此时异常断网，导致[0, 1]被作业节点B失效转移抓取，此时若作业节点A恢复，作业分片项[0, 1]依然属于作业节点A，但是可能已经在作业节点B执行，因此需要进行移除，避免多节点运行相同的作业分片项。`FailoverService#getLocalTakeOffItems()` 方法实现代码如下：
+
+    ```Java
+    // FailoverService.java
+    /**
+    * 获取运行在本作业服务器的被失效转移的序列号.
+    * 
+    * @return 运行在本作业服务器的被失效转移的序列号
+    */
+    public List<Integer> getLocalTakeOffItems() {
+       List<Integer> shardingItems = shardingService.getLocalShardingItems();
+       List<Integer> result = new ArrayList<>(shardingItems.size());
+       for (int each : shardingItems) {
+           if (jobNodeStorage.isJobNodeExisted(FailoverNode.getExecutionFailoverNode(each))) {
+               result.add(each);
+           }
+       }
+       return result;
+    }
+    ```
+
+# 5. 监听作业失效转移功能关闭
+
+```Java
+class FailoverSettingsChangedJobListener extends AbstractJobListener {
+        
+   @Override
+   protected void dataChanged(final String path, final Type eventType, final String data) {
+       if (configNode.isConfigPath(path) && Type.NODE_UPDATED == eventType
+               && !LiteJobConfigurationGsonFactory.fromJson(data).isFailover()) { // 关闭失效转移功能
+           failoverService.removeFailoverInfo();
+       }
+   }
+}
+```
 
 # 666. 彩蛋
 
