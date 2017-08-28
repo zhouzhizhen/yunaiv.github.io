@@ -222,7 +222,7 @@ public boolean isLeaderUntilBlock() {
 }
 ```
 
-* TODO 
+* 调用 `BlockUtils#waitingShortTime()` 方法，选举不到主节点进行等待，避免不间断、无间隔的进行主节点选举。
 
 # 4. 删除主节点
 
