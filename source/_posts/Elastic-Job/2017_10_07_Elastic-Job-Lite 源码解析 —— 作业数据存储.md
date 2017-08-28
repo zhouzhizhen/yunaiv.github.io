@@ -230,7 +230,7 @@ ShardingNode，分片节点路径。
 ```
 
 * `/sharding/${ITEM_ID}` 目录下以作业分片项序号( `ITEM_ID` ) 为数据节点路径存储作业分片项的 `instance` / `running` / `misfire` / `disable` **数据节点**信息。
-* `/sharding/${ITEM_ID}/instance` 是**临时**节点，存储该作业分片项**分配到的作业实例主键**( `JOB_INSTANCE_ID` )。在[《Elastic-Job-Lite 源码分析 —— 作业分片》](http://www.yunai.me/Elastic-Job/ob-sharding/?self)详细解析。
+* `/sharding/${ITEM_ID}/instance` 是**临时**节点，存储该作业分片项**分配到的作业实例主键**( `JOB_INSTANCE_ID` )。在[《Elastic-Job-Lite 源码分析 —— 作业分片》](http://www.yunai.me/Elastic-Job/job-sharding/?self)详细解析。
 * `/sharding/${ITEM_ID}/running` 是**临时**节点，当该作业分片项**正在运行**，存储空串( `""` )；当该作业分片项**不在运行**，移除该数据节点。[《Elastic-Job-Lite 源码分析 —— 作业执行》的「4.6」执行普通触发的作业](http://www.yunai.me/Elastic-Job/job-init/?self)已经详细解析。
 * `/sharding/${ITEM_ID}/misfire` 是**永久节点**，当该作业分片项**被错过执行**，存储空串( `""` )；当该作业分片项重新执行，移除该数据节点。[《Elastic-Job-Lite 源码分析 —— 作业执行》的「4.7」执行被错过触发的作业](http://www.yunai.me/Elastic-Job/job-init/?self)已经详细解析。
 * `/sharding/${ITEM_ID}/disable` 是**永久节点**，当该作业分片项**被禁用**，存储空串( `""` )；当该作业分片项**被开启**，移除数据节点。
@@ -379,7 +379,7 @@ public final class FailoverNode {
 
 # 10. GuaranteeNode
 
-GuaranteeNode，保证分布式任务全部开始和结束状态节点路径。在[《Elastic-Job-Lite 源码分析 —— 保证分布式任务全部开始和结束状态》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细解析。
+GuaranteeNode，保证分布式任务全部开始和结束状态节点路径。在[《Elastic-Job-Lite 源码分析 —— 作业监听器》](http://www.yunai.me/Elastic-Job/job-listener/?self)详细解析。
 
 # 666. 彩蛋
 

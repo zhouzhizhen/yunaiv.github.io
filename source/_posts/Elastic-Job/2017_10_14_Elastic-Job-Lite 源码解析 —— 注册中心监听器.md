@@ -255,7 +255,7 @@ public final class ShardingListenerManager extends AbstractListenerManager {
 }
 ```
 
-* 在[《Elastic-Job-Lite 源码解析 —— 任务分片》](http://www.yunai.me/Elastic-Job/ob-sharding/?self)详细解析。
+* 在[《Elastic-Job-Lite 源码解析 —— 任务分片》](http://www.yunai.me/Elastic-Job/job-sharding/?self)详细解析。
 
 # 5. RegistryCenterConnectionStateListener
 

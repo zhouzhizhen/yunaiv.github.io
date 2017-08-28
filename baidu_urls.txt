@@ -1,3 +1,6 @@
+http://www.yunai.me/Elastic-Job/job-monitor/
+http://www.yunai.me/Elastic-Job/reconcile/
+http://www.yunai.me/Elastic-Job/job-listener/
 http://www.yunai.me/Elastic-Job/job-event-trace/
 http://www.yunai.me/Elastic-Job/job-failover/
 http://www.yunai.me/Elastic-Job/job-sharding/

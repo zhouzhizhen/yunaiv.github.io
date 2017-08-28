@@ -272,7 +272,7 @@ public final class JobShardingStrategyFactory {
 # 666. 彩蛋
 
 旁白君：雾草，刚夸奖你，就又开始水更。  
-芋道君：咳咳咳，作业分片策略炒鸡重要的好不好！嘿嘿嘿，为[《Elastic-Job-Lite 源码分析 —— 作业分片》](http://www.yunai.me/Elastic-Job/ob-sharding/?self)做个铺垫嘛。
+芋道君：咳咳咳，作业分片策略炒鸡重要的好不好！嘿嘿嘿，为[《Elastic-Job-Lite 源码分析 —— 作业分片》](http://www.yunai.me/Elastic-Job/job-sharding/?self)做个铺垫嘛。
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_10_26/02.png)
 

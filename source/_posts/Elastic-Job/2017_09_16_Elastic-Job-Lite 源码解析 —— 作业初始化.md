@@ -198,7 +198,7 @@ public class JobScheduler {
     ```
     * `jobInstanceId` 格式：`${IP}@-@${PID}`。其中 `PID` 为进程编号。同一个 Elastic-Job-Lite 实例，**不同**的作业使用**相同**的作业实例主键。
     
-* 设置作业监听器，在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 设置作业监听器，在[《Elastic-Job-Lite 源码解析 —— 作业监听器》](http://www.yunai.me/Elastic-Job/job-listener/?self)详细分享。
 * SchedulerFacade，为**调度器**提供内部服务的门面类。
 
     ```Java
@@ -528,9 +528,9 @@ public void registerStartUpInfo(final boolean enabled) {
     }
     ```
 
-* 设置需要重新分片的标记，在[《Elastic-Job-Lite 源码解析 —— 作业分片》](http://www.yunai.me/Elastic-Job/ob-sharding/?self)详细分享。
-* 初始化作业监听服务，在[《Elastic-Job-Lite 源码解析 —— 作业监控服务》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
-* 初始化调解作业不一致状态服务，在[《Elastic-Job-Lite 源码解析 —— 作业不一致修复》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+* 设置需要重新分片的标记，在[《Elastic-Job-Lite 源码解析 —— 作业分片》](http://www.yunai.me/Elastic-Job/job-sharding/?self)详细分享。
+* 初始化作业监听服务，在[《Elastic-Job-Lite 源码解析 —— 作业监控服务》](http://www.yunai.me/Elastic-Job/job-monitor/?self)详细分享。
+* 初始化调解作业不一致状态服务，在[《Elastic-Job-Lite 源码解析 —— 自诊断修复》](http://www.yunai.me/Elastic-Job/reconcile/?self)详细分享。
 
 ### 3.2.5 调度作业
 

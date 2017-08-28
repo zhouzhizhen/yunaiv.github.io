@@ -171,7 +171,7 @@ class ListenServersChangedJobListener extends AbstractJobListener {
 * 第一种，`#isServerChange(...)` 服务器被开启或禁用。
 * 第二种，`#isInstanceChange(...)` 作业节点新增或者移除。
 
-**第四种**，在[《Elastic-Job-Lite 源码解析 —— 自诊断修复》](http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg)详细分享。
+**第四种**，在[《Elastic-Job-Lite 源码解析 —— 自诊断修复》](http://www.yunai.me/Elastic-Job/reconcile/?self)详细分享。
 
 # 3. 分配作业分片项
 
