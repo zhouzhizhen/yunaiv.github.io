@@ -1,0 +1,534 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+
+  
+    <title>闲聊如何阅读源码（音频） | 芋道源码 —— 纯源码解析BLOG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="王文斌">
+    
+    <meta name="description" content="0. 从零开始腾讯视频：TODO 审核中
+请关注笔者的公众号：芋道源码
+
+专注源码解析三十年！
+专注源码解析三十年！
+专注源码解析三十年！
+
+
+1. 调试通过 IDE 工具调试的方式阅读源码。
+1.1 Elastic-Job
+GitHub地址：https://github.com/dangdangd">
+    
+
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表">
+    
+
+    
+    
+    <link rel="alternate" href="atom.xml" title="芋道源码 —— 纯源码解析BLOG" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/images/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='ef4ed89f6dc83d01803a2440ae21e666';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</head>
+</html>
+  <body>
+    <header>
+      <div>
+    
+    <div id="textlogo">
+        <h1 class="site-name"><a href="/" title="芋道源码 —— 纯源码解析BLOG">芋道源码 —— 纯源码解析BLOG</a></h1>
+        <a class="blog-motto">
+            
+            愿半生编码，如一生老友！
+            
+        </a>
+    </div>
+    <div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+        </a></div>
+    <nav class="animated">
+        <ul>
+            <ul>
+                
+                <li><a href="/">文章</a></li>
+                
+                <li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li>
+                
+                <li><a href="http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li>
+                
+                <li><a href="/link_url">友链</a></li>
+                
+                <!--<li>-->
+                    <!---->
+                        <!--<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">-->
+                            <!--<label>Search</label>-->
+                            <!--<input type="text" id="search" name="q" autocomplete="off" maxlength="20"-->
+                                   <!--placeholder="搜索"/>-->
+                            <!--<input type="hidden" name="q" value="site:www.yunai.me">-->
+                        <!--</form>-->
+                        <!---->
+                <!--</li>-->
+            </ul>
+    </ul></nav>
+</div>
+
+    </header>
+    <div id="container">
+        <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="toc" class="toc-aside">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-从零开始"><span class="toc-number">1.</span> <span class="toc-text">0. 从零开始</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-调试"><span class="toc-number">2.</span> <span class="toc-text">1. 调试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-Elastic-Job"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 Elastic-Job</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Sharding-JDBC"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 Sharding-JDBC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-MyCAT"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 MyCAT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-RocketMQ"><span class="toc-number">2.4.</span> <span class="toc-text">1.4 RocketMQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-补充"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 补充</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-UML图"><span class="toc-number">3.</span> <span class="toc-text">2. UML图</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-输出"><span class="toc-number">4.</span> <span class="toc-text">3. 输出</span></a></li></ol>
+</div>
+
+<div id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!---->
+            <!--<div class="author-logo"></div>-->
+            <!---->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"> </div>
+
+            <div class="social-list">
+                
+                
+                
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="categorieslist">
+    <p class="asidetitle">微信公众号福利：芋道源码</p>
+    <ul>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 0. 阅读源码葵花宝典 </a></li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 2. 您对于源码的疑问每条留言都将得到认真回复 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 3. 新的源码解析文章实时收到通知，每周六十点更新 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群 </a> </li>
+
+
+    </ul>
+</div>
+        
+        
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Elastic-Job/" title="Elastic-Job">Elastic-Job<sup>15</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li>
+		
+			<li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+        
+    </aside>
+</div>
+        <div id="main" class="post" itemscope="" itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/Architecture/how-to-read-source-code/" title="闲聊如何阅读源码（音频）" itemprop="url">闲聊如何阅读源码（音频）</a>
+  </h1>
+  <p class="article-author">
+      <!--By-->
+    <!---->
+      <!--<a href="http://www.yunai.me" title="王文斌">王文斌</a>-->
+    <!---->
+  </p>
+  <p class="article-time">
+    <!--<time datetime="2017-12-01T16:00:00.000Z" itemprop="datePublished">2017-12-02</time>-->
+    <!--更新日期:<time datetime="2017-08-28T21:05:41.000Z" itemprop="dateModified">2017-08-29</time>-->
+    <!---->
+      总阅读量:<span id="busuanzi_value_page_pv"></span>次
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<h1 id="0-从零开始"><a href="#0-从零开始" class="headerlink" title="0. 从零开始"></a>0. 从零开始</h1><p>腾讯视频：TODO 审核中</p>
+<p>请关注笔者的公众号：芋道源码</p>
+<ul>
+<li>专注源码解析三十年！</li>
+<li>专注源码解析三十年！</li>
+<li>专注源码解析三十年！</li>
+<li><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></li>
+</ul>
+<h1 id="1-调试"><a href="#1-调试" class="headerlink" title="1. 调试"></a>1. 调试</h1><p>通过 IDE 工具<strong>调试</strong>的方式阅读源码。</p>
+<h2 id="1-1-Elastic-Job"><a href="#1-1-Elastic-Job" class="headerlink" title="1.1 Elastic-Job"></a>1.1 Elastic-Job</h2><ul>
+<li>GitHub地址：<a href="https://github.com/dangdangdotcom/elastic-job" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/dangdangdotcom/elastic-job</a><ul>
+<li>开源不易，请点 Star 支持。</li>
+<li>个人 Fork，增加部分中文注释 GitHub地址：<a href="https://github.com/YunaiV/elastic-job" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/YunaiV/elastic-job</a></li>
+</ul>
+</li>
+<li>为什么阅读 Elastic-Job 源码？：<a href="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/">http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/</a></li>
+<li>调试方式：<code>com.dangdang.ddframe.job.example.JavaMain</code> 直接 DEBUG 即可。</li>
+</ul>
+<h2 id="1-2-Sharding-JDBC"><a href="#1-2-Sharding-JDBC" class="headerlink" title="1.2 Sharding-JDBC"></a>1.2 Sharding-JDBC</h2><ul>
+<li>GitHub地址：<a href="https://github.com/dangdangdotcom/sharding-jdbc" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/dangdangdotcom/sharding-jdbc</a><ul>
+<li>开源不易，请点 Star 支持。</li>
+<li>个人 Fork，增加部分中文注释 GitHub地址：<a href="https://github.com/YunaiV/sharding-jdbc" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/YunaiV/sharding-jdbc</a><ul>
+<li>基于 Sharding-JDBC V1.5.1 版本，建议阅读最新版本代码，我的可以作为注释补充。 </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>为什么阅读 Sharding-JDBC 源码？：<a href="http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/">http://www.yunai.me/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</a></li>
+<li>调试方式：<code>com.dangdang.ddframe.rdb.sharding.example.jdbc.Main</code> 配置数据源后可以 DEBUG。</li>
+<li>拆解图：<img src="http://www.yunai.me/images/Architecture/2017_12_02/01.png" alt=""></li>
+</ul>
+<h2 id="1-3-MyCAT"><a href="#1-3-MyCAT" class="headerlink" title="1.3 MyCAT"></a>1.3 MyCAT</h2><ul>
+<li>GitHub地址：<a href="https://github.com/MyCATApache/Mycat-Server" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/MyCATApache/Mycat-Server</a><ul>
+<li>开源不易，请点 Star 支持。</li>
+<li>个人 Fork，增加部分中文注释 GitHub地址：<a href="https://github.com/YunaiV/Mycat-Server" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/YunaiV/Mycat-Server</a></li>
+</ul>
+</li>
+<li>为什么阅读 MyCAT 源码？：<a href="http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/">http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</a></li>
+<li>调试方式：<a href="http://www.yunai.me/MyCAT/build-debugging-environment/">http://www.yunai.me/MyCAT/build-debugging-environment/</a></li>
+</ul>
+<h2 id="1-4-RocketMQ"><a href="#1-4-RocketMQ" class="headerlink" title="1.4 RocketMQ"></a>1.4 RocketMQ</h2><ul>
+<li>GitHub地址：<a href="https://github.com/apache/incubator-rocketmq" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/apache/incubator-rocketmq</a><ul>
+<li>开源不易，请点 Star 支持。</li>
+<li>个人 Fork，增加部分中文注释 GitHub地址：<a href="https://github.com/YunaiV/incubator-rocketmq" rel="external nofollow noopener noreferrer" target="_blank">https://github.com/YunaiV/incubator-rocketmq</a></li>
+</ul>
+</li>
+<li>为什么阅读 RocketMQ 源码？：<a href="http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/">http://www.yunai.me/RocketMQ/why-read-RocketMQ-source-code/</a></li>
+<li>调试方式：有点想不起来了。以后补充哈。</li>
+</ul>
+<h2 id="1-5-补充"><a href="#1-5-补充" class="headerlink" title="1.5 补充"></a>1.5 补充</h2><p>如果源码比较多，你不太清楚按照什么样的功能顺序调试下去，可以参考我写的博客。这个不是广告。确实有朋友是对照着博客顺序调试的。</p>
+<h1 id="2-UML图"><a href="#2-UML图" class="headerlink" title="2. UML图"></a>2. UML图</h1><p>推荐使用 Astah 社区版。对的，不要考虑破解不破解的。社区版，够！</p>
+<p>另外，请不要纠结用什么 UML 工具牛逼！重点先迈出调试源码那一步，其他的，慢慢优化。</p>
+<p>推荐画两种图：</p>
+<ul>
+<li><p>类图：对整体、或者某个模块，有系统性的认识。</p>
+<p>  <img src="http://www.yunai.me/images/Architecture/2017_12_02/02.png" alt=""></p>
+</li>
+<li><p>顺序图：对流程的调用顺序有整体的认识，避免调试，越调试越晕。</p>
+<p>  <img src="http://www.yunai.me/images/Architecture/2017_12_02/03.png" alt=""></p>
+</li>
+</ul>
+<p>如果你不会画 UML 图，直接直接 Google，不要去找什么 UML 的书，先干起来！</p>
+<p>恩，笔者不排除看 UML 书，因为，我也看过几本，收获不小，哈哈哈哈。</p>
+<h1 id="3-输出"><a href="#3-输出" class="headerlink" title="3. 输出"></a>3. 输出</h1><p>阅读源码，不尝试输出，就是在耍流氓。</p>
+<p>推荐三种输出方式：</p>
+<ol>
+<li>写博客。</li>
+<li>团队分享。</li>
+<li>造小轮。</li>
+</ol>
+<p>刚开始推荐写博客。对的，不太建议只写自己看得懂的笔记。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/技术杂文/">技术杂文</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.yunai.me/Architecture/how-to-read-source-code/" data-title="闲聊如何阅读源码（音频） | 芋道源码 —— 纯源码解析BLOG" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/Elastic-Job/job-monitor/" title="Elastic-Job-Lite 源码分析 —— 作业监控服务">
+ <strong>NEXT:</strong><br> 
+ <span>Elastic-Job-Lite 源码分析 —— 作业监控服务
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+    </div>
+    <footer><div id="footer">
+    <img src="http://www.yunai.me/images/common/wechat_mp_simple.png" style="display: none">
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://www.yunai.me" target="_blank" title="王文斌">王文斌</a>
+		
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a>
+            </p></div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/alert/css/alert.css">
+<script src="/alert/js/alert.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+
+<script>
+
+    $(document).ready(function(){
+//        alert('啦啦啦');
+        if (location.href.indexOf('vip') >= 0
+            || location.href.indexOf('127.0.0.1')>= 0) {
+            return;
+        }
+
+        var key = 'doubi';
+        var count = $.cookie(key);
+        if (!count) {
+            $.cookie(key, 0, { expires: 1, path: '/' });
+            count = 0;
+        } else {
+            count = parseInt(count);
+        }
+        $.cookie(key, count, { expires: 1, path: '/' });
+
+        var from = 'default';
+        var map = {
+            'juejin': '掘金', 'oschina': '开源中国', 'sjdbc': 'Sharding-JDBC',
+            'jianshu': '简书', 'csdn': 'CSDN', 'iteye': 'iteye', 'cnblogs': '博客园'
+        };
+        for (var item in map) {
+            if (location.search.indexOf(item) >= 0) {
+                from = item;
+                break;
+            }
+        }
+        if (from === 'default') {
+            from = $.cookie('from') || 'default';
+        }
+        $.cookie('from', from, { expires: 365, path: '/' });
+        var prefix = '';
+        var prefix2 = '';
+        if (from && map[from]) {
+            prefix = '<p style="color: red">欢迎来自【' + map[from] + '】的同学</p>';
+            prefix2 = '【' +  map[from] + '】';
+        }
+//        count = 1;
+        if (count <= 1) {
+            var hour = new Date().getHours();
+            var numbers = 103 + hour * 5;
+            function explode() {
+
+                var doubi = jqueryAlert({
+                    'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
+                    'width'   : '500',
+                    'height'  : '600',
+                    'modal': true,
+                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
+                        + '<p style="color: red">抱歉，该弹窗每天弹出一次。</p>'
+                    ,
+                    'buttons' :{
+                        '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
+                            doubi.close();
+                        }
+                    }
+                });
+                $.cookie(key, count + 1, { expires: 1 , path: '/'});
+            }
+            setTimeout(explode, ( count + 1 ) * 20000);
+        }
+    })
+</script>
+
+
+
+
+  </body>
+
+

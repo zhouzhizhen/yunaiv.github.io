@@ -4,6 +4,24 @@
 
     
   <url>
+    <loc>http://www.yunai.me/Architecture/how-to-read-source-code/</loc>
+    <lastmod>2017-08-28T21:05:41.000Z</lastmod>
+    <data>
+        <display>
+        <title>闲聊如何阅读源码（音频）</title>
+        <pubTime>2017-12-01T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.yunai.me/Elastic-Job/job-failover/</loc>
     <lastmod>2017-08-28T18:30:09.000Z</lastmod>
     <data>
@@ -325,17 +343,17 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-7/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>Nginx 动态配置 upstream</title>
-        <pubTime>2017-01-06T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 解析（七）之DDL</title>
+        <pubTime>2017-08-02T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Nginx" url="http://www.yunai.me/categories/Nginx/"/>
+              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
           
         </display>
     </data>
@@ -343,17 +361,17 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Docker/docker-learning-notes/</loc>
+    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>Docker —— 学习笔记</title>
-        <pubTime>2017-01-05T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
+        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Docker" url="http://www.yunai.me/categories/Docker/"/>
+              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
           
         </display>
     </data>
@@ -367,24 +385,6 @@
         <display>
         <title>MyCAT 源码分析  —— PreparedStatement 重新入门</title>
         <pubTime>2017-07-16T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/MyCAT/xa-distributed-transaction/</loc>
-    <lastmod>2017-08-14T18:34:13.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析  —— XA分布式事务</title>
-        <pubTime>2017-07-14T16:00:00.000Z</pubTime>
         
          
            
@@ -505,12 +505,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/MyCAT/connect-mongodb/</loc>
+    <loc>http://www.yunai.me/MyCAT/xa-distributed-transaction/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>MyCAT 源码分析  —— SQL ON MongoDB</title>
-        <pubTime>2017-07-18T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析  —— XA分布式事务</title>
+        <pubTime>2017-07-14T16:00:00.000Z</pubTime>
         
          
            
@@ -541,12 +541,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/MyCAT/two-table-share-join/</loc>
+    <loc>http://www.yunai.me/MyCAT/connect-mongodb/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>MyCAT 源码分析  —— 跨库两表Join</title>
-        <pubTime>2017-07-11T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析  —— SQL ON MongoDB</title>
+        <pubTime>2017-07-18T16:00:00.000Z</pubTime>
         
          
            
@@ -631,12 +631,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/MyCAT/sharding-result-merge-first/</loc>
+    <loc>http://www.yunai.me/MyCAT/two-table-share-join/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
-        <pubTime>2017-06-12T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析  —— 跨库两表Join</title>
+        <pubTime>2017-07-11T16:00:00.000Z</pubTime>
         
          
            
@@ -649,12 +649,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/MyCAT/single-db-single-table-insert/</loc>
+    <loc>http://www.yunai.me/MyCAT/sharding-result-merge-first/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>MyCAT 源码分析 —— 【单库单表】插入</title>
-        <pubTime>2017-05-28T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
+        <pubTime>2017-06-12T16:00:00.000Z</pubTime>
         
          
            
@@ -685,6 +685,24 @@
 
     
   <url>
+    <loc>http://www.yunai.me/MyCAT/single-db-single-table-insert/</loc>
+    <lastmod>2017-08-14T18:34:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码分析 —— 【单库单表】插入</title>
+        <pubTime>2017-05-28T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.yunai.me/MyCAT/single-db-single-table-select/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
@@ -703,35 +721,17 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
+    <loc>http://www.yunai.me/Nginx/nginx-dynamic-upstream/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— 高可用</title>
-        <pubTime>2017-05-13T16:00:00.000Z</pubTime>
+        <title>Nginx 动态配置 upstream</title>
+        <pubTime>2017-01-06T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-7/</loc>
-    <lastmod>2017-08-14T18:34:13.000Z</lastmod>
-    <data>
-        <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 解析（七）之DDL</title>
-        <pubTime>2017-08-02T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
+              <breadCrumb title="Nginx" url="http://www.yunai.me/categories/Nginx/"/>
           
         </display>
     </data>
@@ -775,12 +775,12 @@
 
     
   <url>
-    <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.yunai.me/RocketMQ/high-availability/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
-        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— 高可用</title>
+        <pubTime>2017-05-13T16:00:00.000Z</pubTime>
         
          
            
@@ -811,17 +811,17 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    <loc>http://www.yunai.me/Docker/docker-learning-notes/</loc>
     <lastmod>2017-08-14T18:34:13.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— JDBC实现与读写分离</title>
-        <pubTime>2017-08-17T16:00:00.000Z</pubTime>
+        <title>Docker —— 学习笔记</title>
+        <pubTime>2017-01-05T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
+              <breadCrumb title="Docker" url="http://www.yunai.me/categories/Docker/"/>
           
         </display>
     </data>
@@ -883,6 +883,24 @@
 
     
   <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    <lastmod>2017-08-14T18:34:13.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— JDBC实现与读写分离</title>
+        <pubTime>2017-08-17T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.yunai.me/RocketMQ/message-transaction/</loc>
     <lastmod>2017-08-14T18:34:12.000Z</lastmod>
     <data>
@@ -919,24 +937,6 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-3/</loc>
-    <lastmod>2017-08-14T18:34:12.000Z</lastmod>
-    <data>
-        <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL</title>
-        <pubTime>2017-07-26T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.yunai.me/MyCAT/why-read-MyCAT-source-code/</loc>
     <lastmod>2017-08-14T18:34:12.000Z</lastmod>
     <data>
@@ -948,6 +948,24 @@
            
              
               <breadCrumb title="MyCAT" url="http://www.yunai.me/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Sharding-JDBC/sql-parse-3/</loc>
+    <lastmod>2017-08-14T18:34:12.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL</title>
+        <pubTime>2017-07-26T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.yunai.me/categories/Sharding-JDBC/"/>
           
         </display>
     </data>
@@ -1081,24 +1099,6 @@
 
     
   <url>
-    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
-    <lastmod>2017-08-14T18:34:12.000Z</lastmod>
-    <data>
-        <display>
-        <title>谈谈单元测试</title>
-        <pubTime>2017-03-18T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.yunai.me/RocketMQ/message-pull-and-consume-first/</loc>
     <lastmod>2017-08-14T18:34:12.000Z</lastmod>
     <data>
@@ -1110,6 +1110,24 @@
            
              
               <breadCrumb title="RocketMQ" url="http://www.yunai.me/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.yunai.me/Architecture/talk-about-java-unit-test/</loc>
+    <lastmod>2017-08-14T18:34:12.000Z</lastmod>
+    <data>
+        <display>
+        <title>谈谈单元测试</title>
+        <pubTime>2017-03-18T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="技术杂文" url="http://www.yunai.me/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
           
         </display>
     </data>
