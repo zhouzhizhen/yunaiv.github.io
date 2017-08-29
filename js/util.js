@@ -24,7 +24,7 @@ if(count<1){var hour=new Date().getHours();var numbers=103+hour*5;function explo
 +'<p style="color: red">一起看源码，读源码，提升技术！</p>'
 +'<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
 +'<p style="color: blue">抱歉，该弹窗每天弹出一次。</p>','buttons':{'已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）':function(){doubi.close();}}});$.cookie(key,count+1,{expires:1,path:'/'});}
-setTimeout(explode,(count+1)*1000);};}
+setTimeout(explode,(count+1)*20000);};}
 $(document).ready(function(){if(isDomainVIP()){console.log('vip域名，跳转中');var search=location.search;if(search&&search.length>0){search+='vip';}else{search+='?vip';}
 window.location.href='http://www.yunai.me'+search;return;}
 var from=getFrom();if(isMobile()){console.log('手机端，不用弹窗');$('#authorInfo').remove();$('time').remove();return;}
