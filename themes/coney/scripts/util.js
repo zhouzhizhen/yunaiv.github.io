@@ -9,7 +9,7 @@ var map = {
 function isVIP() {
 //        debugger;
     var vip = false;
-    if (location.href.indexOf('vip') >= 0) {
+    if (location.hostname.indexOf('vip') >= 0) {
         vip = true;
     }
     if (!vip && location.search.indexOf('vip') >= 0) {
@@ -52,7 +52,7 @@ function isMobile() {
 }
 
 function isDomainVIP() {
-    return location.href.indexOf('vip') >= 0;
+    return location.hostname.indexOf('vip') >= 0;
 }
 
 function getCount() {

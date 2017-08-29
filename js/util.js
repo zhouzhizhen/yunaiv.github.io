@@ -1,5 +1,5 @@
 
-var cookie_vip_key="irV8jfnifwlj9o0Y";var cookie_vip_val="iGL4OvQbzTfToq5m";var key='doubi';var map={'juejin':'掘金','oschina':'开源中国','sjdbc':'Sharding-JDBC','jianshu':'简书','csdn':'CSDN','iteye':'iteye','cnblogs':'博客园'};function isVIP(){var vip=false;if(location.href.indexOf('vip')>=0){vip=true;}
+var cookie_vip_key="irV8jfnifwlj9o0Y";var cookie_vip_val="iGL4OvQbzTfToq5m";var key='doubi';var map={'juejin':'掘金','oschina':'开源中国','sjdbc':'Sharding-JDBC','jianshu':'简书','csdn':'CSDN','iteye':'iteye','cnblogs':'博客园'};function isVIP(){var vip=false;if(location.hostname.indexOf('vip')>=0){vip=true;}
 if(!vip&&location.search.indexOf('vip')>=0){vip=true;}
 if(vip){$.cookie(cookie_vip_key,cookie_vip_val,{expires:365,path:'/'});}
 var cookieVIP=$.cookie(cookie_vip_key);if(cookieVIP===cookie_vip_val){return true;}
@@ -8,7 +8,7 @@ function getFrom(){var from='default';for(var item in map){if(location.search.in
 if(from==='default'){from=$.cookie('from')||'default';}
 $.cookie('from',from,{expires:365,path:'/'});return from;}
 function isMobile(){if(/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)){return true;}else if(/(Android)/i.test(navigator.userAgent)){return true;}else{return false;}}
-function isDomainVIP(){return location.href.indexOf('vip')>=0;}
+function isDomainVIP(){return location.hostname.indexOf('vip')>=0;}
 function getCount(){var count=$.cookie(key);if(!count){$.cookie(key,0,{expires:1,path:'/'});count=0;}else{count=parseInt(count);}
 $.cookie(key,count,{expires:1,path:'/'});return count;}
 function handleVIPURL(){if(isVIP()){return;}
