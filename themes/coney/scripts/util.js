@@ -180,7 +180,7 @@ $(document).ready(function(){
         // debugger;
         var search = location.search;
         if (search && search.length > 0) {
-            search += 'vip';
+            search += '&vip';
         } else {
             search += '?vip';
         }
