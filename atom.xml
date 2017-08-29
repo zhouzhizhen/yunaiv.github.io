@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-08-29T04:52:39.000Z</updated>
+  <updated>2017-08-29T10:38:57.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -14,6 +14,107 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Elastic-Job-Lite 源码分析 —— 运维平台</title>
+    <link href="http://www.yunai.me/Elastic-Job/job-console/"/>
+    <id>http://www.yunai.me/Elastic-Job/job-console/</id>
+    <published>2017-12-06T16:00:00.000Z</published>
+    <updated>2017-08-29T10:38:57.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. Maven模块 elastic-job-common-restful</a></li>
+<li><a href="#">3. Maven模块 elastic-job-console</a></li>
+<li><a href="#">4. Maven模块 elastic-job-lite-lifecycle</a></li>
+<li><a href="#">5. 其它</a></li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：  </p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表  </li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong>  </li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。  </li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。  </li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Lite 运维平台</strong>。内容对应<a href="http://dangdangdotcom.github.io/elastic-job/elastic-job-lite/02-guide/web-console/" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— 运维平台》</a>。</p>
+<p>运维平台实现上比较易懂，就不特别<strong>啰嗦</strong>的解析，简略说下每个类的用途和 UI 上的关联。</p>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>同理，开源项目贡献者会因为 Star 而更加有动力<br>为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1 id="2-Maven模块-elastic-job-common-restful"><a href="#2-Maven模块-elastic-job-common-restful" class="headerlink" title="2. Maven模块 elastic-job-common-restful"></a>2. Maven模块 elastic-job-common-restful</h1><ol>
+<li>RestfulServer 内嵌服务器，基于 Jetty 实现</li>
+<li>GSONProvider 后端接口 JSON 格式化 </li>
+<li>RestfulExceptionMapper 异常映射</li>
+<li>WwwAuthFilter 授权认证 Filter</li>
+</ol>
+<h1 id="3-Maven模块-elastic-job-console"><a href="#3-Maven模块-elastic-job-console" class="headerlink" title="3. Maven模块 elastic-job-console"></a>3. Maven模块 elastic-job-console</h1><h2 id="3-1-domain-包"><a href="#3-1-domain-包" class="headerlink" title="3.1 domain 包"></a>3.1 domain 包</h2><ul>
+<li>RegistryCenterConfigurations / RegistryCenterConfiguration ：注册中心配置实体相关。</li>
+<li>EventTraceDataSourceConfigurations / EventTraceDataSourceConfiguration / EventTraceDataSource / EventTraceDataSourceFactory ：事件事件追踪数据源配置实体相关。</li>
+</ul>
+<h2 id="3-2-filter-包"><a href="#3-2-filter-包" class="headerlink" title="3.2 filter 包"></a>3.2 filter 包</h2><ul>
+<li>GlobalConfigurationFilter ：全局配置过滤器，加载当前会话( HttpSession ) 选择的 RegistryCenterConfiguration / EventTraceDataSource 。</li>
+</ul>
+<h2 id="3-3-repository-包"><a href="#3-3-repository-包" class="headerlink" title="3.3 repository 包"></a>3.3 repository 包</h2><p>使用 <strong>XML文件</strong> 存储 EventTraceDataSource / RegistryCenterConfiguration 配置实体。</p>
+<h2 id="3-4-restful-包"><a href="#3-4-restful-包" class="headerlink" title="3.4 restful 包"></a>3.4 restful 包</h2><ul>
+<li><p><code>config</code> / RegistryCenterRestfulApi ：注册中心配置( RegistryCenterConfiguration )的RESTful API<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/01.png" alt=""></p>
+</li>
+<li><p><code>config</code> / EventTraceDataSourceRestfulApi ：事件追踪数据源配置( EventTraceDataSource )的RESTful API<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/02.png" alt=""></p>
+</li>
+<li><p><code>config</code> / LiteJobConfigRestfulApi ：作业配置( LiteJobConfiguration )的RESTful API<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/03.png" alt=""></p>
+</li>
+<li><p>EventTraceHistoryRestfulApi ：事件追踪历史记录( <code>JOB_EXECUTION_LOG</code> / <code>JOB_STATUS_TRACE_LOG</code> )的RESTful API<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/06.png" alt=""><br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/07.png" alt=""></p>
+</li>
+<li><p>ServerOperationRestfulApi ：服务器维度操作的RESTful API。<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/05.png" alt=""></p>
+</li>
+<li><p>JobOperationRestfulApi ：作业维度操作的RESTful API。<br> <img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/04.png" alt=""></p>
+</li>
+</ul>
+<h2 id="3-5-service-包"><a href="#3-5-service-包" class="headerlink" title="3.5 service 包"></a>3.5 service 包</h2><ul>
+<li>RegistryCenterConfigurationService ：注册中心( RegistryCenterConfiguration )配置服务。</li>
+<li>EventTraceDataSourceConfigurationService ：事件追踪数据源配置( EventTraceDataSource )服务。</li>
+<li>JobAPIService ：和作业相关的 API 集合服务。这些 API 在 Maven模块 <code>elastic-job-lite-lifecycle</code> 实现。<ul>
+<li>JobSettingsAPI：作业配置的API。</li>
+<li>JobOperateAPI ：操作作业的API。</li>
+<li>ShardingOperateAPI ：操作分片的API。</li>
+<li>JobStatisticsAPI ：JobStatisticsAPI。</li>
+<li>ServerStatisticsAPI ：作业服务器状态展示的API。</li>
+<li>ShardingStatisticsAPI ：作业分片状态展示的API。</li>
+</ul>
+</li>
+</ul>
+<h1 id="4-Maven模块-elastic-job-lite-lifecycle"><a href="#4-Maven模块-elastic-job-lite-lifecycle" class="headerlink" title="4. Maven模块 elastic-job-lite-lifecycle"></a>4. Maven模块 elastic-job-lite-lifecycle</h1><p>在 JobAPIService 已经基本提到，这里不重复叙述。</p>
+<h1 id="5-其它"><a href="#5-其它" class="headerlink" title="5. 其它"></a>5. 其它</h1><ol>
+<li>前后端分离，后端使用 JSON 为前端提供数据接口。</li>
+<li>后端 API 使用 Restful 设计规范。 </li>
+<li>国际化使用 <code>jquery.i18n.js</code> 实现。</li>
+<li>界面使用 Bootstrap AdminLTE 模板实现。</li>
+</ol>
+<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>旁白君：这写的… 略飘逸（随意）<br>芋道君：哈哈哈，我要开始 Elastic-Job-Cloud 啦啦啦啦。</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2017_12_07/08.png" alt=""></p>
+<p>道友，赶紧上车，分享一波朋友圈！</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. Maven模块 elastic-job-common-restf
+    
+    </summary>
+    
+      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>闲聊如何阅读源码（音频）</title>
@@ -2331,43 +2432,6 @@
     </summary>
     
       <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title></title>
-    <link href="http://www.yunai.me/Elastic-Job/x/"/>
-    <id>http://www.yunai.me/Elastic-Job/x/</id>
-    <published>2017-08-29T07:48:58.000Z</published>
-    <updated>2017-08-29T07:48:58.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>elastic-job-common-restful</p>
-<ol>
-<li>RestfulServer 内嵌服务</li>
-<li>GSONProvider</li>
-<li>RestfulExceptionMapper 异常</li>
-<li>WwwAuthFilter </li>
-</ol>
-<p>elastic-job-console</p>
-<ol>
-<li>domain/event_trace</li>
-<li>domain/registry_center</li>
-<li>filter/GlobalConfigurationFilter 加载</li>
-<li>repository</li>
-</ol>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;elastic-job-common-restful&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;RestfulServer 内嵌服务&lt;/li&gt;
-&lt;li&gt;GSONProvider&lt;/li&gt;
-&lt;li&gt;RestfulExceptionMapper 异常&lt;/li&gt;
-&lt;li&gt;WwwAuthFilte
-    
-    </summary>
     
     
   </entry>
