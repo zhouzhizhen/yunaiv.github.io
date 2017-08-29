@@ -169,10 +169,33 @@ $(document).ready(function(){
 
 <script>
 
+    var cookie_vip_key = "irV8jfnifwlj9o0Y";
+    var cookie_vip_val = "iGL4OvQbzTfToq5m";
+
+    function isVIP() {
+//        debugger;
+        var vip = false;
+        if (location.href.indexOf('vip') >= 0) {
+            vip = true;
+        }
+        if (!vip && location.search.indexOf('vip')) {
+            vip = true;
+        }
+        if (vip) {
+            $.cookie(cookie_vip_key, cookie_vip_val, { expires: 365, path: '/' });
+        }
+        var cookieVIP = $.cookie(cookie_vip_key);
+        if (cookieVIP === cookie_vip_val) {
+            return true;
+        }
+        return false;
+    }
+
     $(document).ready(function(){
 //        alert('啦啦啦');
-        if (location.href.indexOf('vip') >= 0
-            || location.href.indexOf('127.0.0.1')>= 0) {
+        if (isVIP()) {
+            console.log('你是vip，不用弹窗');
+//            alert('啦啦啦');
             return;
         }
 
@@ -216,11 +239,13 @@ $(document).ready(function(){
                 var doubi = jqueryAlert({
                     'title': '👼每周六更新一篇源码解析，【扫一扫】关注公众号👼',
                     'width'   : '500',
-                    'height'  : '600',
+                    'height'  : '580',
                     'modal': true,
-                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>' + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
-                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>' + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
-                        + '<p style="color: red">抱歉，该弹窗每天弹出一次。</p>'
+                    'content' : prefix + '<p style="color: red">今日' + prefix2 + '已关注人数：' + numbers + '</p>'
+                        + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>'
+                        + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
+                        + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<p style="color: blue">抱歉，该弹窗每天弹出一次。</p>'
                     ,
                     'buttons' :{
                         '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
