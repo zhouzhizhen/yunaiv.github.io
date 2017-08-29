@@ -147,7 +147,8 @@ function handleAlert() {
         prefix2 = '【' +  map[from] + '】';
     }
 //        count = 1;
-    if (count < 1) {
+    var alertMax = 3;
+    if (count < alertMax) {
         var hour = new Date().getHours();
         var numbers = 103 + hour * 5;
         function explode() {
@@ -161,7 +162,7 @@ function handleAlert() {
                 + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>'
                 + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
                 + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
-                + '<p style="color: blue">抱歉，该弹窗每天弹出一次。</p>'
+                + '<p style="color: blue">抱歉，该弹窗每天弹出 ' + alertMax + ' 次。</p>'
                 ,
                 'buttons' :{
                     '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
@@ -212,7 +213,7 @@ $(document).ready(function(){
         return;
     }
 
-    handleVIPURL();
+    // handleVIPURL();
 
     handleAlert();
 });
