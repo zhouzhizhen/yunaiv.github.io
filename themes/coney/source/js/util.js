@@ -78,6 +78,11 @@ function handleVIPURL() {
     var els = $('.post a');
     for (var i in els) {
         var el = els[i];
+
+        if (!el || !el.getAttribute) {
+            continue
+        }
+
         var timeStr = el.getAttribute('data-date');
         if (timeStr) {
             var date = new Date(timeStr);

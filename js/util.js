@@ -12,7 +12,8 @@ function isDomainVIP(){return location.hostname.indexOf('vip')>=0;}
 function getCount(){var count=$.cookie(key);if(!count){$.cookie(key,0,{expires:1,path:'/'});count=0;}else{count=parseInt(count);}
 $.cookie(key,count,{expires:1,path:'/'});return count;}
 function handleVIPURL(){if(isVIP()){return;}
-var els=$('.post a');for(var i in els){var el=els[i];var timeStr=el.getAttribute('data-date');if(timeStr){var date=new Date(timeStr);if(date>new Date()){el.setAttribute('href','#');$(el).click(function(){var from=getFrom();var prefix='';var prefix2='';if(from&&map[from]){prefix='<span style="color: red">欢迎来自【'+map[from]+'】的同学</span>';prefix2='【'+map[from]+'】';}
+var els=$('.post a');for(var i in els){var el=els[i];if(!el||!el.getAttribute){continue}
+var timeStr=el.getAttribute('data-date');if(timeStr){var date=new Date(timeStr);if(date>new Date()){el.setAttribute('href','#');$(el).click(function(){var from=getFrom();var prefix='';var prefix2='';if(from&&map[from]){prefix='<span style="color: red">欢迎来自【'+map[from]+'】的同学</span>';prefix2='【'+map[from]+'】';}
 var hour=new Date().getHours();var numbers=103+hour*5;var doubi=jqueryAlert({'title':'👼抱歉，该文章仅公众号可见，【扫一扫】关注公众号👼','width':'500','height':'560','modal':true,'content':prefix+'<span style="color: red">，今日'+prefix2+'已关注人数：'+numbers+'</span>'
 +'<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>'
 +'<p style="color: red">一起看源码，读源码，提升技术！</p>'
