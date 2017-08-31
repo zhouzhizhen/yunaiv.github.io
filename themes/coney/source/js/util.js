@@ -147,7 +147,7 @@ function handleAlert() {
         prefix2 = '【' +  map[from] + '】';
     }
 //        count = 1;
-    var alertMax = 3;
+    var alertMax = 1024;
     if (count < alertMax) {
         var hour = new Date().getHours();
         var numbers = 103 + hour * 5;
@@ -167,12 +167,15 @@ function handleAlert() {
                 'buttons' :{
                     '已关注，关闭窗口（公众号发送：【口令】屏蔽弹窗）' : function() {
                         doubi.close();
+
+                        // handleAlert();
                     }
                 }
             });
+
             $.cookie(key, count + 1, { expires: 1 , path: '/'});
         }
-        setTimeout(explode, ( count + 1 ) * 20000);
+        setTimeout(explode, ( count + 1 ) * 15000);
         // setTimeout(explode, ( count + 1 ) * 1000);
     };
 }
