@@ -8,7 +8,16 @@ permalink: Elastic-Job/cloud-job-config
 
 **本文基于 Elastic-Job V2.1.5 版本分享**
 
-
+- [1. 概述](#)
+- [2. 云作业App](#)
+  - [2.1 云作业App配置类](#)
+  - [2.2 操作云作业App配置](#)
+- [3. 云作业](#3)
+  - [3.1 云作业配置](#)
+    - [3.1.1 操作云作业配置](#)
+  - [3.2 本地云作业配置](#)
+  - [3.3 云作业配置总结](#)
+- [666. 彩蛋](#)
 
 -------
 
@@ -33,11 +42,11 @@ permalink: Elastic-Job/cloud-job-config
 * [《Elastic-Job-Lite 源码分析 —— 作业配置》](http://www.yunai.me/Elastic-Job/job-config/?self)
 * [《由浅入深 | 如何优雅地写一个Mesos Framework》](https://segmentfault.com/a/1190000007723430)
 
-另外，笔者假设读者已经对 **[《Elastic-Job-Lite 源码分析系列》](http://www.yunai.me/categories/Elastic-Job/?self)** 有一定的了解。
+😈 另外，笔者假设你已经对 **[《Elastic-Job-Lite 源码分析系列》](http://www.yunai.me/categories/Elastic-Job/?self)** 有一定的了解。
 
-本文涉及到主体类的类图如下( [打开大图](../../../images/Elastic-Job/2017_12_14/01.png) )：
+本文涉及到主体类的类图如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_12_14/01.png) )：
 
-![](../../../images/Elastic-Job/2017_12_14/01.png)
+![](http://www.yunai.me/images/Elastic-Job/2017_12_14/01.png)
 
 * **黄色**的类在 `elastic-job-common-core` 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud **公用**作业配置类。
 * **紫色**的类在 `elastic-job-cloud` 项目里，为 Elastic-Job-Cloud 作业配置类。
@@ -55,7 +64,7 @@ permalink: Elastic-Job/cloud-job-config
 >     
 > 作业APP指作业打包部署后的应用，描述了作业启动需要用到的CPU、内存、启动脚本及应用下载路径等基本信息，每个APP可以包含一个或多个作业。
 
-简单来说，一个云作业App可以理解成由多个作业打成的 `jar`。
+简单来说，一个云作业App可以理解成由多个作业打在一起的 `jar`。
 
 ## 2.1 云作业App配置类
 
@@ -118,7 +127,7 @@ public final class CloudAppConfiguration {
 
 * 运维平台
 
-    ![](../../../images/Elastic-Job/2017_12_14/02.png)
+    ![](http://www.yunai.me/images/Elastic-Job/2017_12_14/02.png)
 
 运维平台是对调用 HTTP 接口的UI封装，实现代码如下：
 
@@ -238,11 +247,11 @@ public final class CloudJobConfiguration implements JobRootConfiguration {
 
 * 运维平台
 
-    ![](../../../images/Elastic-Job/2017_12_14/03.png)
+    ![](http://www.yunai.me/images/Elastic-Job/2017_12_14/03.png)
 
 运维平台是对调用 HTTP 接口的UI封装，实现代码如下：
 
-```
+```Java
 // CloudJobRestfulApi.java
 public final class CloudJobRestfulApi {
     /**
@@ -309,7 +318,8 @@ public final class CloudJobConfigurationNode {
 * 调用 `CloudJobConfigurationService#add(...)` 方法，存储 CloudJobConfiguration 到注册中心( Zookeeper )的**持久**数据节点 `${NAMESPACE}/config/job/${JOB_NAME}`，JSON 格式化对象。使用 zkClient 查看如下：
 
     ```SHELL
-    {"jobName":"test_job_simple","jobClass":"com.dangdang.ddframe.job.example.job.simple.JavaSimpleJob","jobType":"SIMPLE","cron":"0/10 * * * * ?","shardingTotalCount":1,"shardingItemParameters":"","jobParameter":"","failover":false,"misfire":false,"description":"","jobProperties":{"job_exception_handler":"com.dangdang.ddframe.job.executor.handler.impl.DefaultJobExceptionHandler","executor_service_handler":"com.dangdang.ddframe.job.executor.handler.impl.DefaultExecutorServiceHandler"},"appName":"exampleApp","cpuCount":0.1,"memoryMB":64.0,"jobExecutionType":"TRANSIENT"}
+    [zk: localhost:2181(CONNECTED) 3] get /elastic-job-cloud/config/job/test_job_simple
+{"jobName":"test_job_simple","jobClass":"com.dangdang.ddframe.job.example.job.simple.JavaSimpleJob","jobType":"SIMPLE","cron":"0/10 * * * * ?","shardingTotalCount":1,"shardingItemParameters":"","jobParameter":"","failover":false,"misfire":false,"description":"","jobProperties":{"job_exception_handler":"com.dangdang.ddframe.job.executor.handler.impl.DefaultJobExceptionHandler","executor_service_handler":"com.dangdang.ddframe.job.executor.handler.impl.DefaultExecutorServiceHandler"},"appName":"exampleApp","cpuCount":0.1,"memoryMB":64.0,"jobExecutionType":"TRANSIENT"}
     ```
 * 调用 `#schedule(...)` 方法，调度作业。这是个很有趣的方法，在[《Elastic-Job-Cloud 源码解析 —— 作业调度》](http://www.yunai.me?todo)详细解析。
 
@@ -353,7 +363,9 @@ public final class LocalCloudJobConfiguration implements JobRootConfiguration {
 芋道君：本文主要为[《Elastic-Job-Cloud 源码解析 —— 作业调度》](http://www.yunai.me?todo)做铺垫，这会是一篇长文。读懂 Elastic-Job-Cloud 作业调度后，整个人脑洞又开的不行不行的！  
 旁白君：支持+1024。
 
-![](../../../images/Elastic-Job/2017_12_14/04.png)
+![](http://www.yunai.me/images/Elastic-Job/2017_12_14/04.png)
+
+另外，推荐[《基于Mesos的当当作业云Elastic Job Cloud》](http://www.infoq.com/cn/news/2016/09/Mesos-Elastic-Job-Cloud)，对理解 Elastic-Job-Cloud 很有帮助。
 
 道友，赶紧上车，分享一波朋友圈！
 

@@ -1,3 +1,4 @@
+http://www.yunai.me/Elastic-Job/cloud-job-config/
 http://www.yunai.me/Elastic-Job/job-console/
 http://www.yunai.me/Architecture/how-to-read-source-code/
 http://www.yunai.me/Elastic-Job/job-monitor/

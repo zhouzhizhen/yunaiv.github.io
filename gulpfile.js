@@ -56,7 +56,7 @@ gulp.task("cssmin", function () {
 });
 
 gulp.task("default", ["htmlmin",
-    // "tinypng",
+    "tinypng",
     "jsmin", "cssmin"]);
 
 // gulp.task("default", ["htmlmin", "jsmin", "cssmin"]);
