@@ -365,7 +365,11 @@ public final class LocalCloudJobConfiguration implements JobRootConfiguration {
 
 ![](http://www.yunai.me/images/Elastic-Job/2017_12_14/04.png)
 
-另外，推荐[《基于Mesos的当当作业云Elastic Job Cloud》](http://www.infoq.com/cn/news/2016/09/Mesos-Elastic-Job-Cloud)，对理解 Elastic-Job-Cloud 很有帮助。
+另外，推荐资料如下，对理解 Elastic-Job-Cloud 很有帮助。
+
+* [《基于Mesos的当当作业云Elastic Job Cloud》](http://www.infoq.com/cn/news/2016/09/Mesos-Elastic-Job-Cloud)
+* [《如何从0到1搭建弹性作业云Elastic-Job-Cloud》](http://www.infoq.com/cn/presentations/how-to-build-elastic-job-cloud)
+
 
 道友，赶紧上车，分享一波朋友圈！
 

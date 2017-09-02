@@ -1,0 +1,147 @@
+<%
+var title = '';
+var icon = '';
+if (page.category){
+  title = page.category;
+  icon = 'category';
+};
+if (page.tag){
+  title = page.tag;
+  icon = 'tag';
+};
+if (page.archive){
+  icon = 'archive';
+  if (page.year) title = page.year+  (page.month ? '/' + page.month : '');
+  else title = __('archive_a');
+};
+%>
+
+<!--<div class="archive-title" >-->
+  <!--<h2 class="<%= icon %>-icon"><%= title %></h2>-->
+  <!--<% if(page.archive){ %>-->
+  <!--<div class="archiveslist archive-float clearfix">-->
+      <!--<%- list_archives({format: 'YYYY 年 MM 月'}) %>-->
+ <!--</div>-->
+  <!--<% } %>-->
+<!--</div>-->
+
+<div class="archive-title" id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="<%= __('hidesidebar') %>"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!--<% if(theme.author_img_enable == true){ %>-->
+            <!--<div class="author-logo"></div>-->
+            <!--<% } %>-->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg" /> </div>
+
+            <div class="social-list" class="clearfix">
+                <% if(theme.author.weibo){ %>
+                <a href="http://weibo.com/<%= theme.author.weibo %>" target="_blank" title="weibo"></a>
+                <% } %>
+                <% if(theme.author.twitter){ %>
+                <a href="https://twitter.com/<%= theme.author.twitter %>" target="_blank" title="twitter"></a>
+                <% } %>
+                <% if(theme.author.github){ %>
+                <a href="https://github.com/<%= theme.author.github %>" target="_blank" title="github"></a>
+                <% } %>
+                <% if(theme.author.facebook){ %>
+                <a href="https://www.facebook.com/<%= theme.author.facebook %>" target="_blank" title="facebook"></a>
+                <% } %>
+                <% if(theme.author.zhihu){ %>
+                <a href="https://zhihu.com/people/<%= theme.author.zhihu %>" target="_blank" title="zhihu"></a>
+                <% } %>
+            </div>
+        </div>
+        <!--<% theme.widgets.forEach(function(widget){ %>-->
+        <!--<%- partial('../_widget/' + widget) %>-->
+        <!--<% }); %>-->
+        <%- partial('../_widget/wechat') %>
+    </aside>
+</div>
+
+<div id="main" class="archive-part clearfix">
+  <div id="archive-page">
+
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/Architecture/how-to-read-source-code/" title="技术杂文 相关文章" itemprop="url">
+              <time itemprop="datePublished">
+                  源码阅读
+              </time>
+              <h1 itemprop="name">闲聊如何阅读源码（音频）</h1>
+          </a>
+      </section>
+
+      <section class="post" itemscope itemprop="blogPost">
+
+          <a href="/categories/RocketMQ/" title="阿里分布式消息队列中间件 RocketMQ 源码解析系列" itemprop="url">
+              <time itemprop="datePublished">
+                  源码解析系列
+              </time>
+              <h1 itemprop="name">阿里分布式消息队列中间件 RocketMQ 源码解析系列</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/Sharding-JDBC/" title="当当数据库中间件 Sharding-JDBC 源码解析系列" itemprop="url">
+              <time itemprop="datePublished">
+                  源码解析系列
+              </time>
+              <h1 itemprop="name">当当数据库中间件 Sharding-JDBC 源码解析系列</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/MyCAT/" title="阿里Cobar数据库中间件衍生 MyCAT 源码解析系列" itemprop="url">
+              <time itemprop="datePublished">
+                  源码解析系列
+              </time>
+              <h1 itemprop="name">阿里Cobar数据库中间件衍生 MyCAT 源码解析系列</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/Elastic-Job/" title="当当分布式作业中间件 Elastic-Job-Lite 源码解析系列" itemprop="url">
+              <time itemprop="datePublished">
+                  源码解析系列
+              </time>
+              <h1 itemprop="name">当当分布式作业中间件 Elastic-Job-Lite 源码解析系列</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+
+          <a href="/categories/Elastic-Job/" title="当当分布式作业中间件 Elastic-Job-Cloud 源码解析系列" itemprop="url">
+              <time itemprop="datePublished">
+                  源码解析系列
+              </time>
+              <h1 itemprop="name">当当分布式作业中间件 Elastic-Job-Cloud 源码解析系列</h1>
+          </a>
+      </section>
+
+  </div>
+
+  <div id="archive-page">
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/技术杂文/" title="技术杂文 相关文章" itemprop="url">
+              <time itemprop="datePublished">
+                  技术杂文
+              </time>
+              <h1 itemprop="name">技术杂文 相关文章</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/Docker/" title="Docker 相关文章" itemprop="url">
+              <time itemprop="datePublished">
+                  Docker
+              </time>
+              <h1 itemprop="name">Docker 相关文章</h1>
+          </a>
+      </section>
+      <section class="post" itemscope itemprop="blogPost">
+          <a href="/categories/Nginx/" title="Nginx 相关文章" itemprop="url">
+              <time itemprop="datePublished">
+                  Nginx
+              </time>
+              <h1 itemprop="name">Nginx 相关文章</h1>
+          </a>
+      </section>
+  </div>
+</div>
+
