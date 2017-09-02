@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业分片
 date: 2017-10-31
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-sharding
 
 -------

@@ -1,7 +1,7 @@
 title: Elastic-Job-Cloud 源码分析 —— 作业配置
 date: 2017-12-14
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Cloud
 permalink: Elastic-Job/cloud-job-config
 
 -------

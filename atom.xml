@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-09-01T17:52:32.000Z</updated>
+  <updated>2017-09-02T09:54:00.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://www.yunai.me/Elastic-Job/cloud-job-config/"/>
     <id>http://www.yunai.me/Elastic-Job/cloud-job-config/</id>
     <published>2017-12-13T16:00:00.000Z</published>
-    <updated>2017-09-01T17:52:32.000Z</updated>
+    <updated>2017-09-02T09:54:00.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -207,7 +207,7 @@
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Cloud" scheme="http://www.yunai.me/categories/Elastic-Job-Cloud/"/>
     
     
   </entry>
@@ -217,7 +217,7 @@
     <link href="http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor/"/>
     <id>http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor/</id>
     <published>2017-12-13T16:00:00.000Z</published>
-    <updated>2017-09-02T07:02:01.000Z</updated>
+    <updated>2017-09-02T09:54:10.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <p>TODO</p>
@@ -360,7 +360,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Cloud" scheme="http://www.yunai.me/categories/Elastic-Job-Cloud/"/>
     
     
   </entry>
@@ -370,7 +370,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-console/"/>
     <id>http://www.yunai.me/Elastic-Job/job-console/</id>
     <published>2017-12-06T16:00:00.000Z</published>
-    <updated>2017-08-29T10:38:57.000Z</updated>
+    <updated>2017-09-02T09:56:42.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -489,7 +489,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -609,7 +609,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-monitor/"/>
     <id>http://www.yunai.me/Elastic-Job/job-monitor/</id>
     <published>2017-11-30T16:00:00.000Z</published>
-    <updated>2017-08-28T11:04:25.000Z</updated>
+    <updated>2017-09-02T09:56:36.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -687,7 +687,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -697,7 +697,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/reconcile/"/>
     <id>http://www.yunai.me/Elastic-Job/reconcile/</id>
     <published>2017-11-27T16:00:00.000Z</published>
-    <updated>2017-08-28T09:52:42.000Z</updated>
+    <updated>2017-09-02T09:56:32.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -779,7 +779,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -789,7 +789,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-listener/"/>
     <id>http://www.yunai.me/Elastic-Job/job-listener/</id>
     <published>2017-11-20T16:00:00.000Z</published>
-    <updated>2017-08-28T05:05:42.000Z</updated>
+    <updated>2017-09-02T09:56:26.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -901,7 +901,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -911,7 +911,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-event-trace/"/>
     <id>http://www.yunai.me/Elastic-Job/job-event-trace/</id>
     <published>2017-11-13T16:00:00.000Z</published>
-    <updated>2017-08-28T05:02:42.000Z</updated>
+    <updated>2017-09-02T09:56:22.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1120,7 +1120,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1130,7 +1130,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-failover/"/>
     <id>http://www.yunai.me/Elastic-Job/job-failover/</id>
     <published>2017-11-06T16:00:00.000Z</published>
-    <updated>2017-08-28T18:30:09.000Z</updated>
+    <updated>2017-09-02T09:56:16.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -1285,7 +1285,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1295,7 +1295,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-sharding/"/>
     <id>http://www.yunai.me/Elastic-Job/job-sharding/</id>
     <published>2017-10-30T16:00:00.000Z</published>
-    <updated>2017-08-28T09:49:45.000Z</updated>
+    <updated>2017-09-02T09:56:12.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1483,7 +1483,7 @@ Redis Based Queue Improvement</p>
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1493,7 +1493,7 @@ Redis Based Queue Improvement</p>
     <link href="http://www.yunai.me/Elastic-Job/job-sharding-strategy/"/>
     <id>http://www.yunai.me/Elastic-Job/job-sharding-strategy/</id>
     <published>2017-10-25T16:00:00.000Z</published>
-    <updated>2017-08-28T09:43:34.000Z</updated>
+    <updated>2017-09-02T09:56:07.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1623,7 +1623,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1633,7 +1633,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/election/"/>
     <id>http://www.yunai.me/Elastic-Job/election/</id>
     <published>2017-10-20T16:00:00.000Z</published>
-    <updated>2017-08-28T12:11:52.000Z</updated>
+    <updated>2017-09-02T09:55:51.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1788,7 +1788,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1798,7 +1798,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/"/>
     <id>http://www.yunai.me/Elastic-Job/reg-center-zookeeper-listener/</id>
     <published>2017-10-13T16:00:00.000Z</published>
-    <updated>2017-08-28T09:43:27.000Z</updated>
+    <updated>2017-09-02T09:55:42.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -1912,7 +1912,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -1922,7 +1922,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/job-storage/"/>
     <id>http://www.yunai.me/Elastic-Job/job-storage/</id>
     <published>2017-10-06T16:00:00.000Z</published>
-    <updated>2017-08-28T09:48:49.000Z</updated>
+    <updated>2017-09-02T09:55:35.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -2145,7 +2145,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -2155,7 +2155,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/"/>
     <id>http://www.yunai.me/Elastic-Job/reg-center-zookeeper/</id>
     <published>2017-09-29T16:00:00.000Z</published>
-    <updated>2017-08-25T07:44:29.000Z</updated>
+    <updated>2017-09-02T09:55:30.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -2316,7 +2316,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -2326,7 +2326,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/job-execute/"/>
     <id>http://www.yunai.me/Elastic-Job/job-execute/</id>
     <published>2017-09-22T16:00:00.000Z</published>
-    <updated>2017-08-28T11:05:39.000Z</updated>
+    <updated>2017-09-02T09:55:24.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -2635,7 +2635,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -2645,7 +2645,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/job-init/"/>
     <id>http://www.yunai.me/Elastic-Job/job-init/</id>
     <published>2017-09-15T16:00:00.000Z</published>
-    <updated>2017-08-28T11:05:29.000Z</updated>
+    <updated>2017-09-02T09:55:12.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -2810,7 +2810,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -2820,7 +2820,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/job-config/"/>
     <id>http://www.yunai.me/Elastic-Job/job-config/</id>
     <published>2017-09-08T16:00:00.000Z</published>
-    <updated>2017-08-28T11:05:15.000Z</updated>
+    <updated>2017-09-02T09:55:04.000Z</updated>
     
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
@@ -3106,7 +3106,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>
@@ -3116,7 +3116,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     <link href="http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/"/>
     <id>http://www.yunai.me/Elastic-Job/why-read-Elastic-Job-source-code/</id>
     <published>2017-08-31T16:00:00.000Z</published>
-    <updated>2017-08-26T13:35:19.000Z</updated>
+    <updated>2017-09-02T09:54:50.000Z</updated>
     
     <content type="html"><![CDATA[<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
 <blockquote>
@@ -3141,21 +3141,21 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
 <h2>使用公司</h2>
 <h2>步骤/功能</h2>
 <ul>
-<li>[ ] 分布式调度协调</li>
+<li>[x] 分布式调度协调</li>
 <li>[ ] 弹性扩容缩容</li>
-<li>[ ] 失效转移</li>
+<li>[x] 失效转移</li>
 <li>[x] 错过执行作业重触发</li>
 <li>[x] 作业分片策略</li>
 <li>[x] 作业唯一节点执行</li>
 <li>[ ] 自诊断并修复分布式不稳定造成的问题</li>
 <li>[x] 支持并行调度</li>
-<li>[ ] 支持作业生命周期操作</li>
+<li>[x] 支持作业生命周期操作</li>
 <li>[x] 丰富的作业类型</li>
 <li>[ ] Spring整合以及命名空间提供</li>
-<li>[ ] 运维平台</li>
-<li>[ ] 事件追踪</li>
-<li>[ ] DUMP 作业运行信息</li>
-<li>[ ] 作业监听器</li>
+<li>[x] 运维平台</li>
+<li>[x] 事件追踪</li>
+<li>[x] DUMP 作业运行信息</li>
+<li>[x] 作业监听器</li>
 <li>[ ] 基于 Docker 的进程隔离（TBD）</li>
 <li>[x] 高可用</li>
 </ul>
@@ -3199,7 +3199,7 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
     
     </summary>
     
-      <category term="Elastic-Job" scheme="http://www.yunai.me/categories/Elastic-Job/"/>
+      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
     
     
   </entry>

@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业配置
 date: 2017-09-09
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-config
 
 -------

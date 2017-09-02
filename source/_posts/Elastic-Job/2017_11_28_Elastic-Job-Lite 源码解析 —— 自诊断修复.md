@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 自诊断修复
 date: 2017-11-28
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/reconcile
 
 -------

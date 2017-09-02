@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业数据存储
 date: 2017-10-07
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-storage
 
 -------

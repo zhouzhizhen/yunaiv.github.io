@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业事件追踪
 date: 2017-11-14
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-event-trace
 
 -------

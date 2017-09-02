@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业初始化
 date: 2017-09-16
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-init
 
 -------

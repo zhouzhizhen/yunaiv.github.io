@@ -1,7 +1,7 @@
 title: Elastic-Job-Cloud 源码分析 —— 作业配置
 date: 2017-12-14
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Cloud
 permalink: Elastic-Job/cloud-job-scheduler-and-executor
 
 -------
@@ -333,6 +333,8 @@ public static final class ProducerJob implements Job {
 无论是常驻作业还是瞬时作业，都会加入到**待执行作业队列**。目前我们看到瞬时作业的每次调度是 TransientProducerScheduler 负责。那么常驻作业的每次调度呢？「5. TaskExecutor 执行任务」会看到它的调度，这是 Elastic-Job-Cloud 设计巧妙有趣的地方。
 
 # 4. TaskLaunchScheduledService 提交任务
+
+
 
 # 5. TaskExecutor 执行任务
 

@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业分片策略
 date: 2017-10-26
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-sharding-strategy
 
 -------

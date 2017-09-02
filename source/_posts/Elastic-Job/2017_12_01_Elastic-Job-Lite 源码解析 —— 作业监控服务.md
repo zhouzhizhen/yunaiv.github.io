@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业监控服务
 date: 2017-12-01
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-monitor
 
 -------

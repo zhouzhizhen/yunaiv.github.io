@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 注册中心
 date: 2017-09-30
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/reg-center-zookeeper
 
 -------

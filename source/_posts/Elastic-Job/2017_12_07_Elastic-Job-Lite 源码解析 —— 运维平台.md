@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 运维平台
 date: 2017-12-07
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-console
 
 -------

@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 主节点选举
 date: 2017-10-21
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/election
 
 -------

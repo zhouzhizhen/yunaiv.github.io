@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 注册中心监听器
 date: 2017-10-14
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/reg-center-zookeeper-listener
 
 -------

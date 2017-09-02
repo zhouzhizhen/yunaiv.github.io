@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业监听器
 date: 2017-11-21
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-listener
 
 -------

@@ -1,7 +1,7 @@
 title: Elastic-Job-Lite 源码分析 —— 作业执行
 date: 2017-09-23
 tags:
-categories: Elastic-Job
+categories: Elastic-Job-Lite
 permalink: Elastic-Job/job-execute
 
 -------
