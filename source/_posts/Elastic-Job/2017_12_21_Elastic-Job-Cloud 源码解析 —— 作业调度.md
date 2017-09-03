@@ -1,5 +1,5 @@
-title: Elastic-Job-Cloud 源码分析 —— 作业配置
-date: 2017-12-14
+title: Elastic-Job-Cloud 源码分析 —— 作业调度
+date: 2017-12-21
 tags:
 categories: Elastic-Job-Cloud
 permalink: Elastic-Job/cloud-job-scheduler-and-executor
@@ -334,7 +334,452 @@ public static final class ProducerJob implements Job {
 
 # 4. TaskLaunchScheduledService 提交任务
 
+TaskLaunchScheduledService，任务提交调度服务。它继承 Guava AbstractScheduledService 实现定时将待执行作业队列的作业提交到 Mesos 进行调度执行。实现**定时**代码如下：
 
+```Java
+public final class TaskLaunchScheduledService extends AbstractScheduledService {
+    
+    @Override
+    protected String serviceName() {
+        return "task-launch-processor";
+    }
+    
+    @Override
+    protected Scheduler scheduler() {
+        return Scheduler.newFixedDelaySchedule(2, 10, TimeUnit.SECONDS);
+    }
+    
+    @Override
+    protected void runOneIteration() throws Exception {
+        // .... 省略代码
+    }
+    
+    // ... 省略部分方法
+}
+```
+
+* 每 10 秒执行提交任务( `#runOneIteration()` )。对 Guava AbstractScheduledService 不了解的同学，可以阅读完本文后 Google 下。
+
+`#runOneIteration()` 方法相对比较复杂，我们一块一块拆解，**耐心**理解。实现代码如下：
+
+```Java
+@Override
+protected void runOneIteration() throws Exception {
+   try {
+       // 获得 待运行的作业
+       LaunchingTasks launchingTasks = new LaunchingTasks(facadeService.getEligibleJobContext());
+       List<TaskRequest> taskRequests = launchingTasks.getPendingTasks();
+       //
+       if (!taskRequests.isEmpty()) {
+           AppConstraintEvaluator.getInstance().loadAppRunningState();
+       }
+       Collection<VMAssignmentResult> vmAssignmentResults = taskScheduler.scheduleOnce(taskRequests, LeasesQueue.getInstance().drainTo()).getResultMap().values();
+       //
+       List<TaskContext> taskContextsList = new LinkedList<>();
+       Map<List<Protos.OfferID>, List<Protos.TaskInfo>> offerIdTaskInfoMap = new HashMap<>();
+       for (VMAssignmentResult each: vmAssignmentResults) {
+           List<VirtualMachineLease> leasesUsed = each.getLeasesUsed();
+           List<Protos.TaskInfo> taskInfoList = new ArrayList<>(each.getTasksAssigned().size() * 10);
+           taskInfoList.addAll(getTaskInfoList(launchingTasks.getIntegrityViolationJobs(vmAssignmentResults), each, leasesUsed.get(0).hostname(), leasesUsed.get(0).getOffer()));
+           for (Protos.TaskInfo taskInfo : taskInfoList) {
+               taskContextsList.add(TaskContext.from(taskInfo.getTaskId().getValue()));
+           }
+           offerIdTaskInfoMap.put(getOfferIDs(leasesUsed), taskInfoList);
+       }
+       //
+       for (TaskContext each : taskContextsList) {
+           facadeService.addRunning(each);
+           jobEventBus.post(createJobStatusTraceEvent(each));
+       }
+       //
+       facadeService.removeLaunchTasksFromQueue(taskContextsList);
+       //
+       for (Entry<List<OfferID>, List<TaskInfo>> each : offerIdTaskInfoMap.entrySet()) {
+           schedulerDriver.launchTasks(each.getKey(), each.getValue());
+       }
+       //CHECKSTYLE:OFF
+   } catch (Throwable throwable) {
+       //CHECKSTYLE:ON
+       log.error("Launch task error", throwable);
+   } finally {
+       AppConstraintEvaluator.getInstance().clearAppRunningState();
+   }
+}
+```
+
+## 4.1 创建 Mesos 任务请求
+
+```Java
+// #runOneIteration()
+LaunchingTasks launchingTasks = new LaunchingTasks(facadeService.getEligibleJobContext());
+List<TaskRequest> taskRequests = launchingTasks.getPendingTasks();
+```
+
+* 调用 `FacadeService#getEligibleJobContext()` 方法，获取有资格运行的作业。
+
+    ```Java
+    // FacadeService.java
+    /**
+    * 获取有资格运行的作业.
+    * 
+    * @return 作业上下文集合
+    */
+    public Collection<JobContext> getEligibleJobContext() {
+       // 从失效转移队列中获取所有有资格执行的作业上下文
+       Collection<JobContext> failoverJobContexts = failoverService.getAllEligibleJobContexts();
+       // 从待执行队列中获取所有有资格执行的作业上下文
+       Collection<JobContext> readyJobContexts = readyService.getAllEligibleJobContexts(failoverJobContexts);
+       // 合并
+       Collection<JobContext> result = new ArrayList<>(failoverJobContexts.size() + readyJobContexts.size());
+       result.addAll(failoverJobContexts);
+       result.addAll(readyJobContexts);
+       return result;
+    }
+    ```
+    * 调用 `FailoverService#getAllEligibleJobContexts()` 方法，从**失效转移队列**中获取所有有资格执行的作业上下文。**TaskLaunchScheduledService 提交的任务还可能来自失效转移队列。**本文暂时不解析失效转移队列相关实现，避免增加复杂度影响大家的理解，在[《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](http://www.yunai.me?todo)详细解析。
+    * 调用 `ReadyService#getAllEligibleJobContexts(...)` 方法，从**待执行队列**中获取所有有资格执行的作业上下文。
+
+        ```Java
+        // ReadyService.java
+        /**
+        * 从待执行队列中获取所有有资格执行的作业上下文.
+        *
+        * @param ineligibleJobContexts 无资格执行的作业上下文
+        * @return 有资格执行的作业上下文集合
+        */
+        public Collection<JobContext> getAllEligibleJobContexts(final Collection<JobContext> ineligibleJobContexts) {
+           // 不存在 待执行队列
+           if (!regCenter.isExisted(ReadyNode.ROOT)) {
+               return Collections.emptyList();
+           }
+           // 无资格执行的作业上下文 转换成 无资格执行的作业集合
+           Collection<String> ineligibleJobNames = Collections2.transform(ineligibleJobContexts, new Function<JobContext, String>() {
+               
+               @Override
+               public String apply(final JobContext input) {
+                   return input.getJobConfig().getJobName();
+               }
+           });
+           // 获取 待执行队列 有资格执行的作业上下文
+           List<String> jobNames = regCenter.getChildrenKeys(ReadyNode.ROOT);
+           List<JobContext> result = new ArrayList<>(jobNames.size());
+           for (String each : jobNames) {
+               if (ineligibleJobNames.contains(each)) {
+                   continue;
+               }
+               // 排除 作业配置 不存在的作业
+               Optional<CloudJobConfiguration> jobConfig = configService.load(each);
+               if (!jobConfig.isPresent()) {
+                   regCenter.remove(ReadyNode.getReadyJobNodePath(each));
+                   continue;
+               }
+               if (!runningService.isJobRunning(each)) { // 排除 运行中 的作业
+                   result.add(JobContext.from(jobConfig.get(), ExecutionType.READY));
+               }
+           }
+           return result;
+        }
+        ```
+        * 
+   
+    * JobContext，作业运行上下文。实现代码如下：
+
+        ```Java
+        // JobContext.java
+        public final class JobContext {
+        
+            private final CloudJobConfiguration jobConfig;
+            
+            private final List<Integer> assignedShardingItems;
+            
+            private final ExecutionType type;
+            
+            /**
+             * 通过作业配置创建作业运行上下文.
+             * 
+             * @param jobConfig 作业配置
+             * @param type 执行类型
+             * @return 作业运行上下文
+             */
+            public static JobContext from(final CloudJobConfiguration jobConfig, final ExecutionType type) {
+                int shardingTotalCount = jobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount();
+                // 分片项
+                List<Integer> shardingItems = new ArrayList<>(shardingTotalCount);
+                for (int i = 0; i < shardingTotalCount; i++) {
+                    shardingItems.add(i);
+                }
+                return new JobContext(jobConfig, shardingItems, type);
+            }
+        }
+        ```
+        
+* LaunchingTasks，分配任务行为包。创建 LaunchingTasks 代码如下：
+
+   ```Java
+   public final class LaunchingTasks {
+   
+       /**
+        * 作业上下文集合
+        * key：作业名
+        */
+       private final Map<String, JobContext> eligibleJobContextsMap;
+       
+       public LaunchingTasks(final Collection<JobContext> eligibleJobContexts) {
+           eligibleJobContextsMap = new HashMap<>(eligibleJobContexts.size(), 1);
+           for (JobContext each : eligibleJobContexts) {
+               eligibleJobContextsMap.put(each.getJobConfig().getJobName(), each);
+           }
+       }
+   }
+   ```
+
+* 调用 `LaunchingTasks#getPendingTasks()` 方法，获得待执行任务集合。**这里要注意，每个作业如果有多个分片，则会生成多个待执行任务，即此处完成了作业分片**。实现代码如下：
+
+    ```Java
+    // LaunchingTasks.java
+    /**
+    * 获得待执行任务
+    *
+    * @return 待执行任务
+    */
+    List<TaskRequest> getPendingTasks() {
+       List<TaskRequest> result = new ArrayList<>(eligibleJobContextsMap.size() * 10);
+       for (JobContext each : eligibleJobContextsMap.values()) {
+           result.addAll(createTaskRequests(each));
+       }
+       return result;
+    }
+    
+    /**
+    * 创建待执行任务集合
+    *
+    * @param jobContext 作业运行上下文
+    * @return 待执行任务集合
+    */
+    private Collection<TaskRequest> createTaskRequests(final JobContext jobContext) {
+       Collection<TaskRequest> result = new ArrayList<>(jobContext.getAssignedShardingItems().size());
+       for (int each : jobContext.getAssignedShardingItems()) {
+           result.add(new JobTaskRequest(new TaskContext(jobContext.getJobConfig().getJobName(), Collections.singletonList(each), jobContext.getType()), jobContext.getJobConfig()));
+       }
+       return result;
+    }
+    
+    // TaskContext.java
+    public final class TaskContext {
+       /**
+        * 任务编号
+        */
+       private String id;
+       /**
+        * 任务元信息
+        */
+       private final MetaInfo metaInfo;
+       /**
+        * 执行类型
+        */
+       private final ExecutionType type;
+       /**
+        * Mesos Slave 编号
+        */
+       private String slaveId;
+       /**
+        * 是否闲置
+        */
+       @Setter
+       private boolean idle;
+       
+       public static class MetaInfo {
+
+           /**
+            * 作业名
+            */
+           private final String jobName;
+           /**
+            * 作业分片项
+            */
+           private final List<Integer> shardingItems;
+       }
+       
+       // ... 省略部分方法
+    }
+    
+    // JobTaskRequest.JAVA
+    public final class JobTaskRequest implements TaskRequest {
+        
+       private final TaskContext taskContext;
+           
+       private final CloudJobConfiguration jobConfig;
+           
+       @Override
+       public String getId() {
+         return taskContext.getId();
+       }
+     
+       @Override
+       public double getCPUs() {
+           return jobConfig.getCpuCount();
+       }
+     
+       @Override
+       public double getMemory() {
+         return jobConfig.getMemoryMB();
+       }
+ 
+       // ... 省略部分方法
+    }
+    ```
+    * 调用 `#createTaskRequests(...)` 方法，**将单个作业按照其作业分片总数拆分成一个或多个待执行任务集合**。
+    * TaskContext，任务运行时上下文。
+    * JobTaskRequest，作业任务请求对象。       
+* 因为对象有点多，我们来贴一个 `LaunchingTasks#getPendingTasks()` 方法的返回结果。
+    ![](../../../images/Elastic-Job/2017_12_21/03.png)
+
+**友情提示，代码可能比较多，请耐心观看。**
+
+## 4.2 AppConstraintEvaluator
+
+在说 AppConstraintEvaluator 之前，我们先一起了**简单**解下 [Netflix Fenzo](https://github.com/Netflix/Fenzo/wiki)。
+
+> FROM http://dockone.io/article/636  
+> Fenzo是一个在Mesos框架上应用的通用任务调度器。它可以让你通过实现各种优化策略的插件，来优化任务调度，同时这也有利于集群的自动缩放。
+
+![](../../../images/Elastic-Job/2017_12_21/05.png)
+
+Elastic-Job-Cloud-Scheduler 基于 Fenzo 实现对 Mesos 的弹性资源分配。
+
+例如，AppConstraintEvaluator，App 目标 Mesos Slave 适配度限制器，选择 Slave 时需要考虑其上是否运行有 App 的 Executor，如果没有运行 Executor 需要将其资源消耗考虑进适配计算算法中。它是 [Fenzo ConstraintEvaluator 接口](https://github.com/Netflix/Fenzo/blob/5de0e0861def4a655be35a9624e67318a6c0afac/fenzo-core/src/main/java/com/netflix/fenzo/ConstraintEvaluator.java) 在 Elastic-Job-Cloud-Scheduler 的自定义任务约束实现。通过这个任务约束，在下文调用 `TaskScheduler#scheduleOnce(...)` 方法调度任务所需资源时，会将 AppConstraintEvaluator 考虑进去。
+
+那么作业任务请求( JobTaskRequest ) 是怎么关联上 AppConstraintEvaluator 的呢？
+
+```Java
+// JobTaskRequest.java
+public final class JobTaskRequest implements TaskRequest {
+
+    @Override
+    public List<? extends ConstraintEvaluator> getHardConstraints() {
+        return Collections.singletonList(AppConstraintEvaluator.getInstance());
+    }
+    
+}
+```
+
+* [Fenzo TaskRequest 接口](https://github.com/Netflix/Fenzo/blob/20d71b5c3213063fc938cd2841dc7569601d1d99/fenzo-core/src/main/java/com/netflix/fenzo/TaskRequest.java) 是 Fenzo 的任务请求接口，通过实现 `#getHardConstraints()` 方法，关联上 TaskRequest 和 ConstraintEvaluator。
+
+关联上之后，任务匹配 Mesos Slave 资源时，调用 `ConstraintEvaluator#evaluate(...)` 实现方法判断是否符合约束：
+
+```Java
+public interface ConstraintEvaluator {
+
+    public static class Result {
+        private final boolean isSuccessful;
+        private final String failureReason;
+    }
+
+    /**
+     * Inspects a target to decide whether or not it meets the constraints appropriate to a particular task.
+     *
+     * @param taskRequest a description of the task to be assigned
+     * @param targetVM a description of the host that is a potential match for the task
+     * @param taskTrackerState the current status of tasks and task assignments in the system at large
+     * @return a successful Result if the target meets the constraints enforced by this constraint evaluator, or
+     *         an unsuccessful Result otherwise
+     */
+    public Result evaluate(TaskRequest taskRequest, VirtualMachineCurrentState targetVM,
+                           TaskTrackerState taskTrackerState);
+}
+```
+
+OK，简单了解结束，有兴趣了解更多的同学，请点击[《Fenzo Wiki —— Constraints》](https://github.com/Netflix/Fenzo/wiki/Constraints)。下面来看看 Elastic-Job-Cloud-Scheduler 自定义实现的任务约束 AppConstraintEvaluator。
+
+-------
+
+调用 `AppConstraintEvaluator#loadAppRunningState()` 方法，加载当前运行中的**云作业App**，为 `AppConstraintEvaluator#evaluate(...)` 方法提供该数据。代码实现如下：
+
+```Java
+// AppConstraintEvaluator.java
+private final Set<String> runningApps = new HashSet<>();
+
+void loadAppRunningState() {
+   try {
+       for (MesosStateService.ExecutorStateInfo each : facadeService.loadExecutorInfo()) {
+           runningApps.add(each.getId());
+       }
+   } catch (final JSONException | UniformInterfaceException | ClientHandlerException e) {
+       clearAppRunningState();
+   }
+}
+```
+
+* 调用 `FacadeService#loadExecutorInfo()` 方法，从 Mesos 获取所有正在运行的 Mesos 执行器( Executor )的信息。执行器和云作业App有啥关系？**云作业App 是 Elastic-Job-Cloud 在 Mesos 对执行器的实现。**`FacadeService#loadExecutorInfo()` 方法这里就不展开了，有兴趣的同学自己看下，主要是对 Mesos 的 API操作，我们来看下 `runningApps` 的结果：
+
+    ![](../../../images/Elastic-Job/2017_12_21/04.png)
+
+-------
+
+调用 `TaskScheduler#scheduleOnce(...)` 方法调度提交任务所需资源时，会调用 `ConstraintEvaluator#loadAppRunningState()` 检查分配的资源是否符合任务的约束条件。`AppConstraintEvaluator#loadAppRunningState()` 实现代码如下：
+
+```Java
+// AppConstraintEvaluator.java
+@Override
+public Result evaluate(final TaskRequest taskRequest, final VirtualMachineCurrentState targetVM, final TaskTrackerState taskTrackerState) {
+   double assigningCpus = 0.0d;
+   double assigningMemoryMB = 0.0d;
+   final String slaveId = targetVM.getAllCurrentOffers().iterator().next().getSlaveId().getValue();
+   try {
+       // 判断当前分配的 Mesos Slave 是否运行着该作业任务请求对应的云作业App
+       if (isAppRunningOnSlave(taskRequest.getId(), slaveId)) {
+           return new Result(true, "");
+       }
+       // 判断当前分配的 Mesos Slave 启动云作业App 是否超过资源限制
+       Set<String> calculatedApps = new HashSet<>(); // 已计算作业App集合
+       List<TaskRequest> taskRequests = new ArrayList<>(targetVM.getTasksCurrentlyAssigned().size() + 1);
+       taskRequests.add(taskRequest);
+       for (TaskAssignmentResult each : targetVM.getTasksCurrentlyAssigned()) { // 当前已经分配作业请求
+           taskRequests.add(each.getRequest());
+       }
+       for (TaskRequest each : taskRequests) {
+           assigningCpus += each.getCPUs();
+           assigningMemoryMB += each.getMemory();
+           if (isAppRunningOnSlave(each.getId(), slaveId)) { // 作业App已经启动
+               continue;
+           }
+           CloudAppConfiguration assigningAppConfig = getAppConfiguration(each.getId());
+           if (!calculatedApps.add(assigningAppConfig.getAppName())) { // 是否已经计算该App
+               continue;
+           }
+           assigningCpus += assigningAppConfig.getCpuCount();
+           assigningMemoryMB += assigningAppConfig.getMemoryMB();
+       }
+   } catch (final LackConfigException ex) {
+       log.warn("Lack config, disable {}", getName(), ex);
+       return new Result(true, "");
+   }
+   if (assigningCpus > targetVM.getCurrAvailableResources().cpuCores()) { // cpu
+       log.debug("Failure {} {} cpus:{}/{}", taskRequest.getId(), slaveId, assigningCpus, targetVM.getCurrAvailableResources().cpuCores());
+       return new Result(false, String.format("cpu:%s/%s", assigningCpus, targetVM.getCurrAvailableResources().cpuCores()));
+   }
+   if (assigningMemoryMB > targetVM.getCurrAvailableResources().memoryMB()) { // memory
+       log.debug("Failure {} {} mem:{}/{}", taskRequest.getId(), slaveId, assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB());
+       return new Result(false, String.format("mem:%s/%s", assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB()));
+   }
+   log.debug("Success {} {} cpus:{}/{} mem:{}/{}", taskRequest.getId(), slaveId, assigningCpus, targetVM.getCurrAvailableResources()
+           .cpuCores(), assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB());
+   return new Result(true, String.format("cpus:%s/%s mem:%s/%s", assigningCpus, targetVM.getCurrAvailableResources()
+           .cpuCores(), assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB()));
+}
+```
+
+* 调用 `#isAppRunningOnSlave()` 方法，判断当前分配的 Mesos Slave 是否运行着该作业任务请求对应的云作业App。若云作业App未运行，则该作业任务请求提交给 Mesos 后，该 Mesos Slave 会启动该云作业 App，App 本身会占用一定的 `CloudAppConfiguration#cpu` 和 `CloudAppConfiguration#memory`，计算时需要统计，避免超过当前 Mesos Slave 剩余 `cpu` 和 `memory`。
+* 当计算符合约束时，返回 `Result(true, ...)`；反则，返回 `Result(false, ...)`。
+* TODO 异常为啥返回true。
+
+## 4.3 调度 Mesos 资源
+
+```Java
+
+```
+
+## 4.4 
 
 # 5. TaskExecutor 执行任务
 
