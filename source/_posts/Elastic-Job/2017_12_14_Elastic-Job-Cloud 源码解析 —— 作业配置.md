@@ -107,7 +107,7 @@ public final class CloudAppConfiguration {
 
 * 在 Elastic-Job-Lite 里，打包作业，部署到服务器里启动。而在 Elastic-Job-Cloud 里，打包作业上传至可下载的地址。作业被调度时，Mesos 会从 `appURL` 下载应用包，使用 `bootstrapScript` 启动应用进行执行。实际情况会更加复杂一丢丢，在[《Elastic-Job-Cloud 源码解析 —— 作业调度》](http://www.yunai.me?todo)详细解析。
 * `cpuCount`, `memoryMB` 配置**云作业App自身占用的资源情况**。其包含的每个作业占用的资源情况，使用作业对应的云作业配置( CloudJobConfiguration ) ，下文也会看到。
-* `appCacheEnable`：TODO待补充。
+* `appCacheEnable`：每次执行作业时是否从缓存中读取应用。禁用则每次执行任务均从应用仓库下载应用至本地。
 * `eventTraceSamplingCount`：TODO待补充。
 
 ## 2.2 操作云作业App配置

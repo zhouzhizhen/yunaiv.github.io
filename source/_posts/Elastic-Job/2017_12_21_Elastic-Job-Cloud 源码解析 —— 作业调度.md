@@ -407,7 +407,7 @@ protected void runOneIteration() throws Exception {
 }
 ```
 
-## 4.1 创建 Mesos 任务请求
+## 4.1 创建 Fenzo 任务请求
 
 ```Java
 // #runOneIteration()
@@ -773,15 +773,380 @@ public Result evaluate(final TaskRequest taskRequest, final VirtualMachineCurren
 * 当计算符合约束时，返回 `Result(true, ...)`；反则，返回 `Result(false, ...)`。
 * TODO 异常为啥返回true。
 
-## 4.3 调度 Mesos 资源
+## 4.3 将任务请求分配到 Mesos Offer
+
+我们先**简单**了解下 Elastic-Job-Cloud-Scheduler 实现的 Mesos Scheduler 类 `com.dangdang.ddframe.job.cloud.scheduler.mesos.SchedulerEngine`。调度器的主要职责之一：**在接受到的 Offer 上启动任务**。SchedulerEngine 接收到资源 Offer，先存储到资源预占队列( LeasesQueue )，等到作业被调度需要启动任务时进行使用。存储到资源预占队列实现代码如下：
+
+```Java
+public final class SchedulerEngine implements Scheduler {
+    
+    @Override
+    public void resourceOffers(final SchedulerDriver schedulerDriver, final List<Protos.Offer> offers) {
+        for (Protos.Offer offer: offers) {
+            log.trace("Adding offer {} from host {}", offer.getId(), offer.getHostname());
+            LeasesQueue.getInstance().offer(offer);
+        }
+    }
+
+}
+```
+
+* `org.apache.mesos.Scheduler`，Mesos 调度器**接口**，实现该接口成为自定义 Mesos 调度器。
+* 实现 `#resourceOffers(...)` 方法，有新的资源 Offer 时，会进行调用。在 SchedulerEngine 会调用 `#offer(...)` 方法，存储 Offer 到资源预占队列，实现代码如下：
+
+    ```Java
+    public final class LeasesQueue {
+    
+        /**
+         * 单例
+         */
+        private static final LeasesQueue INSTANCE = new LeasesQueue();
+        
+        private final BlockingQueue<VirtualMachineLease> queue = new LinkedBlockingQueue<>();
+        
+        /**
+         * 获取实例.
+         * 
+         * @return 单例对象
+         */
+        public static LeasesQueue getInstance() {
+            return INSTANCE;
+        }
+        
+        /**
+         * 添加资源至队列预占.
+         *
+         * @param offer 资源
+         */
+        public void offer(final Protos.Offer offer) {
+            queue.offer(new VMLeaseObject(offer));
+        }
+    
+        // ... 省略 #drainTo() 方法，下文解析。
+    }
+    ```
+    * VMLeaseObject，[Netflix Fenzo](#) 对 Mesos Offer 的抽象包装，点击[链接](https://github.com/Netflix/Fenzo/blob/faa8a4dd411fff1792c9d788d1288a11e3635ba7/fenzo-core/src/main/java/com/netflix/fenzo/plugins/VMLeaseObject.java)查看实现代码，马上会看到它的用途。
+
+另外，可能有同学对 Mesos Offer 理解比较生涩，Offer 定义如下：
+
+> FROM https://segmentfault.com/a/1190000007723430  
+> Offer是Mesos资源的抽象，比如说有多少CPU、多少memory，disc是多少，都放在Offer里，打包给一个Framework，然后Framework来决定到底怎么用这个Offer。
+
+-------
+
+OK，知识铺垫完成，回到本小节的重心：
+
+```Java
+// #runOneIteration()
+Collection<VMAssignmentResult> vmAssignmentResults = taskScheduler.scheduleOnce(taskRequests, LeasesQueue.getInstance().drainTo()).getResultMap().values();
+
+// LeasesQueue.java
+public final class LeasesQueue {
+
+    private final BlockingQueue<VirtualMachineLease> queue = new LinkedBlockingQueue<>();
+
+    public List<VirtualMachineLease> drainTo() {
+        List<VirtualMachineLease> result = new ArrayList<>(queue.size());
+        queue.drainTo(result);
+        return result;
+    }
+}
+```
+
+调用 `TaskScheduler#scheduleOnce(...)` 方法，将任务请求分配到 Mesos Offer。通过 Fenzo TaskScheduler 实现对多个任务分配到多个 Mesos Offer 的**合理优化分配**。这是一个相对复杂的问题。为什么这么说呢？
+
+> FROM [《Mesos 框架构建分布式应用》](http://product.dangdang.com/24187450.html) P76  
+> 将任务匹配到 offer 上，首次适配通常是最好的算法。你可能会想，如果在更多的工作里尝试计算出匹配该 offer 的优化组合，可能比首次适配更能高效地利用 offer。这绝对是正确的，但是要考虑如下这些方面：对于启动所有等待运行的任务来说，集群里要么有充足的资源要么没有。如果资源很多，那么首次适配肯定一直都能保证每个任务的启动。如果资源不够，怎么都无法启动所有任务。因此，编写代码选择接下来会运行哪个任务是很自然的，这样才能保证服务的质量。只有当资源刚够用时，才需要更为精细的打包算法。不幸的是，这里的问题 —— 通常称为背包问题( Knapsack problem ) —— 是一个众所周知的 NP 完全问题。NP 完全问题指的是需要相当长时间才能找到最优解决方案的问题，并且没有任何已知道技巧能够快速解决这类问题。
+
+举个简单的例子，只考虑 `memory` 资源情况下，有一台 Slave 内存为 8GB ，现在要运行三个 1GB 的作业和 5GB 的作业。其中 5GB 的作业在 1GB 运行多次之后才执行。 
+
+![](../../../images/Elastic-Job/2017_12_21/06.png)
+
+实际情况会比图更加复杂的多的多。通过使用 Fenzo ，可以很方便的，并且令人满意的分配。为了让你对 Fenzo 有更加透彻的理解，这里在引用一段对其的介绍：
+
+> FROM [《Mesos 框架构建分布式应用》](http://product.dangdang.com/24187450.html) P80  
+> **调用库函数 Fenzo**  
+> Fenzo 是 Nettflix 在 2015 年夏天发布的库函数。Fenzo 为基于 java 的调度器提供了完整的解决方案，完成 offer 缓冲，多任务启动，以及软和硬约束条件的匹配。就算不是所有的，也是很多调度器都能够受益于使用 Fenzo 来完成计算任务分配，而不用自己编写 offer 缓冲、打包和放置路由等。
+
+下面，来看两次 `TaskScheduler#scheduleOnce(...)` 的返回：
+
+* 第一次调度：![](../../../images/Elastic-Job/2017_12_21/07.png)
+* 第二次调度：![](../../../images/Elastic-Job/2017_12_21/08.png)
+* `com.netflix.fenzo.VMAssignmentResult`，每台主机分配任务结果。实现代码如下：
+
+    ```Java
+    public class VMAssignmentResult {
+        /**
+         * 主机
+         */
+        private final String hostname;
+        /**
+         * 使用的 Mesos Offer
+         */
+        private final List<VirtualMachineLease> leasesUsed;
+        /**
+         * 分配的任务
+         */
+        private final Set<TaskAssignmentResult> tasksAssigned;
+    }
+    ```
+
+可能受限于笔者的能力，建议你可以在阅读如下文章，更透彻的理解 TaskScheduler ：
+
+* [《Fenzo Wiki —— Constraints》](https://github.com/Netflix/Fenzo/wiki/How-to-use-Fenzo)
+* [《Fenzo Wiki —— Building Your Scheduler》](https://github.com/Netflix/Fenzo/wiki/Building-Your-Scheduler)
+* [《Fenzo Wiki —— Scheduling Tasks》](https://github.com/Netflix/Fenzo/wiki/Scheduling-Tasks)
+* [《Fenzo Wiki —— How to Learn Which Tasks Are Assigned to Which Hosts》](https://github.com/Netflix/Fenzo/wiki/Insights#how-to-learn-which-tasks-are-assigned-to-which-hosts)
+
+## 4.4 创建 Mesos 任务信息
+
+```Java
+// #runOneIteration()
+List<TaskContext> taskContextsList = new LinkedList<>(); // 任务运行时上下文集合
+Map<List<Protos.OfferID>, List<Protos.TaskInfo>> offerIdTaskInfoMap = new HashMap<>(); // Mesos 任务信息集合
+for (VMAssignmentResult each: vmAssignmentResults) {
+    List<VirtualMachineLease> leasesUsed = each.getLeasesUsed();
+    List<Protos.TaskInfo> taskInfoList = new ArrayList<>(each.getTasksAssigned().size() * 10);
+    taskInfoList.addAll(getTaskInfoList(
+            launchingTasks.getIntegrityViolationJobs(vmAssignmentResults), // 获得作业分片不完整的作业集合
+            each, leasesUsed.get(0).hostname(), leasesUsed.get(0).getOffer()));
+    for (Protos.TaskInfo taskInfo : taskInfoList) {
+        taskContextsList.add(TaskContext.from(taskInfo.getTaskId().getValue()));
+    }
+    offerIdTaskInfoMap.put(getOfferIDs(leasesUsed), // 获得 Offer ID 集合
+            taskInfoList);
+}
+```
+
+* `offerIdTaskInfoMap`，Mesos 任务信息集合。key 和 value 都为相同 Mesos Slave Offer 和 任务。为什么？调用 `SchedulerDriver#launchTasks(...)` 方法提交**一次**任务时，必须保证所有任务和 Offer 在相同 Mesos Slave 上。
+
+    > FROM FROM [《Mesos 框架构建分布式应用》](http://product.dangdang.com/24187450.html) P61  
+    > **组合 offer**  
+    > latchTasks 接受 offer 列表为输入，这就允许用户将一些相同 slave 的 offer 组合起来，从而将这些 offer 的资源放到池里。它还能接受任务列表为输入，这样就能够启动适合给定 offer 的足够多的任务。注意所有任务和 offer 都必须是同一台 slave —— 如果不在同一台 slave 上，launchTasks 就会失败。如果想在多台 slave 上启动任务，多次调用 latchTasks 即可。
+
+* 调用 `LaunchingTasks#getIntegrityViolationJobs(...)` 方法，获得作业分片不完整的作业集合。**一个作业有多个分片，因为 Mesos Offer 不足，导致有部分分片不能执行，则整个作业都不进行执行**。代码实现如下：
+
+    ```Java
+    // LaunchingTasks.java
+    /**
+    * 获得作业分片不完整的作业集合
+    *
+    * @param vmAssignmentResults 主机分配任务结果集合
+    * @return 作业分片不完整的作业集合
+    */
+    Collection<String> getIntegrityViolationJobs(final Collection<VMAssignmentResult> vmAssignmentResults) {
+       Map<String, Integer> assignedJobShardingTotalCountMap = getAssignedJobShardingTotalCountMap(vmAssignmentResults);
+       Collection<String> result = new HashSet<>(assignedJobShardingTotalCountMap.size(), 1);
+       for (Map.Entry<String, Integer> entry : assignedJobShardingTotalCountMap.entrySet()) {
+           JobContext jobContext = eligibleJobContextsMap.get(entry.getKey());
+           if (ExecutionType.FAILOVER != jobContext.getType() // 不包括 FAILOVER 执行类型的作业
+                   && !entry.getValue().equals(jobContext.getJobConfig().getTypeConfig().getCoreConfig().getShardingTotalCount())) {
+               log.warn("Job {} is not assigned at this time, because resources not enough to run all sharding instances.", entry.getKey());
+               result.add(entry.getKey());
+           }
+       }
+       return result;
+    }
+    
+    /**
+    * 获得每个作业分片数集合
+    * key：作业名
+    * value：分片总数
+    *
+    * @param vmAssignmentResults 主机分配任务结果集合
+    * @return 每个作业分片数集合
+    */
+    private Map<String, Integer> getAssignedJobShardingTotalCountMap(final Collection<VMAssignmentResult> vmAssignmentResults) {
+       Map<String, Integer> result = new HashMap<>(eligibleJobContextsMap.size(), 1);
+       for (VMAssignmentResult vmAssignmentResult: vmAssignmentResults) {
+           for (TaskAssignmentResult tasksAssigned: vmAssignmentResult.getTasksAssigned()) {
+               String jobName = TaskContext.from(tasksAssigned.getTaskId()).getMetaInfo().getJobName();
+               if (result.containsKey(jobName)) {
+                   result.put(jobName, result.get(jobName) + 1);
+               } else {
+                   result.put(jobName, 1);
+               }
+           }
+       }
+       return result;
+    }
+    ```
+    
+* 调用 `#getTaskInfoList(...)` 方法，创建**单个主机**的 Mesos 任务信息集合。实现代码如下：
+
+    ```Java
+    private List<Protos.TaskInfo> getTaskInfoList(final Collection<String> integrityViolationJobs, final VMAssignmentResult vmAssignmentResult, final String hostname, final Protos.Offer offer) {
+       List<Protos.TaskInfo> result = new ArrayList<>(vmAssignmentResult.getTasksAssigned().size());
+       for (TaskAssignmentResult each: vmAssignmentResult.getTasksAssigned()) {
+           TaskContext taskContext = TaskContext.from(each.getTaskId());
+           String jobName = taskContext.getMetaInfo().getJobName();
+           if (!integrityViolationJobs.contains(jobName) // 排除作业分片不完整的任务
+                   && !facadeService.isRunning(taskContext) // 排除正在运行中的任务
+                   && !facadeService.isJobDisabled(jobName)) { // 排除被禁用的任务
+               // 创建 Mesos 任务
+               Protos.TaskInfo taskInfo = getTaskInfo(offer, each);
+               if (null != taskInfo) {
+                   result.add(taskInfo);
+                   // 添加任务主键和主机名称的映射
+                   facadeService.addMapping(taskInfo.getTaskId().getValue(), hostname);
+                   // 通知 TaskScheduler 主机分配了这个任务
+                   taskScheduler.getTaskAssigner().call(each.getRequest(), hostname);
+               }
+           }
+       }
+       return result;
+    }
+    ```
+    * 调用 `#getTaskInfo(...)` 方法，创建单个 Mesos 任务，在[「4.4.1 创建单个 Mesos 任务信息」](#)详细解析。
+    * 调用 `FacadeService#addMapping(...)` 方法，添加任务主键和主机名称的映射。通过该映射，可以根据任务主键查询到对应的主机名。实现代码如下：
+    
+       ```Java
+       // FacadeService.java
+       /**
+       * 添加任务主键和主机名称的映射.
+       *
+       * @param taskId 任务主键
+       * @param hostname 主机名称
+       */
+       public void addMapping(final String taskId, final String hostname) {
+          runningService.addMapping(taskId, hostname);
+       }
+       
+       // RunningService.java
+       /**
+       * 任务主键和主机名称的映射
+       * key: 任务主键
+       * value: 主机名称
+       */
+       private static final ConcurrentHashMap<String, String> TASK_HOSTNAME_MAPPER = new ConcurrentHashMap<>(TASK_INITIAL_SIZE);
+       
+       public void addMapping(final String taskId, final String hostname) {
+          TASK_HOSTNAME_MAPPER.putIfAbsent(taskId, hostname);
+       }
+       ```
+
+    * 调用 `TaskScheduler#getTaskAssigner()#call(...)` 方法，通知 TaskScheduler 任务被**确认**分配到这个主机。TaskScheduler 做任务和 Offer 的匹配，对哪些任务运行在哪些主机是有依赖的，不然怎么做匹配优化呢。在[《Fenzo Wiki —— Notify the Scheduler of Assigns and UnAssigns of Tasks》](https://github.com/Netflix/Fenzo/wiki/How-to-use-Fenzo#notify-the-scheduler-of-assigns-and-unassigns-of-tasks)可以进一步了解。
+* 调用 `#getOfferIDs(...)` 方法，获得 Offer ID 集合。实现代码如下：
+
+    ```Java
+    private List<Protos.OfferID> getOfferIDs(final List<VirtualMachineLease> leasesUsed) {
+       List<Protos.OfferID> result = new ArrayList<>();
+       for (VirtualMachineLease virtualMachineLease: leasesUsed) {
+           result.add(virtualMachineLease.getOffer().getId());
+       }
+       return result;
+    }
+    ```
+
+### 4.4.1 创建单个 Mesos 任务信息
+
+调用 `#getTaskInfo()` 方法，创建单个 Mesos 任务信息。实现代码如下：
+
+**如下会涉及大量的 Mesos API**
+
+```Java
+private Protos.TaskInfo getTaskInfo(final Protos.Offer offer, final TaskAssignmentResult taskAssignmentResult) {
+   // 校验 作业配置 是否存在
+   TaskContext taskContext = TaskContext.from(taskAssignmentResult.getTaskId());
+   Optional<CloudJobConfiguration> jobConfigOptional = facadeService.load(taskContext.getMetaInfo().getJobName());
+   if (!jobConfigOptional.isPresent()) {
+       return null;
+   }
+   CloudJobConfiguration jobConfig = jobConfigOptional.get();
+   // 校验 作业配置 是否存在
+   Optional<CloudAppConfiguration> appConfigOptional = facadeService.loadAppConfig(jobConfig.getAppName());
+   if (!appConfigOptional.isPresent()) {
+       return null;
+   }
+   CloudAppConfiguration appConfig = appConfigOptional.get();
+   // 设置 Mesos Slave ID
+   taskContext.setSlaveId(offer.getSlaveId().getValue());
+   // 获得 分片上下文集合
+   ShardingContexts shardingContexts = getShardingContexts(taskContext, appConfig, jobConfig);
+   // 瞬时的脚本作业，使用 Mesos 命令行执行，无需使用执行器
+   boolean isCommandExecutor = CloudJobExecutionType.TRANSIENT == jobConfig.getJobExecutionType() && JobType.SCRIPT == jobConfig.getTypeConfig().getJobType();
+   String script = appConfig.getBootstrapScript();
+   if (isCommandExecutor) {
+       script = ((ScriptJobConfiguration) jobConfig.getTypeConfig()).getScriptCommandLine();
+   }
+   // 创建 启动命令
+   Protos.CommandInfo.URI uri = buildURI(appConfig, isCommandExecutor);
+   Protos.CommandInfo command = buildCommand(uri, script, shardingContexts, isCommandExecutor);
+   // 创建 Mesos 任务信息
+   if (isCommandExecutor) {
+       return buildCommandExecutorTaskInfo(taskContext, jobConfig, shardingContexts, offer, command);
+   } else {
+       return buildCustomizedExecutorTaskInfo(taskContext, appConfig, jobConfig, shardingContexts, offer, command);
+   }
+}
+```
+
+* 调用 `#getShardingContexts(...)` 方法， 获得分片上下文集合。实现代码如下：
+
+    ```Java
+    private ShardingContexts getShardingContexts(final TaskContext taskContext, final CloudAppConfiguration appConfig, final CloudJobConfiguration jobConfig) {
+       Map<Integer, String> shardingItemParameters = new ShardingItemParameters(jobConfig.getTypeConfig().getCoreConfig().getShardingItemParameters()).getMap();
+       Map<Integer, String> assignedShardingItemParameters = new HashMap<>(1, 1);
+       int shardingItem = taskContext.getMetaInfo().getShardingItems().get(0); // 单个作业分片
+       assignedShardingItemParameters.put(shardingItem, shardingItemParameters.containsKey(shardingItem) ? shardingItemParameters.get(shardingItem) : "");
+       return new ShardingContexts(taskContext.getId(), jobConfig.getJobName(), jobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(),
+               jobConfig.getTypeConfig().getCoreConfig().getJobParameter(), assignedShardingItemParameters, appConfig.getEventTraceSamplingCount());
+    }
+    ```
+* 当任务为**瞬时**的**脚本**作业时，使用 Mesos Slave 命令行调用即可，无需使用 Elastic-Job-Cloud-Executor。
+* 调用 `#buildURI(...)` 方法，创建执行器的二进制文件下载地址。试下代码如下：
+
+    ```Java
+    private Protos.CommandInfo.URI buildURI(final CloudAppConfiguration appConfig, final boolean isCommandExecutor) {
+       Protos.CommandInfo.URI.Builder result = Protos.CommandInfo.URI.newBuilder()
+               .setValue(appConfig.getAppURL())
+               .setCache(appConfig.isAppCacheEnable()); // cache
+       if (isCommandExecutor && !SupportedExtractionType.isExtraction(appConfig.getAppURL())) {
+           result.setExecutable(true); // 是否可执行
+       } else {
+           result.setExtract(true); // 是否需要解压
+       }
+       return result.build();
+    }
+    ```
+    * 云应用配置 `CloudAppConfiguration.appURL` ，通过 Mesos 实现文件的下载。
+    * 云应用配置 `CloudAppConfiguration.appCacheEnable`，应用文件下载是否缓存。
+
+        > FROM [《Mesos 框架构建分布式应用》](http://product.dangdang.com/24187450.html) P99    
+        > **Fetcher 缓存**  
+        > Mesos 0.23 里发布称为 fetcher 缓存的新功能。fetcher 缓存确保每个 artifact 在每个 slave 只会下载一次，即使多个执行器请求同一个 artifact，也只需要等待单词下载完成即可。
+
+* 调用 `#buildCommand(...)` 方法，创建执行器启动命令。实现代码如下：
+
+    ```Java
+    private Protos.CommandInfo buildCommand(final Protos.CommandInfo.URI uri, final String script, final ShardingContexts shardingContexts, final boolean isCommandExecutor) {
+       Protos.CommandInfo.Builder result = Protos.CommandInfo.newBuilder().addUris(uri).setShell(true);
+       if (isCommandExecutor) {
+           CommandLine commandLine = CommandLine.parse(script);
+           commandLine.addArgument(GsonFactory.getGson().toJson(shardingContexts), false);
+           result.setValue(Joiner.on(" ").join(commandLine.getExecutable(), Joiner.on(" ").join(commandLine.getArguments())));
+       } else {
+           result.setValue(script);
+       }
+       return result.build();
+    }
+    ```
+    
+* 调用 `#buildCommandExecutorTaskInfo(...)` 方法，为**瞬时**的**脚本**作业创建 Mesos 任务信息。实现代码如下：
 
 ```Java
 
 ```
+    
+## 4.5 标记运行中 TODO 取名
 
-## 4.4 
+## 4.6 移除待执行 TODO
+
+## 4.7 提交 Mesos 任务 TODO
 
 # 5. TaskExecutor 执行任务
+
+# 6. 
 
 # 666. 彩蛋
 
