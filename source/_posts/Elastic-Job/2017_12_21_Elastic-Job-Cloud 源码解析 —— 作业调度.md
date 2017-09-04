@@ -136,7 +136,11 @@ final class ReadyNode {
     [zk: localhost:2181(CONNECTED) 5] get /elastic-job-cloud/state/ready/test_job_simple
     1
     ```
-    * 从官方的 RoadMap 来看，**待执行作业队列**未来会使用 Redis 存储以提高性能。
+* 在运维平台，我们可以看到待执行作业队列：
+    
+    ![](../../../images/Elastic-Job/2017_12_21/10.png)    
+    
+* 从官方的 RoadMap 来看，**待执行作业队列**未来会使用 Redis 存储以提高性能。
 
     > FROM http://elasticjob.io/docs/elastic-job-cloud/03-design/roadmap/  
     > Redis Based Queue Improvement
@@ -1134,17 +1138,182 @@ private Protos.TaskInfo getTaskInfo(final Protos.Offer offer, final TaskAssignme
     
 * 调用 `#buildCommandExecutorTaskInfo(...)` 方法，为**瞬时**的**脚本**作业创建 Mesos 任务信息。实现代码如下：
 
-```Java
-
-```
+    ```Java
+    private Protos.TaskInfo buildCommandExecutorTaskInfo(final TaskContext taskContext, final CloudJobConfiguration jobConfig, final ShardingContexts shardingContexts,
+                                                        final Protos.Offer offer, final Protos.CommandInfo command) {
+       Protos.TaskInfo.Builder result = Protos.TaskInfo.newBuilder().setTaskId(Protos.TaskID.newBuilder().setValue(taskContext.getId()).build())
+               .setName(taskContext.getTaskName()).setSlaveId(offer.getSlaveId())
+               .addResources(buildResource("cpus", jobConfig.getCpuCount(), offer.getResourcesList()))
+               .addResources(buildResource("mem", jobConfig.getMemoryMB(), offer.getResourcesList()))
+               .setData(ByteString.copyFrom(new TaskInfoData(shardingContexts, jobConfig).serialize())); //
+       return result.setCommand(command).build();
+    }
+    ```
     
-## 4.5 标记运行中 TODO 取名
+* 调用 `#buildCustomizedExecutorTaskInfo(...)` 方法，创建 Mesos 任务信息。实现代码如下：
 
-## 4.6 移除待执行 TODO
+    ```Java
+    private Protos.TaskInfo buildCustomizedExecutorTaskInfo(final TaskContext taskContext, final CloudAppConfiguration appConfig, final CloudJobConfiguration jobConfig, 
+                                                           final ShardingContexts shardingContexts, final Protos.Offer offer, final Protos.CommandInfo command) {
+       Protos.TaskInfo.Builder result = Protos.TaskInfo.newBuilder().setTaskId(Protos.TaskID.newBuilder().setValue(taskContext.getId()).build())
+               .setName(taskContext.getTaskName()).setSlaveId(offer.getSlaveId())
+               .addResources(buildResource("cpus", jobConfig.getCpuCount(), offer.getResourcesList()))
+               .addResources(buildResource("mem", jobConfig.getMemoryMB(), offer.getResourcesList()))
+               .setData(ByteString.copyFrom(new TaskInfoData(shardingContexts, jobConfig).serialize()));
+       // ExecutorInfo
+       Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder().setExecutorId(Protos.ExecutorID.newBuilder()
+               .setValue(taskContext.getExecutorId(jobConfig.getAppName()))) // 执行器 ID
+               .setCommand(command)
+               .addResources(buildResource("cpus", appConfig.getCpuCount(), offer.getResourcesList()))
+               .addResources(buildResource("mem", appConfig.getMemoryMB(), offer.getResourcesList()));
+       if (env.getJobEventRdbConfiguration().isPresent()) {
+           executorBuilder.setData(ByteString.copyFrom(SerializationUtils.serialize(env.getJobEventRdbConfigurationMap()))).build();
+       }
+       return result.setExecutor(executorBuilder.build()).build();
+    }
+    ```  
+    * 调用 `Protos.ExecutorInfo.Builder#setValue(...)` 方法，设置**执行器编号**。大多数在 Mesos 执行器，一个任务对应一个执行器。而 Elastic-Job-Cloud-Executor 不同于大多数在 Mesos 执行器，一个执行器可以对应多个作业。什么意思？在一个 Mesos Slave，**相同**作业应用，只会启动一个 Elastic-Job-Cloud-Scheduler。当该执行器不存在时，启动一个。当该执行器已经存在，复用该执行器。那么是如何实现该功能的呢？**相同**作业应用，在同一个 Mesos Slave，使用相同执行器编号。实现代码如下：
 
-## 4.7 提交 Mesos 任务 TODO
+        ```Java
+        /**
+         * 获取任务执行器主键.
+         * 
+         * @param appName 应用名称
+         * @return 任务执行器主键
+         */
+        public String getExecutorId(final String appName) {
+            return Joiner.on(DELIMITER).join(appName, slaveId);
+        }
+        ```
+    
+## 4.5 将任务运行时上下文放入运行时队列
+
+调用 `FacadeService#addRunning(...)` 方法，将任务运行时上下文放入运行时队列。实现代码如下：
+
+```Java
+// FacadeService.java
+/**
+* 将任务运行时上下文放入运行时队列.
+*
+* @param taskContext 任务运行时上下文
+*/
+public void addRunning(final TaskContext taskContext) {
+   runningService.add(taskContext);
+}
+
+// RunningService.java
+/**
+* 将任务运行时上下文放入运行时队列.
+* 
+* @param taskContext 任务运行时上下文
+*/
+public void add(final TaskContext taskContext) {
+   if (!configurationService.load(taskContext.getMetaInfo().getJobName()).isPresent()) {
+       return;
+   }
+   // 添加到运行中的任务集合
+   getRunningTasks(taskContext.getMetaInfo().getJobName()).add(taskContext);
+   // 判断是否为常驻任务
+   if (!isDaemon(taskContext.getMetaInfo().getJobName())) {
+       return;
+   }
+   // 添加到运行中队列
+   String runningTaskNodePath = RunningNode.getRunningTaskNodePath(taskContext.getMetaInfo().toString());
+   if (!regCenter.isExisted(runningTaskNodePath)) {
+       regCenter.persist(runningTaskNodePath, taskContext.getId());
+   }
+}
+
+// RunningNode.java
+final class RunningNode {
+    
+    static final String ROOT = StateNode.ROOT + "/running";
+    
+    private static final String RUNNING_JOB = ROOT + "/%s"; // %s = ${JOB_NAME}
+    
+    private static final String RUNNING_TASK = RUNNING_JOB + "/%s"; // %s = ${TASK_META_INFO}。${TASK_META_INFO}=${JOB_NAME}@-@${ITEM_ID}。
+}
+```
+
+* RunningService，任务运行时服务，提供对运行中的任务集合、运行中作业队列的各种操作方法。
+* 调用 `#getRunningTasks()` 方法，获得**运行中的任务集合**，并将当前任务添加到其中。实现代码如下：
+
+    ```Java
+    public Collection<TaskContext> getRunningTasks(final String jobName) {
+       Set<TaskContext> taskContexts = new CopyOnWriteArraySet<>();
+       Collection<TaskContext> result = RUNNING_TASKS.putIfAbsent(jobName, taskContexts);
+       return null == result ? taskContexts : result;
+    }
+    ```
+
+    在运维平台，我们可以看到当前任务正在运行中：
+    
+    ![](../../../images/Elastic-Job/2017_12_21/09.png)
+    
+* 常驻作业会存储在**运行中作业队列**。运行中作业队列存储在注册中心( Zookeeper )的**持久**数据节点 `/${NAMESPACE}/state/running/${JOB_NAME}/${TASK_META_INFO}`，存储值为任务编号。使用 zkClient 查看如下： 
+
+    ```SHELL
+    [zk: localhost:2181(CONNECTED) 14] ls /elastic-job-cloud/state/running/test_job_simple
+    [test_job_simple@-@0, test_job_simple@-@1, test_job_simple@-@2]
+    [zk: localhost:2181(CONNECTED) 15] get /elastic-job-cloud/state/running/test_job_simple/test_job_simple@-@0
+    test_job_simple@-@0@-@READY@-@400197d9-76ca-464b-b2f0-e0fba5c2a598-S0@-@9780ed12-9612-45e3-ac14-feb2911896ff
+    ```
+
+
+## 4.6 从队列中删除已运行的作业
+
+```Java
+// #runOneIteration()
+facadeService.removeLaunchTasksFromQueue(taskContextsList);
+
+// FacadeService.java
+/**
+* 从队列中删除已运行的作业.
+* 
+* @param taskContexts 任务上下文集合
+*/
+public void removeLaunchTasksFromQueue(final List<TaskContext> taskContexts) {
+   List<TaskContext> failoverTaskContexts = new ArrayList<>(taskContexts.size());
+   Collection<String> readyJobNames = new HashSet<>(taskContexts.size(), 1);
+   for (TaskContext each : taskContexts) {
+       switch (each.getType()) {
+           case FAILOVER:
+               failoverTaskContexts.add(each);
+               break;
+           case READY:
+               readyJobNames.add(each.getMetaInfo().getJobName());
+               break;
+           default:
+               break;
+       }
+   }
+   // 从失效转移队列中删除相关任务
+   failoverService.remove(Lists.transform(failoverTaskContexts, new Function<TaskContext, TaskContext.MetaInfo>() {
+       
+       @Override
+       public TaskContext.MetaInfo apply(final TaskContext input) {
+           return input.getMetaInfo();
+       }
+   }));
+   // 从待执行队列中删除相关作业
+   readyService.remove(readyJobNames);
+}
+```
+
+## 4.7 提交任务给 Mesos
+
+```Java
+// #runOneIteration()
+for (Entry<List<OfferID>, List<TaskInfo>> each : offerIdTaskInfoMap.entrySet()) {
+   schedulerDriver.launchTasks(each.getKey(), each.getValue());
+}
+```
+
+* 调用 `SchedulerDriver#launchTasks(...)` 方法，提交任务给 Mesos Master。由 Mesos Master 调度任务给 Mesos Slave。Mesos Slave 调用执行器执行任务。
 
 # 5. TaskExecutor 执行任务
+
+
 
 # 6. 
 
