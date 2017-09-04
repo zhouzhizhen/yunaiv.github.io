@@ -1309,13 +1309,420 @@ for (Entry<List<OfferID>, List<TaskInfo>> each : offerIdTaskInfoMap.entrySet()) 
 }
 ```
 
-* 调用 `SchedulerDriver#launchTasks(...)` 方法，提交任务给 Mesos Master。由 Mesos Master 调度任务给 Mesos Slave。Mesos Slave 调用执行器执行任务。
+* 调用 `SchedulerDriver#launchTasks(...)` 方法，提交任务给 Mesos Master。由 Mesos Master 调度任务给 Mesos Slave。Mesos Slave 提交执行器执行任务。
 
 # 5. TaskExecutor 执行任务
 
+TaskExecutor，作业任务执行器，实现 Mesos `org.apache.mesos.Executor` 接口，
 
+TaskExecutor，Elastic-Job-Cloud-Executor，实现了 Mesos Executor 接口 `org.apache.mesos.Executor`。执行器的主要职责之一：**执行调度器所请求的任务**。TaskExecutor 接收到 Mesos Slave 提交的任务，调用 `#launchTask(...)` 方法，处理任务。实现代码如下：
 
-# 6. 
+```Java
+// DaemonTaskScheduler.java
+@Override
+public void launchTask(final ExecutorDriver executorDriver, final Protos.TaskInfo taskInfo) {
+   executorService.submit(new TaskThread(executorDriver, taskInfo));
+}
+```
 
+* 调用 `ExecutorService#submit(...)` 方法，提交 TaskThread 到线程池，执行任务。
+
+## 5.1 TaskThread
+
+```Java
+@RequiredArgsConstructor
+class TaskThread implements Runnable {
+   
+   private final ExecutorDriver executorDriver;
+   
+   private final TaskInfo taskInfo;
+   
+   @Override
+   public void run() {
+       // 更新 Mesos 任务状态，运行中。
+       executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_RUNNING).build());
+       //
+       Map<String, Object> data = SerializationUtils.deserialize(taskInfo.getData().toByteArray());
+       ShardingContexts shardingContexts = (ShardingContexts) data.get("shardingContext");
+       @SuppressWarnings("unchecked")
+       JobConfigurationContext jobConfig = new JobConfigurationContext((Map<String, String>) data.get("jobConfigContext"));
+       try {
+           // 获得 分布式作业
+           ElasticJob elasticJob = getElasticJobInstance(jobConfig);
+           // 调度器提供内部服务的门面对象
+           final CloudJobFacade jobFacade = new CloudJobFacade(shardingContexts, jobConfig, jobEventBus);
+           // 执行作业
+           if (jobConfig.isTransient()) {
+               // 执行作业
+               JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
+               // 更新 Mesos 任务状态，已完成。
+               executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_FINISHED).build());
+           } else {
+               // 初始化 常驻作业调度器
+               new DaemonTaskScheduler(elasticJob, jobConfig, jobFacade, executorDriver, taskInfo.getTaskId()).init();
+           }
+           // CHECKSTYLE:OFF
+       } catch (final Throwable ex) {
+           // CHECKSTYLE:ON
+           log.error("Elastic-Job-Cloud-Executor error", ex);
+           executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_ERROR).setMessage(ExceptionUtil.transform(ex)).build());
+           executorDriver.stop();
+           throw ex;
+       }
+   }
+}
+```
+
+* 从 `TaskInfo.data` 属性中，可以获得提交任务附带的数据，例如分片上下文集合( ShardingContexts )，内部的作业配置上下文( JobConfigurationContext )。
+* 调用 `#getElasticJobInstance()` 方法，获得任务需要执行的分布式作业( Elastic-Job )。实现代码如下：
+
+    ```Java
+    private ElasticJob getElasticJobInstance(final JobConfigurationContext jobConfig) {
+      if (!Strings.isNullOrEmpty(jobConfig.getBeanName()) && !Strings.isNullOrEmpty(jobConfig.getApplicationContext())) { // spring 环境
+          return getElasticJobBean(jobConfig);
+      } else {
+          return getElasticJobClass(jobConfig);
+      }
+    }
+    
+    /**
+    * 从 Spring 容器中获得作业对象
+    *
+    * @param jobConfig 作业配置
+    * @return 作业对象
+    */
+    private ElasticJob getElasticJobBean(final JobConfigurationContext jobConfig) {
+      String applicationContextFile = jobConfig.getApplicationContext();
+      if (null == applicationContexts.get(applicationContextFile)) {
+          synchronized (applicationContexts) {
+              if (null == applicationContexts.get(applicationContextFile)) {
+                  applicationContexts.put(applicationContextFile, new ClassPathXmlApplicationContext(applicationContextFile));
+              }
+          }
+      }
+      return (ElasticJob) applicationContexts.get(applicationContextFile).getBean(jobConfig.getBeanName());
+    }
+    
+    /**
+    * 创建作业对象
+    *
+    * @param jobConfig 作业配置
+    * @return 作业对象
+    */
+    private ElasticJob getElasticJobClass(final JobConfigurationContext jobConfig) {
+      String jobClass = jobConfig.getTypeConfig().getJobClass();
+      try {
+          Class<?> elasticJobClass = Class.forName(jobClass);
+          if (!ElasticJob.class.isAssignableFrom(elasticJobClass)) {
+              throw new JobSystemException("Elastic-Job: Class '%s' must implements ElasticJob interface.", jobClass);
+          }
+          if (elasticJobClass != ScriptJob.class) {
+              return (ElasticJob) elasticJobClass.newInstance();
+          }
+          return null;
+      } catch (final ReflectiveOperationException ex) {
+          throw new JobSystemException("Elastic-Job: Class '%s' initialize failure, the error message is '%s'.", jobClass, ex.getMessage());
+      }
+    }
+    ```
+    
+    * 当作业是**瞬时**作业时，调用 `AbstractElasticJobExecutor#execute(...)` 执行作业逻辑，并调用 `ExecutorDriver#sendStatusUpdate(...)` 发送状态，更新 Mesos 任务已完成( Protos.TaskState.TASK_FINISHED )。`AbstractElasticJobExecutor#execute(...)` 实现代码，在 Elastic-Job-Lite 和 Elastic-Job-Cloud 基本一致，在[《Elastic-Job-Lite 源码分析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)有详细解析。
+    * 当作业是**常驻**作业时，调用 `DaemonTaskScheduler#init()` 方法，初始化作业调度，在「5.2 DaemonTaskScheduler」详细解析。
+
+## 5.2 DaemonTaskScheduler
+
+DaemonTaskScheduler，常驻作业调度器。
+
+**瞬时**作业，通过 Elastic-Job-Cloud-Scheduler 调度任务，提交 Elastic-Job-Cloud-Executor 执行后，等待 Elastic-Job-Scheduler 进行下次调度。
+
+**常驻**作业，通过 Elastic-Job-Scheduler 提交 Elastic-Job-Cloud-Executor 进行调度。Elastic-Job-Cloud-Executor 使用 DaemonTaskScheduler 不断对常驻作业进行调度而无需 Elastic-Job-Cloud-Scheduler 参与其中。
+
+这就是**瞬时**作业和**常驻**作业不同之处。
+
+调用 `DaemonTaskScheduler#init()` 方法，对**一个**作业初始化调度，实现代码如下：
+
+```Java
+/**
+* 初始化作业.
+*/
+public void init() {
+   // Quartz JobDetail
+   JobDetail jobDetail = JobBuilder.newJob(DaemonJob.class)
+           .withIdentity(jobRootConfig.getTypeConfig().getCoreConfig().getJobName()).build();
+   jobDetail.getJobDataMap().put(ELASTIC_JOB_DATA_MAP_KEY, elasticJob);
+   jobDetail.getJobDataMap().put(JOB_FACADE_DATA_MAP_KEY, jobFacade);
+   jobDetail.getJobDataMap().put(EXECUTOR_DRIVER_DATA_MAP_KEY, executorDriver);
+   jobDetail.getJobDataMap().put(TASK_ID_DATA_MAP_KEY, taskId);
+   try {
+       scheduleJob(initializeScheduler(), jobDetail, taskId.getValue(), jobRootConfig.getTypeConfig().getCoreConfig().getCron());
+   } catch (final SchedulerException ex) {
+       throw new JobSystemException(ex);
+   }
+}
+    
+private Scheduler initializeScheduler() throws SchedulerException {
+   StdSchedulerFactory factory = new StdSchedulerFactory();
+   factory.initialize(getBaseQuartzProperties());
+   return factory.getScheduler();
+}
+    
+private Properties getBaseQuartzProperties() {
+   Properties result = new Properties();
+   result.put("org.quartz.threadPool.class", org.quartz.simpl.SimpleThreadPool.class.getName());
+   result.put("org.quartz.threadPool.threadCount", "1"); // 线程数：1
+   result.put("org.quartz.scheduler.instanceName", taskId.getValue());
+   if (!jobRootConfig.getTypeConfig().getCoreConfig().isMisfire()) {
+       result.put("org.quartz.jobStore.misfireThreshold", "1");
+   }
+   result.put("org.quartz.plugin.shutdownhook.class", ShutdownHookPlugin.class.getName());
+   result.put("org.quartz.plugin.shutdownhook.cleanShutdown", Boolean.TRUE.toString());
+   return result;
+}
+    
+private void scheduleJob(final Scheduler scheduler, final JobDetail jobDetail, final String triggerIdentity, final String cron) {
+   try {
+       if (!scheduler.checkExists(jobDetail.getKey())) {
+           scheduler.scheduleJob(jobDetail, createTrigger(triggerIdentity, cron));
+       }
+       scheduler.start();
+       RUNNING_SCHEDULERS.putIfAbsent(scheduler.getSchedulerName(), scheduler);
+   } catch (final SchedulerException ex) {
+       throw new JobSystemException(ex);
+   }
+}
+    
+private CronTrigger createTrigger(final String triggerIdentity, final String cron) {
+   return TriggerBuilder.newTrigger()
+           .withIdentity(triggerIdentity)
+           .withSchedule(CronScheduleBuilder.cronSchedule(cron)
+           .withMisfireHandlingInstructionDoNothing())
+           .build();
+}
+```
+
+* DaemonTaskScheduler 基于 Quartz 实现作业调度。这里大家看下源码，就不啰嗦解释啦。
+* JobBuilder#newJob(...) 的参数是 DaemonJob，下文会讲解到。 
+
+**DaemonJob 实现代码**如下：
+
+```Java
+public static final class DaemonJob implements Job {
+   
+   @Setter
+   private ElasticJob elasticJob;
+   
+   @Setter
+   private JobFacade jobFacade;
+   
+   @Setter
+   private ExecutorDriver executorDriver;
+    
+   @Setter
+   private Protos.TaskID taskId;
+   
+   @Override
+   public void execute(final JobExecutionContext context) throws JobExecutionException {
+       ShardingContexts shardingContexts = jobFacade.getShardingContexts();
+       int jobEventSamplingCount = shardingContexts.getJobEventSamplingCount();
+       int currentJobEventSamplingCount = shardingContexts.getCurrentJobEventSamplingCount();
+       if (jobEventSamplingCount > 0 && ++currentJobEventSamplingCount < jobEventSamplingCount) {
+           shardingContexts.setCurrentJobEventSamplingCount(currentJobEventSamplingCount);
+           //
+           jobFacade.getShardingContexts().setAllowSendJobEvent(false);
+           // 执行作业
+           JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
+       } else {
+           //
+           jobFacade.getShardingContexts().setAllowSendJobEvent(true);
+           //
+           executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskId).setState(Protos.TaskState.TASK_RUNNING).setMessage("BEGIN").build());
+           // 执行作业
+           JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
+           //
+           executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskId).setState(Protos.TaskState.TASK_RUNNING).setMessage("COMPLETE").build());
+           // 
+           shardingContexts.setCurrentJobEventSamplingCount(0);
+       }
+   }
+}
+```
+
+* 调用 `AbstractElasticJobExecutor#execute(...)` 执行作业逻辑。`AbstractElasticJobExecutor#execute(...)` 实现代码，在 Elastic-Job-Lite 和 Elastic-Job-Cloud 基本一致，在[《Elastic-Job-Lite 源码分析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)有详细解析。
+* `jobEventSamplingCount` 来自应用配置 (`CloudAppConfiguration.eventTraceSamplingCount`) 属性，常驻作业事件采样率统计条数，默认采样全部记录。为避免数据量过大，可对频繁调度的常驻作业配置采样率，即作业每执行N次，才会记录作业执行及追踪相关数据。
+
+  当满足采样条件时，调用 `ShardingContexts#setAllowSendJobEvent(true)`，标记**要**记录作业事件。否则，调用 `ShardingContexts#setAllowSendJobEvent(false)`，标记**不**记录作业时间。
+  
+  另外，当满足采样调试时，也会调用 `ExecutorDriver#sendStatusUpdate(...)` 方法，更新 Mesos 任务状态为运行中，并附带 `"BEGIN"` 或 `"END"` 消息。
+
+# 6. SchedulerEngine 处理任务的状态变更
+
+Mesos 调度器的职责之一，**处理任务的状态，特别是响应任务和故障**。因此在 Elastic-Job-Cloud-Executor 调用 `ExecutorDriver#sendStatusUpdate(...)` 方法，更新 Mesos 任务状态时，触发调用 Elastic-Job-Cloud-Scheduler 的 SchedulerEngine 的 `#statusUpdate(...)` 方法，实现代码如下：
+
+```Java
+@Override
+public void statusUpdate(final SchedulerDriver schedulerDriver, final Protos.TaskStatus taskStatus) {
+   String taskId = taskStatus.getTaskId().getValue();
+   TaskContext taskContext = TaskContext.from(taskId);
+   String jobName = taskContext.getMetaInfo().getJobName();
+   log.trace("call statusUpdate task state is: {}, task id is: {}", taskStatus.getState(), taskId);
+   jobEventBus.post(new JobStatusTraceEvent(jobName, taskContext.getId(), taskContext.getSlaveId(), Source.CLOUD_SCHEDULER, 
+           taskContext.getType(), String.valueOf(taskContext.getMetaInfo().getShardingItems()), State.valueOf(taskStatus.getState().name()), taskStatus.getMessage()));
+   switch (taskStatus.getState()) {
+       case TASK_RUNNING:
+           if (!facadeService.load(jobName).isPresent()) {
+               schedulerDriver.killTask(Protos.TaskID.newBuilder().setValue(taskId).build());
+           }
+           if ("BEGIN".equals(taskStatus.getMessage())) {
+               facadeService.updateDaemonStatus(taskContext, false);
+           } else if ("COMPLETE".equals(taskStatus.getMessage())) {
+               facadeService.updateDaemonStatus(taskContext, true);
+               statisticManager.taskRunSuccessfully();
+           }
+           break;
+       case TASK_FINISHED:
+           facadeService.removeRunning(taskContext);
+           unAssignTask(taskId);
+           statisticManager.taskRunSuccessfully();
+           break;
+       case TASK_KILLED:
+           log.warn("task id is: {}, status is: {}, message is: {}, source is: {}", taskId, taskStatus.getState(), taskStatus.getMessage(), taskStatus.getSource());
+           facadeService.removeRunning(taskContext);
+           facadeService.addDaemonJobToReadyQueue(jobName);
+           unAssignTask(taskId);
+           break;
+       case TASK_LOST:
+       case TASK_DROPPED:
+       case TASK_GONE:
+       case TASK_GONE_BY_OPERATOR:
+       case TASK_FAILED:
+       case TASK_ERROR:
+           log.warn("task id is: {}, status is: {}, message is: {}, source is: {}", taskId, taskStatus.getState(), taskStatus.getMessage(), taskStatus.getSource());
+           facadeService.removeRunning(taskContext);
+           facadeService.recordFailoverTask(taskContext);
+           unAssignTask(taskId);
+           statisticManager.taskRunFailed();
+           break;
+       case TASK_UNKNOWN:
+       case TASK_UNREACHABLE:
+           log.error("task id is: {}, status is: {}, message is: {}, source is: {}", taskId, taskStatus.getState(), taskStatus.getMessage(), taskStatus.getSource());
+           statisticManager.taskRunFailed();
+           break;
+       default:
+           break;
+   }
+}
+```
+
+* 当更新 Mesos 任务状态为 `TASK_RUNNING` 时，根据附带消息为 `"BEGIN"` 或 `"END"`，分别调用 `FacadeService#updateDaemonStatus(false / true)` 方法，更新作业闲置状态。实现代码如下：
+
+    ```Java
+    // FacadeService.java
+    /**
+    * 更新常驻作业运行状态.
+    * 
+    * @param taskContext 任务运行时上下文
+    * @param isIdle 是否空闲
+    */
+    public void updateDaemonStatus(final TaskContext taskContext, final boolean isIdle) {
+       runningService.updateIdle(taskContext, isIdle);
+    }
+        
+    // RunningService.java
+    /**
+    * 更新作业闲置状态.
+    * @param taskContext 任务运行时上下文
+    * @param isIdle 是否闲置
+    */
+    public void updateIdle(final TaskContext taskContext, final boolean isIdle) {
+       synchronized (RUNNING_TASKS) {
+           Optional<TaskContext> taskContextOptional = findTask(taskContext);
+           if (taskContextOptional.isPresent()) {
+               taskContextOptional.get().setIdle(isIdle);
+           } else {
+               add(taskContext);
+           }
+       }
+    }    
+    ```
+
+    若作业配置不存在时，调用 `SchedulerDriver#killTask(...)` 方法，杀死该 Mesos 任务。在[《Elastic-Job-Cloud 源码分析 —— 作业调度（二）》](TODO)进一步解析。
+
+* 当更新 Mesos 任务状态为 `TASK_FINISHED` 时，调用 `FacadeService#removeRunning(...)` 方法，将任务从运行时队列删除。实现代码如下：
+
+    ```Java
+    // FacadeService.java
+    /**
+    * 将任务从运行时队列删除.
+    *
+    * @param taskContext 任务运行时上下文
+    */
+    public void removeRunning(final TaskContext taskContext) {
+       runningService.remove(taskContext);
+    }
+    
+    // RunningService.java
+    /**
+    * 将任务从运行时队列删除.
+    * 
+    * @param taskContext 任务运行时上下文
+    */
+    public void remove(final TaskContext taskContext) {
+       // 移除运行中的任务集合
+       getRunningTasks(taskContext.getMetaInfo().getJobName()).remove(taskContext);
+       // 判断是否为常驻任务
+       if (!isDaemonOrAbsent(taskContext.getMetaInfo().getJobName())) {
+           return;
+       }
+       // 将任务从运行时队列删除
+       regCenter.remove(RunningNode.getRunningTaskNodePath(taskContext.getMetaInfo().toString()));
+       String jobRootNode = RunningNode.getRunningJobNodePath(taskContext.getMetaInfo().getJobName());
+       if (regCenter.isExisted(jobRootNode) && regCenter.getChildrenKeys(jobRootNode).isEmpty()) {
+           regCenter.remove(jobRootNode);
+       }
+    }
+    ```
+    * 当该作业对应的所有 Mesos 任务状态都更新为 `TASK_FINISHED` 后，作业可以再次被 Elastic-Job-Cloud-Scheduler 调度。
+
+    调用 `#unAssignTask(...)` 方法，通知 TaskScheduler 任务被**确认**未分配到这个主机。TaskScheduler 做任务和 Offer 的匹配，对哪些任务运行在哪些主机是有依赖的，不然怎么做匹配优化呢。在[《Fenzo Wiki —— Notify the Scheduler of Assigns and UnAssigns of Tasks》](https://github.com/Netflix/Fenzo/wiki/How-to-use-Fenzo#notify-the-scheduler-of-assigns-and-unassigns-of-tasks)可以进一步了解。实现代码如下：
+    
+    ```Java
+    private void unAssignTask(final String taskId) {
+        String hostname = facadeService.popMapping(taskId);
+        if (null != hostname) {
+            taskScheduler.getTaskUnAssigner().call(TaskContext.getIdForUnassignedSlave(taskId), hostname);
+        }
+    }
+    ```
+
+* TODO 当更新 Mesos 任务状态为 `TASK_KILLED` 时，调用 `FacadeService#addDaemonJobToReadyQueue(...)` 方法，将常驻作业放入待执行队列，这样作业就可以被重新调度。实现代码如下：
+
+    ```Java
+    // FacadeService.java
+    /**
+    * 将常驻作业放入待执行队列.
+    *
+    * @param jobName 作业名称
+    */
+    public void addDaemonJobToReadyQueue(final String jobName) {
+       // 作业配置不存在
+       Optional<CloudJobConfiguration> jobConfigOptional = jobConfigService.load(jobName);
+       if (!jobConfigOptional.isPresent()) {
+           return;
+       }
+       // 作业被禁用
+       if (isDisable(jobConfigOptional.get())) {
+           return;
+       }
+       // 将常驻作业放入待执行队列
+       readyService.addDaemon(jobName);
+    }
+    ```
+    
+    另外会调用 `FacadeService#removeRunning(...)`、`#unAssignTask(...)` 方法。
+
+* 当更新 Mesos 任务状态为 `TASK_ERROR` 等等时，调用 `FacadeService#recordFailoverTask(...)` 方法，在 [《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](TODO)详细解析。
+
+    另外会调用 `FacadeService#removeRunning(...)` 和 `#unAssignTask(...)` 方法。
+    
 # 666. 彩蛋
 
