@@ -1,8 +1,28 @@
-title: Elastic-Job-Cloud 源码分析 —— 作业调度（二）【编辑中】
+title: Elastic-Job-Cloud 源码分析 —— 作业调度（二）
 date: 2017-12-28
 tags:
 categories: Elastic-Job-Cloud
 permalink: Elastic-Job/cloud-job-scheduler-and-executor-second
+
+-------
+
+**本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#)
+- [2. 云作业操作](#)
+	- [2.1 注册云作业配置](#)
+	- [2.2 禁用云作业](#)
+	- [2.3 启动云作业](#)
+	- [2.4 更新云作业配置](#)
+	- [2.5 注销云作业](#)
+	- [2.6 触发一次云作业](#)
+- [3. 云作业应用操作](#)
+	- [3.1 注册云作业应用](#)
+	- [3.2 更新云作业应用配置](#)
+	- [3.3 禁用云作业应用](#)
+	- [3.4 启用云作业应用](#)
+	- [3.5 注销云作业应用](#)
+- [666. 彩蛋](#)
 
 -------
 
@@ -311,17 +331,11 @@ public void deregister(final String jobName) {
     }
     ```
     
-* 调用 `CloudJobConfigurationService#remove(...)` 方法，删除云作业配置，实现代码如下：
-
-    ```Java
-    public void remove(final String jobName) {
-       regCenter.remove(CloudJobConfigurationNode.getRootNodePath(jobName));
-    }
-    ```    
+* 调用 `CloudJobConfigurationService#remove(...)` 方法，删除云作业配置。 
 
 * 调用 `#reschedule(...)` 方法，重新调度作业。
 
-存储在注册中心( Zookeeper )的 云作业配置被删除时，云作业配置变更监听( CloudJobConfigurationListener )会监听到，并执行删除相应逻辑，实现代码如下：
+存储在注册中心( Zookeeper )的 云作业配置被删除时，**云作业配置变更监听器**( CloudJobConfigurationListener )会监听到，并执行删除相应逻辑，实现代码如下：
 
 ```Java
 public final class CloudJobConfigurationListener implements TreeCacheListener {
