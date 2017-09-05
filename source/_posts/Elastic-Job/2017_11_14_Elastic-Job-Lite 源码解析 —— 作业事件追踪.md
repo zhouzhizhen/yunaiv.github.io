@@ -35,6 +35,8 @@ permalink: Elastic-Job/job-event-trace
 
 本文主要分享 **Elastic-Job-Lite 作业事件追踪**。
 
+另外，**Elastic-Job-Cloud 作业事件追踪** 和 Elastic-Job-Lite 基本类似，不单独开一篇文章，记录在该文章里。如果你对 Elastic-Job-Cloud 暂时不感兴趣，可以跳过相应部分。
+
 Elastic-Job 提供了事件追踪功能，可通过事件订阅的方式处理调度过程的重要事件，用于查询、统计和监控。Elastic-Job 目前订阅两种事件，基于**关系型数据库**记录事件。
 
 涉及到主要类的类图如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/01.png) )：
@@ -107,6 +109,8 @@ public final class JobEventBus {
     }
     ```
     * 该方法是私有( `private` )方法，只能使用 JobEventConfiguration 创建事件监听器注册。当不传递该配置时，意味着不开启**事件追踪**功能。
+
+
 
 
 **发布作业事件**
@@ -275,8 +279,8 @@ public final class JobStatusTraceEvent implements JobEvent {
        TASK_KILLED, TASK_LOST, TASK_FAILED,  TASK_DROPPED, TASK_GONE, TASK_GONE_BY_OPERATOR, TASK_UNREACHABLE, TASK_UNKNOWN
     }
     ```
-    * Elastic-Job-Lite 只有 TASK_STAGING、TASK_RUNNING、TASK_FINISHED、TASK_ERROR 四种执行状态。
-    * Elastic-Job-Cloud 有所有的执行状态。
+    * Elastic-Job-Lite / Elastic-Job-Cloud  TASK_STAGING、TASK_RUNNING、TASK_FINISHED、TASK_ERROR 四种执行状态。
+    * 其他执行状态暂时未使用到。
 
 关系数据库表 `JOB_STATUS_TRACE_LOG` 结构如下：
 
@@ -302,7 +306,7 @@ CREATE TABLE `JOB_STATUS_TRACE_LOG` (
 
     ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/02.png)
 
-JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
+**JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机**：
 
 * State.TASK_STAGING：
 
@@ -373,6 +377,28 @@ JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机：
       }
     }
     ```
+
+**JobStatusTraceEvent 在 Elastic-Job-Cloud 发布时机**：
+
+Elastic-Job-Cloud 除了上文 Elastic-Job-Lite 会多一个场景下记录作业状态追踪事件( **State.TASK_STAGING** )，实现代码如下：
+
+```Java
+// TaskLaunchScheduledService.java
+private JobStatusTraceEvent createJobStatusTraceEvent(final TaskContext taskContext) {
+  TaskContext.MetaInfo metaInfo = taskContext.getMetaInfo();
+  JobStatusTraceEvent result = new JobStatusTraceEvent(metaInfo.getJobName(), taskContext.getId(), taskContext.getSlaveId(),
+          Source.CLOUD_SCHEDULER, taskContext.getType(), String.valueOf(metaInfo.getShardingItems()), JobStatusTraceEvent.State.TASK_STAGING, "");
+  // 失效转移
+  if (ExecutionType.FAILOVER == taskContext.getType()) {
+      Optional<String> taskContextOptional = facadeService.getFailoverTaskId(metaInfo);
+      if (taskContextOptional.isPresent()) {
+          result.setOriginalTaskId(taskContextOptional.get());
+      }
+  }
+  return result;
+}
+```
+* 任务提交调度服务( TaskLaunchScheduledService )提交任务时，记录发布作业状态追踪事件(State.TASK_STAGING)。
 
 ## 3.2 作业执行追踪事件
 
@@ -475,7 +501,7 @@ CREATE TABLE `JOB_EXECUTION_LOG` (
 
     ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/03.png)
 
-JobExecutionEvent 在 Elastic-Job-Lite 发布时机：
+**JobExecutionEvent 在 Elastic-Job-Lite 发布时机**：
 
     ```Java
     private void process(final ShardingContexts shardingContexts, final int item, final JobExecutionEvent startEvent) {
@@ -500,6 +526,10 @@ JobExecutionEvent 在 Elastic-Job-Lite 发布时机：
        }
     }
     ```
+
+**JobExecutionEvent 在 Elastic-Job-Cloud 发布时机**：
+
+和 Elastic-Job-Cloud 一致。
 
 ## 3.3 作业事件数据库存储
 
@@ -549,7 +579,7 @@ private String getOriginalTaskId(final String taskId) {
 
 * `originalTaskId`，原任务作业ID。
     * Elastic-Job-Lite 暂未使用到该字段，存储空串( `""` )。
-    * Elastic-Job-Cloud 使用到，笔者暂未研究到。嘿嘿。
+    * Elastic-Job-Cloud 在**作业失效转移**场景下使用该字段，存储失效转移的任务作业ID。
 
 **存储** JobExecutionEvent 代码如下：     
 
@@ -663,6 +693,32 @@ public final class JobEventRdbListener extends JobEventRdbIdentity implements Jo
 **如何自定义作业监听器？**
 
 有些同学可能希望使用 ES 或者其他数据库存储作业事件，这个时候可以通过实现 JobEventConfiguration、JobEventListener 进行拓展。
+
+**Elastic-Job-Cloud JobEventConfiguration 怎么配置？**
+
+* Elastic-Job-Cloud-Scheduler：从 `conf/elastic-job-cloud-scheduler.properties` 配置文件读取如下属性，生成 JobEventConfiguration 配置对象。
+    * `event_trace_rdb_driver`
+    * `event_trace_rdb_url`
+    * `event_trace_rdb_username`
+    * `event_trace_rdb_password`
+
+* Elastic-Job-Cloud-Executor：通过接收到任务执行信息里读取JobEventConfiguration，实现代码如下：
+
+    ```Java
+    // TaskExecutor.java
+    @Override
+    public void registered(final ExecutorDriver executorDriver, final Protos.ExecutorInfo executorInfo, final Protos.FrameworkInfo frameworkInfo, final Protos.SlaveInfo slaveInfo) {
+       if (!executorInfo.getData().isEmpty()) {
+           Map<String, String> data = SerializationUtils.deserialize(executorInfo.getData().toByteArray());
+           BasicDataSource dataSource = new BasicDataSource();
+           dataSource.setDriverClassName(data.get("event_trace_rdb_driver"));
+           dataSource.setUrl(data.get("event_trace_rdb_url"));
+           dataSource.setPassword(data.get("event_trace_rdb_password"));
+           dataSource.setUsername(data.get("event_trace_rdb_username"));
+           jobEventBus = new JobEventBus(new JobEventRdbConfiguration(dataSource));
+       }
+    }
+    ```
 
 # 666. 彩蛋
 

@@ -1589,7 +1589,7 @@ public static final class DaemonJob implements Job {
 * 调用 `AbstractElasticJobExecutor#execute(...)` 执行作业逻辑。`AbstractElasticJobExecutor#execute(...)` 实现代码，在 Elastic-Job-Lite 和 Elastic-Job-Cloud 基本一致，在[《Elastic-Job-Lite 源码分析 —— 作业执行》](http://www.yunai.me/Elastic-Job/job-execute/?self)有详细解析。
 * `jobEventSamplingCount` 来自应用配置 (`CloudAppConfiguration.eventTraceSamplingCount`) 属性，常驻作业事件采样率统计条数，默认采样全部记录。为避免数据量过大，可对频繁调度的常驻作业配置采样率，即作业每执行N次，才会记录作业执行及追踪相关数据。
 
-  当满足采样条件时，调用 `ShardingContexts#setAllowSendJobEvent(true)`，标记**要**记录作业事件。否则，调用 `ShardingContexts#setAllowSendJobEvent(false)`，标记**不**记录作业时间。
+  当满足采样条件时，调用 `ShardingContexts#setAllowSendJobEvent(true)`，标记**要**记录作业事件。否则，调用 `ShardingContexts#setAllowSendJobEvent(false)`，标记**不**记录作业时间。作业事件追踪在[《Elastic-Job-Lite 源码分析 —— 作业事件追踪》](http://www.yunai.me/Elastic-Job/job-event-trace/?self)有详细解析。
   
   另外，当满足采样调试时，也会调用 `ExecutorDriver#sendStatusUpdate(...)` 方法，更新 Mesos 任务状态为运行中，并附带 `"BEGIN"` 或 `"COMPLETE"` 消息。
 
