@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.yunai.me/"/>
-  <updated>2017-09-05T14:50:43.000Z</updated>
+  <updated>2017-09-05T16:33:21.000Z</updated>
   <id>http://www.yunai.me/</id>
   
   <author>
@@ -16,13 +16,100 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Elastic-Job-Cloud 源码分析 —— 作业失效转移【编辑中】</title>
+    <link href="http://www.yunai.me/Elastic-Job/cloud-job-failover/"/>
+    <id>http://www.yunai.me/Elastic-Job/cloud-job-failover/</id>
+    <published>2018-01-09T16:00:00.000Z</published>
+    <updated>2017-09-05T16:33:21.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;hr&gt;
+
+    
+    </summary>
+    
+      <category term="Elastic-Job-Cloud" scheme="http://www.yunai.me/categories/Elastic-Job-Cloud/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>Elastic-Job-Cloud 源码分析 —— 本地运行模式</title>
     <link href="http://www.yunai.me/Elastic-Job/cloud-local-executor/"/>
     <id>http://www.yunai.me/Elastic-Job/cloud-local-executor/</id>
     <published>2018-01-02T16:00:00.000Z</published>
-    <updated>2017-09-05T14:50:43.000Z</updated>
+    <updated>2017-09-05T16:30:59.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. 配置</a></li>
+<li><a href="#">3. 运行</a></li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Cloud 本地运行模式</strong>，对应<a href="http://elasticjob.io/docs/elastic-job-cloud/02-guide/local-executor/" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— 本地运行模式》</a>。</p>
+<p><strong>有什么用呢</strong>？引用官方解答：</p>
+<blockquote>
+<p>在开发 Elastic-Job-Cloud 作业时，开发人员可以脱离 Mesos 环境，在本地运行和调试作业。可以利用本地运行模式充分的调试业务功能以及单元测试，完成之后再部署至 Mesos 集群。<br>
+本地运行作业无需安装 Mesos 环境。</p>
+</blockquote>
+<p>😈 是不是很赞 + 1024？！</p>
+<p>本文涉及到主体类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2018_01_03/01.png">打开大图</a> )：</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2018_01_03/01.png" alt=""></p>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<h1>2. 配置</h1>
+<p>LocalCloudJobConfiguration，本地云作业配置，在<a href="http://www.yunai.me/Elastic-Job/cloud-local-executor/?self">《Elastic-Job-Cloud 源码分析 —— 作业配置》「3.2 本地云作业配置」</a>有详细解析。</p>
+<p>创建本地云作业配置示例代码如下（来自官方）：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line">LocalCloudJobConfiguration config = <span class="keyword">new</span> LocalCloudJobConfiguration(</div><div class="line">    <span class="keyword">new</span> SimpleJobConfiguration(</div><div class="line">    <span class="comment">// 配置作业类型和作业基本信息</span></div><div class="line">    JobCoreConfiguration.newBuilder(<span class="string">"FooJob"</span>, <span class="string">"*/2 * * * * ?"</span>, <span class="number">3</span>) </div><div class="line">        .shardingItemParameters(<span class="string">"0=Beijing,1=Shanghai,2=Guangzhou"</span>)</div><div class="line">        .jobParameter(<span class="string">"dbName=dangdang"</span>).build(), <span class="string">"com.dangdang.foo.FooJob"</span>),</div><div class="line">        <span class="comment">// 配置当前运行的作业是第几个分片 </span></div><div class="line">        <span class="number">1</span>,  </div><div class="line">        <span class="comment">// 配置Spring相关参数。如果不配置，代表不使用 Spring 配置。</span></div><div class="line">        <span class="string">"testSimpleJob"</span> , <span class="string">"applicationContext.xml"</span>);</div></pre></td></tr></table></figure></p>
+<h1>3. 运行</h1>
+<p>LocalTaskExecutor，本地作业执行器。</p>
+<p>创建本地作业执行器示例代码如下（来自官方）：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">new</span> LocalTaskExecutor(localJobConfig).execute();</div></pre></td></tr></table></figure></p>
+<p>可以看到，调用 <code>LocalTaskExecutor#execute()</code> 方法，执行作业逻辑，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// LocalTaskExecutor.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</div><div class="line">   AbstractElasticJobExecutor jobExecutor;</div><div class="line">   CloudJobFacade jobFacade = <span class="keyword">new</span> CloudJobFacade(getShardingContexts(), getJobConfigurationContext(), <span class="keyword">new</span> JobEventBus());</div><div class="line">   <span class="comment">// 创建执行器</span></div><div class="line">   <span class="keyword">switch</span> (localCloudJobConfiguration.getTypeConfig().getJobType()) &#123;</div><div class="line">       <span class="keyword">case</span> SIMPLE:</div><div class="line">           jobExecutor = <span class="keyword">new</span> SimpleJobExecutor(getJobInstance(SimpleJob.class), jobFacade);</div><div class="line">           <span class="keyword">break</span>;</div><div class="line">       <span class="keyword">case</span> DATAFLOW:</div><div class="line">           jobExecutor = <span class="keyword">new</span> DataflowJobExecutor(getJobInstance(DataflowJob.class), jobFacade);</div><div class="line">           <span class="keyword">break</span>;</div><div class="line">       <span class="keyword">case</span> SCRIPT:</div><div class="line">           jobExecutor = <span class="keyword">new</span> ScriptJobExecutor(jobFacade);</div><div class="line">           <span class="keyword">break</span>;</div><div class="line">       <span class="keyword">default</span>:</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(localCloudJobConfiguration.getTypeConfig().getJobType().name());</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 执行作业</span></div><div class="line">   jobExecutor.execute();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>
+<p>调用 <code>#getShardingContexts()</code> 方法，创建分片上下文集合( ShardingContexts )，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> ShardingContexts <span class="title">getShardingContexts</span><span class="params">()</span> </span>&#123;</div><div class="line">   JobCoreConfiguration coreConfig = localCloudJobConfiguration.getTypeConfig().getCoreConfig();</div><div class="line">   Map&lt;Integer, String&gt; shardingItemMap = <span class="keyword">new</span> HashMap&lt;&gt;(<span class="number">1</span>, <span class="number">1</span>);</div><div class="line">   shardingItemMap.put(localCloudJobConfiguration.getShardingItem(),</div><div class="line">           <span class="keyword">new</span> ShardingItemParameters(coreConfig.getShardingItemParameters()).getMap().get(localCloudJobConfiguration.getShardingItem()));</div><div class="line">   <span class="keyword">return</span> <span class="keyword">new</span> ShardingContexts(</div><div class="line">           <span class="comment">// taskId 👇</span></div><div class="line">           Joiner.on(<span class="string">"@-@"</span>).join(localCloudJobConfiguration.getJobName(), localCloudJobConfiguration.getShardingItem(), <span class="string">"READY"</span>, <span class="string">"foo_slave_id"</span>, <span class="string">"foo_uuid"</span>),</div><div class="line">           localCloudJobConfiguration.getJobName(), coreConfig.getShardingTotalCount(), coreConfig.getJobParameter(), shardingItemMap);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>调用 <code>#getJobConfigurationContext()</code> 方法，创建内部的作业配置上下文( JobConfigurationContext )，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> JobConfigurationContext <span class="title">getJobConfigurationContext</span><span class="params">()</span> </span>&#123;</div><div class="line">   Map&lt;String, String&gt; jobConfigurationMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">   jobConfigurationMap.put(<span class="string">"jobClass"</span>, localCloudJobConfiguration.getTypeConfig().getJobClass());</div><div class="line">   jobConfigurationMap.put(<span class="string">"jobType"</span>, localCloudJobConfiguration.getTypeConfig().getJobType().name());</div><div class="line">   jobConfigurationMap.put(<span class="string">"jobName"</span>, localCloudJobConfiguration.getJobName());</div><div class="line">   jobConfigurationMap.put(<span class="string">"beanName"</span>, localCloudJobConfiguration.getBeanName());</div><div class="line">   jobConfigurationMap.put(<span class="string">"applicationContext"</span>, localCloudJobConfiguration.getApplicationContext());</div><div class="line">   <span class="keyword">if</span> (JobType.DATAFLOW == localCloudJobConfiguration.getTypeConfig().getJobType()) &#123; <span class="comment">// 数据流作业</span></div><div class="line">       jobConfigurationMap.put(<span class="string">"streamingProcess"</span>, Boolean.toString(((DataflowJobConfiguration) localCloudJobConfiguration.getTypeConfig()).isStreamingProcess()));</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (JobType.SCRIPT == localCloudJobConfiguration.getTypeConfig().getJobType()) &#123; <span class="comment">// 脚本作业</span></div><div class="line">       jobConfigurationMap.put(<span class="string">"scriptCommandLine"</span>, ((ScriptJobConfiguration) localCloudJobConfiguration.getTypeConfig()).getScriptCommandLine());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> <span class="keyword">new</span> JobConfigurationContext(jobConfigurationMap);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>调用 <code>#getJobInstance(...)</code> 方法， 获得分布式作业( ElasticJob )实现实例，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">private</span> &lt;T extends ElasticJob&gt; <span class="function">T <span class="title">getJobInstance</span><span class="params">(<span class="keyword">final</span> Class&lt;T&gt; clazz)</span> </span>&#123;</div><div class="line">   Object result;</div><div class="line">   <span class="keyword">if</span> (Strings.isNullOrEmpty(localCloudJobConfiguration.getApplicationContext())) &#123; <span class="comment">// 直接创建 ElasticJob</span></div><div class="line">       String jobClass = localCloudJobConfiguration.getTypeConfig().getJobClass();</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           result = Class.forName(jobClass).newInstance();</div><div class="line">       &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> ReflectiveOperationException ex) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(<span class="string">"Elastic-Job: Class '%s' initialize failure, the error message is '%s'."</span>, jobClass, ex.getMessage());</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">else</span> &#123; <span class="comment">// Spring 环境获得 ElasticJob</span></div><div class="line">       result = <span class="keyword">new</span> ClassPathXmlApplicationContext(localCloudJobConfiguration.getApplicationContext()).getBean(localCloudJobConfiguration.getBeanName());</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> clazz.cast(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+</li>
+<li>
+<p>调用 <code>AbstractElasticJobExecutor#execute()</code> 方法，执行作业逻辑。 Elastic-Job-Lite 和 Elastic-Job-Cloud 作业执行基本一致，在<a href="http://www.yunai.me/Elastic-Job/job-execute/?self">《Elastic-Job-Lite 源码分析 —— 作业执行》</a>有详细解析。</p>
+</li>
+</ul>
+<h1>666. 彩蛋</h1>
+<p>芋道君：可能有点水更，和大家实际开发太相关，想想还是更新下。<br>
+旁白君：哎哟哟，哎哟喂。</p>
+<p><img src="http://www.yunai.me/images/Elastic-Job/2018_01_03/02.png" alt=""></p>
+<p>道友，赶紧上车，分享一波朋友圈！</p>
+]]></content>
     
     <summary type="html">
+    
+      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 配置&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;3. 运
     
     </summary>
     
@@ -41,7 +128,8 @@
     <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
 <ul>
 <li><a href="#">1. 概述</a></li>
-<li><a href="#">2. 云作业操作</a><ul>
+<li><a href="#">2. 云作业操作</a>
+<ul>
 <li><a href="#">2.1 注册云作业配置</a></li>
 <li><a href="#">2.2 禁用云作业</a></li>
 <li><a href="#">2.3 启动云作业</a></li>
@@ -50,7 +138,8 @@
 <li><a href="#">2.6 触发一次云作业</a></li>
 </ul>
 </li>
-<li><a href="#">3. 云作业应用操作</a><ul>
+<li><a href="#">3. 云作业应用操作</a>
+<ul>
 <li><a href="#">3.1 注册云作业应用</a></li>
 <li><a href="#">3.2 更新云作业应用配置</a></li>
 <li><a href="#">3.3 禁用云作业应用</a></li>
@@ -61,137 +150,177 @@
 <li><a href="#">666. 彩蛋</a></li>
 </ul>
 <hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文主要分享 <strong>Elastic-Job-Cloud 云作业应用配置和云作业配置变更对作业调度的影响</strong>，作为<a href="http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor-first/?self">《Elastic-Job-Cloud 源码分析 —— 作业调度（一）》</a>的补充内容。所以需要你对<strong>作业调度</strong>已经有一定了解的基础上。</p>
+<h1>1. 概述</h1>
+<p>本文主要分享 <strong>Elastic-Job-Cloud 云作业应用配置和云作业配置变更对作业调度的影响</strong>，作为<a href="http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor-first/?self">《Elastic-Job-Cloud 源码分析 —— 作业调度（一）》</a>的补充内容。所以需要你对<strong>作业调度</strong>已经有一定了解的基础上。</p>
 <p>🙂 如果你做作业调度有任何想交流，欢迎加我的公众号( 芋道源码 ) 或 微信( wangwenbin-server ) 交流。</p>
 <blockquote>
-<p>你行好事会因为得到赞赏而愉悦<br>同理，开源项目贡献者会因为 Star 而更加有动力<br>为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
 </blockquote>
-<h1 id="2-云作业操作"><a href="#2-云作业操作" class="headerlink" title="2. 云作业操作"></a>2. 云作业操作</h1><p>我们可以使用<strong>运维平台</strong>或 Restful API 对云作业进行操作。前者是对后者的界面包装，如下图所示：</p>
+<h1>2. 云作业操作</h1>
+<p>我们可以使用<strong>运维平台</strong>或 Restful API 对云作业进行操作。前者是对后者的界面包装，如下图所示：</p>
 <p><img src="http://www.yunai.me/images/Elastic-Job/2017_12_28/01.png" alt=""></p>
-<h2 id="2-1-注册云作业配置"><a href="#2-1-注册云作业配置" class="headerlink" title="2.1 注册云作业配置"></a>2.1 注册云作业配置</h2><p><a href="http://www.yunai.me/Elastic-Job/cloud-job-config/?self">《Elastic-Job-Cloud 源码分析 —— 作业配置》「3.1.1 操作云作业配置」</a>有详细解析。</p>
-<h2 id="2-2-禁用云作业"><a href="#2-2-禁用云作业" class="headerlink" title="2.2 禁用云作业"></a>2.2 禁用云作业</h2><p>调用 <code>CloudJobRestfulApi#disable(...)</code> 方法，禁用云作业，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;jobName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disable</span><span class="params">(@PathParam(<span class="string">"jobName"</span>)</span> <span class="keyword">final</span> String jobName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (configService.load(jobName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 将作业放入禁用队列</span></div><div class="line">       facadeService.disableJob(jobName);</div><div class="line">       <span class="comment">// 停止调度作业</span></div><div class="line">       producerManager.unschedule(jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>2.1 注册云作业配置</h2>
+<p><a href="http://www.yunai.me/Elastic-Job/cloud-job-config/?self">《Elastic-Job-Cloud 源码分析 —— 作业配置》「3.1.1 操作云作业配置」</a>有详细解析。</p>
+<h2>2.2 禁用云作业</h2>
+<p>调用 <code>CloudJobRestfulApi#disable(...)</code> 方法，禁用云作业，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;jobName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disable</span><span class="params">(@PathParam(<span class="string">"jobName"</span>)</span> <span class="keyword">final</span> String jobName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (configService.load(jobName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 将作业放入禁用队列</span></div><div class="line">       facadeService.disableJob(jobName);</div><div class="line">       <span class="comment">// 停止调度作业</span></div><div class="line">       producerManager.unschedule(jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>FacadeService#disableJob(...)</code> 方法，将作业放入<strong>禁用作业队列</strong>。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// FacadeService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disableJob</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   disableJobService.add(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (regCenter.getNumChildren(DisableJobNode.ROOT) &gt; env.getFrameworkConfiguration().getJobStateQueueSize()) &#123;</div><div class="line">       log.warn(<span class="string">"Cannot add disable job, caused by read state queue size is larger than &#123;&#125;."</span>, env.getFrameworkConfiguration().getJobStateQueueSize());</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将作业放入禁用队列</span></div><div class="line">   String disableJobNodePath = DisableJobNode.getDisableJobNodePath(jobName);</div><div class="line">   <span class="keyword">if</span> (!regCenter.isExisted(disableJobNodePath)) &#123;</div><div class="line">       regCenter.persist(disableJobNodePath, jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobNode.java</span></div><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableJobNode</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> String ROOT = StateNode.ROOT + <span class="string">"/disable/job"</span>;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DISABLE_JOB = ROOT + <span class="string">"/%s"</span>; <span class="comment">// %s = $&#123;JOB_NAME&#125;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>FacadeService#disableJob(...)</code> 方法，将作业放入<strong>禁用作业队列</strong>。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// FacadeService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disableJob</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   disableJobService.add(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (regCenter.getNumChildren(DisableJobNode.ROOT) &gt; env.getFrameworkConfiguration().getJobStateQueueSize()) &#123;</div><div class="line">       log.warn(<span class="string">"Cannot add disable job, caused by read state queue size is larger than &#123;&#125;."</span>, env.getFrameworkConfiguration().getJobStateQueueSize());</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将作业放入禁用队列</span></div><div class="line">   String disableJobNodePath = DisableJobNode.getDisableJobNodePath(jobName);</div><div class="line">   <span class="keyword">if</span> (!regCenter.isExisted(disableJobNodePath)) &#123;</div><div class="line">       regCenter.persist(disableJobNodePath, jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobNode.java</span></div><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableJobNode</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> String ROOT = StateNode.ROOT + <span class="string">"/disable/job"</span>;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DISABLE_JOB = ROOT + <span class="string">"/%s"</span>; <span class="comment">// %s = $&#123;JOB_NAME&#125;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>DisableJobService，禁用作业队列服务。</li>
-<li><p>禁用作业队列存储在注册中心( Zookeeper )的<strong>持久</strong>数据节点 <code>/${NAMESPACE}/state/disable/job/${JOB_NAME}</code>，存储值为作业名称。使用 zkClient 查看如下： </p>
-  <figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">    [zk: localhost:2181(CONNECTED) 6] ls /elastic-job-cloud/state/disable/job</div><div class="line">[test_job_simple]</div></pre></td></tr></table></figure>
+<li>
+<p>DisableJobService，禁用作业队列服务。</p>
+</li>
+<li>
+<p>禁用作业队列存储在注册中心( Zookeeper )的<strong>持久</strong>数据节点 <code>/${NAMESPACE}/state/disable/job/${JOB_NAME}</code>，存储值为作业名称。使用 zkClient 查看如下：</p>
+<p><figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">    [zk: localhost:2181(CONNECTED) 6] ls /elastic-job-cloud/state/disable/job</div><div class="line">[test_job_simple]</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
 </li>
-<li><p>调用 <code>ProducerManager#unschedule(...)</code> 方法，停止调度作业。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unschedule</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 杀死作业对应的 Mesos 任务们</span></div><div class="line">   <span class="keyword">for</span> (TaskContext each : runningService.getRunningTasks(jobName)) &#123;</div><div class="line">       schedulerDriver.killTask(Protos.TaskID.newBuilder().setValue(each.getId()).build());</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将作业从运行时队列删除</span></div><div class="line">   runningService.remove(jobName);</div><div class="line">   <span class="comment">// 将作业从待运行队列删除</span></div><div class="line">   readyService.remove(Lists.newArrayList(jobName));</div><div class="line">   <span class="comment">// 停止作业调度</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       transientProducerScheduler.deregister(jobConfig.get());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>ProducerManager#unschedule(...)</code> 方法，停止调度作业。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unschedule</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 杀死作业对应的 Mesos 任务们</span></div><div class="line">   <span class="keyword">for</span> (TaskContext each : runningService.getRunningTasks(jobName)) &#123;</div><div class="line">       schedulerDriver.killTask(Protos.TaskID.newBuilder().setValue(each.getId()).build());</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将作业从运行时队列删除</span></div><div class="line">   runningService.remove(jobName);</div><div class="line">   <span class="comment">// 将作业从待运行队列删除</span></div><div class="line">   readyService.remove(Lists.newArrayList(jobName));</div><div class="line">   <span class="comment">// 停止作业调度</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       transientProducerScheduler.deregister(jobConfig.get());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>SchedulerDriver#killTask(...)</code> 方法，杀死作业对应的 Mesos 任务们，适用<strong>常驻作业</strong>。Elastic-Job-Cloud-Scheduler 会接收到 Mesos 杀死任务的请求，调用 <code>TaskExecutor#killTask(...)</code> 方法，停止任务调度。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// TaskExecutor.java</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TaskExecutor</span> <span class="keyword">implements</span> <span class="title">Executor</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">killTask</span><span class="params">(<span class="keyword">final</span> ExecutorDriver executorDriver, <span class="keyword">final</span> Protos.TaskID taskID)</span> </span>&#123;</div><div class="line">        <span class="comment">// 更新 Mesos 任务状态，已杀死。</span></div><div class="line">        executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskID).setState(Protos.TaskState.TASK_KILLED).build());</div><div class="line">        <span class="comment">// 关闭该 Mesos 任务的调度</span></div><div class="line">        DaemonTaskScheduler.shutdown(taskID);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DaemonTaskScheduler.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 停止任务调度.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> taskID 任务主键</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">(<span class="keyword">final</span> Protos.TaskID taskID)</span> </span>&#123;</div><div class="line">   <span class="comment">// 移除任务的 Quartz Scheduler</span></div><div class="line">   Scheduler scheduler = RUNNING_SCHEDULERS.remove(taskID.getValue());</div><div class="line">   <span class="comment">// 关闭任务的 Quartz Scheduler</span></div><div class="line">   <span class="keyword">if</span> (<span class="keyword">null</span> != scheduler) &#123;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           scheduler.shutdown();</div><div class="line">       &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>SchedulerDriver#killTask(...)</code> 方法，杀死作业对应的 Mesos 任务们，适用<strong>常驻作业</strong>。Elastic-Job-Cloud-Scheduler 会接收到 Mesos 杀死任务的请求，调用 <code>TaskExecutor#killTask(...)</code> 方法，停止任务调度。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// TaskExecutor.java</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TaskExecutor</span> <span class="keyword">implements</span> <span class="title">Executor</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">killTask</span><span class="params">(<span class="keyword">final</span> ExecutorDriver executorDriver, <span class="keyword">final</span> Protos.TaskID taskID)</span> </span>&#123;</div><div class="line">        <span class="comment">// 更新 Mesos 任务状态，已杀死。</span></div><div class="line">        executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskID).setState(Protos.TaskState.TASK_KILLED).build());</div><div class="line">        <span class="comment">// 关闭该 Mesos 任务的调度</span></div><div class="line">        DaemonTaskScheduler.shutdown(taskID);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DaemonTaskScheduler.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line">* 停止任务调度.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> taskID 任务主键</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shutdown</span><span class="params">(<span class="keyword">final</span> Protos.TaskID taskID)</span> </span>&#123;</div><div class="line">   <span class="comment">// 移除任务的 Quartz Scheduler</span></div><div class="line">   Scheduler scheduler = RUNNING_SCHEDULERS.remove(taskID.getValue());</div><div class="line">   <span class="comment">// 关闭任务的 Quartz Scheduler</span></div><div class="line">   <span class="keyword">if</span> (<span class="keyword">null</span> != scheduler) &#123;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           scheduler.shutdown();</div><div class="line">       &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li></li>
 </ul>
 </li>
-<li><p>调用 <code>RunningService#remove(...)</code> 方法，将作业从<strong>运行时队列</strong>删除。</p>
+<li>
+<p>调用 <code>RunningService#remove(...)</code> 方法，将作业从<strong>运行时队列</strong>删除。</p>
 </li>
-<li>调用 <code>ReadyService#remove(...)</code> 方法，将作业从<strong>待运行队列</strong>删除。</li>
-<li><p>调用 <code>TransientProducerScheduler#deregister(...)</code> 方法，停止作业调度，适用<strong>瞬时作业</strong>。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">    <span class="comment">// 移除作业</span></div><div class="line">    repository.remove(jobConfig.getJobName());</div><div class="line">    <span class="comment">// 若 cron 不再对应有作业调度，移除 Quartz Scheduler 对 cron 对应的 Quartz Job</span></div><div class="line">    String cron = jobConfig.getTypeConfig().getCoreConfig().getCron();</div><div class="line">    <span class="keyword">if</span> (!repository.containsKey(buildJobKey(cron))) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            scheduler.unscheduleJob(TriggerKey.triggerKey(cron));</div><div class="line">        &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>ReadyService#remove(...)</code> 方法，将作业从<strong>待运行队列</strong>删除。</p>
+</li>
+<li>
+<p>调用 <code>TransientProducerScheduler#deregister(...)</code> 方法，停止作业调度，适用<strong>瞬时作业</strong>。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">    <span class="comment">// 移除作业</span></div><div class="line">    repository.remove(jobConfig.getJobName());</div><div class="line">    <span class="comment">// 若 cron 不再对应有作业调度，移除 Quartz Scheduler 对 cron 对应的 Quartz Job</span></div><div class="line">    String cron = jobConfig.getTypeConfig().getCoreConfig().getCron();</div><div class="line">    <span class="keyword">if</span> (!repository.containsKey(buildJobKey(cron))) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            scheduler.unscheduleJob(TriggerKey.triggerKey(cron));</div><div class="line">        &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> SchedulerException ex) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
 </li>
 </ul>
-<h2 id="2-3-启动云作业"><a href="#2-3-启动云作业" class="headerlink" title="2.3 启动云作业"></a>2.3 启动云作业</h2><p>调用 <code>CloudJobRestfulApi#enable(...)</code> 方法，启用云作业，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;jobName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enable</span><span class="params">(@PathParam(<span class="string">"jobName"</span>)</span> <span class="keyword">final</span> String jobName) <span class="keyword">throws</span> JSONException </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; configOptional = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (configOptional.isPresent()) &#123;</div><div class="line">       <span class="comment">// 将作业移出禁用队列</span></div><div class="line">       facadeService.enableJob(jobName);</div><div class="line">       <span class="comment">// 重新调度作业</span></div><div class="line">       producerManager.reschedule(jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>2.3 启动云作业</h2>
+<p>调用 <code>CloudJobRestfulApi#enable(...)</code> 方法，启用云作业，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;jobName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enable</span><span class="params">(@PathParam(<span class="string">"jobName"</span>)</span> <span class="keyword">final</span> String jobName) <span class="keyword">throws</span> JSONException </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; configOptional = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (configOptional.isPresent()) &#123;</div><div class="line">       <span class="comment">// 将作业移出禁用队列</span></div><div class="line">       facadeService.enableJob(jobName);</div><div class="line">       <span class="comment">// 重新调度作业</span></div><div class="line">       producerManager.reschedule(jobName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>FacadeService#enableJob(...)</code> 方法，将作业移出<strong>禁用作业队列</strong>。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// FacadeService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enableJob</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   disableJobService.remove(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableJobNode.getDisableJobNodePath(jobName));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>FacadeService#enableJob(...)</code> 方法，将作业移出<strong>禁用作业队列</strong>。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// FacadeService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enableJob</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   disableJobService.remove(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableJobService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableJobNode.getDisableJobNodePath(jobName));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
-<li><p>调用 <code>ProducerManager#reschedule(...)</code> 方法，将作业重新调度。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reschedule</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 停止调度作业</span></div><div class="line">   unschedule(jobName);</div><div class="line">   <span class="comment">// 调度作业</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       schedule(jobConfig.get());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>ProducerManager#reschedule(...)</code> 方法，将作业重新调度。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reschedule</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 停止调度作业</span></div><div class="line">   unschedule(jobName);</div><div class="line">   <span class="comment">// 调度作业</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       schedule(jobConfig.get());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>调用 <code>#unschedule(...)</code> 方法，停止调度作业。</li>
 <li>调用 <code>#schedule(...)</code> 方法，调度作业，在<a href="http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first/?self" rel="external nofollow noopener noreferrer" target="_blank">《Elastic-Job-Cloud 源码分析 —— 作业调度（一）》</a>有详细解析。</li>
 </ul>
 </li>
 </ul>
-<h2 id="2-4-更新云作业配置"><a href="#2-4-更新云作业配置" class="headerlink" title="2.4 更新云作业配置"></a>2.4 更新云作业配置</h2><p>调用 <code>CloudJobRestfulApi#update(...)</code> 方法，更新云作业配置，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudJobRestfulApi.java</span></div><div class="line"><span class="meta">@PUT</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/update"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   producerManager.update(jobConfig);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfigFromZk = configService.load(jobConfig.getJobName());</div><div class="line">   <span class="keyword">if</span> (!jobConfigFromZk.isPresent()) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobConfigurationException(<span class="string">"Cannot found job '%s', please register first."</span>, jobConfig.getJobName());</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 修改云作业配置</span></div><div class="line">   configService.update(jobConfig);</div><div class="line">   <span class="comment">// 重新调度作业</span></div><div class="line">   reschedule(jobConfig.getJobName());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>2.4 更新云作业配置</h2>
+<p>调用 <code>CloudJobRestfulApi#update(...)</code> 方法，更新云作业配置，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudJobRestfulApi.java</span></div><div class="line"><span class="meta">@PUT</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/update"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   producerManager.update(jobConfig);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfigFromZk = configService.load(jobConfig.getJobName());</div><div class="line">   <span class="keyword">if</span> (!jobConfigFromZk.isPresent()) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobConfigurationException(<span class="string">"Cannot found job '%s', please register first."</span>, jobConfig.getJobName());</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 修改云作业配置</span></div><div class="line">   configService.update(jobConfig);</div><div class="line">   <span class="comment">// 重新调度作业</span></div><div class="line">   reschedule(jobConfig.getJobName());</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>ConfigService#update(jobConfig)</code> 方法，修改云作业配置。实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   regCenter.update(CloudJobConfigurationNode.getRootNodePath(jobConfig.getJobName()), CloudJobConfigurationGsonFactory.toJson(jobConfig));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>ConfigService#update(jobConfig)</code> 方法，修改云作业配置。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudJobConfiguration jobConfig)</span> </span>&#123;</div><div class="line">   regCenter.update(CloudJobConfigurationNode.getRootNodePath(jobConfig.getJobName()), CloudJobConfigurationGsonFactory.toJson(jobConfig));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
-<li><p>调用 <code>#reschedule(...)</code> 方法，重新调度作业。</p>
+<li>
+<p>调用 <code>#reschedule(...)</code> 方法，重新调度作业。</p>
 </li>
 </ul>
 <p>存储在注册中心( Zookeeper )的 云作业配置被更新时，云作业配置变更监听( CloudJobConfigurationListener )会监听到，并执行更新相应逻辑，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CloudJobConfigurationListener</span> <span class="keyword">implements</span> <span class="title">TreeCacheListener</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">childEvent</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> TreeCacheEvent event)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        String path = <span class="keyword">null</span> == event.getData() ? <span class="string">""</span> : event.getData().getPath();</div><div class="line">        <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_ADDED)) &#123;</div><div class="line">            <span class="comment">// .... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_UPDATED)) &#123;</div><div class="line">            CloudJobConfiguration jobConfig = getJobConfig(event);</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == jobConfig) &#123;</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 从待执行队列中删除相关作业</span></div><div class="line">            <span class="keyword">if</span> (CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) &#123;</div><div class="line">                readyService.remove(Collections.singletonList(jobConfig.getJobName()));</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 设置禁用错过重执行</span></div><div class="line">            <span class="keyword">if</span> (!jobConfig.getTypeConfig().getCoreConfig().isMisfire()) &#123;</div><div class="line">                readyService.setMisfireDisabled(jobConfig.getJobName());</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 重新调度作业</span></div><div class="line">            producerManager.reschedule(jobConfig.getJobName());</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_REMOVED)) &#123;</div><div class="line">            <span class="comment">// .... 省略无关代码</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CloudJobConfigurationListener</span> <span class="keyword">implements</span> <span class="title">TreeCacheListener</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">childEvent</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> TreeCacheEvent event)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        String path = <span class="keyword">null</span> == event.getData() ? <span class="string">""</span> : event.getData().getPath();</div><div class="line">        <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_ADDED)) &#123;</div><div class="line">            <span class="comment">// .... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_UPDATED)) &#123;</div><div class="line">            CloudJobConfiguration jobConfig = getJobConfig(event);</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == jobConfig) &#123;</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 从待执行队列中删除相关作业</span></div><div class="line">            <span class="keyword">if</span> (CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) &#123;</div><div class="line">                readyService.remove(Collections.singletonList(jobConfig.getJobName()));</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 设置禁用错过重执行</span></div><div class="line">            <span class="keyword">if</span> (!jobConfig.getTypeConfig().getCoreConfig().isMisfire()) &#123;</div><div class="line">                readyService.setMisfireDisabled(jobConfig.getJobName());</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// 重新调度作业</span></div><div class="line">            producerManager.reschedule(jobConfig.getJobName());</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_REMOVED)) &#123;</div><div class="line">            <span class="comment">// .... 省略无关代码</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>CloudJobConfigurationListener 实现 TreeCacheListener 实现对 Zookeeper 数据变更的监听。对 TreeCacheListener 感兴趣的同学，可以查看 <a href="https://curator.apache.org/" rel="external nofollow noopener noreferrer" target="_blank">Apache Curator</a> 相关知识。</li>
 <li>调用 <code>ReadyService#remove(...)</code> 方法，将作业从<strong>待运行队列</strong>删除。TODO，为啥要删除？</li>
 <li>调用 <code>ReadyService#setMisfireDisabled(...)</code> 方法，设置禁用错过重执行。TODO misfired</li>
 <li>调用 <code>ProducerManager#reschedule(...)</code> 方法，重新调度作业。TODO，为啥要重复调用这个方法？</li>
 </ul>
-<h2 id="2-5-注销云作业"><a href="#2-5-注销云作业" class="headerlink" title="2.5 注销云作业"></a>2.5 注销云作业</h2><p>调用 <code>CloudJobRestfulApi#deregister(...)</code> 方法，注销云作业，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudJobRestfulApi.java</span></div><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/deregister"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   producerManager.deregister(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       <span class="comment">//  从作业禁用队列中删除作业</span></div><div class="line">       disableJobService.remove(jobName);</div><div class="line">       <span class="comment">// 删除云作业</span></div><div class="line">       configService.remove(jobName);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 停止调度作业</span></div><div class="line">   unschedule(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>2.5 注销云作业</h2>
+<p>调用 <code>CloudJobRestfulApi#deregister(...)</code> 方法，注销云作业，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudJobRestfulApi.java</span></div><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/deregister"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   producerManager.deregister(jobName);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   Optional&lt;CloudJobConfiguration&gt; jobConfig = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (jobConfig.isPresent()) &#123;</div><div class="line">       <span class="comment">//  从作业禁用队列中删除作业</span></div><div class="line">       disableJobService.remove(jobName);</div><div class="line">       <span class="comment">// 删除云作业</span></div><div class="line">       configService.remove(jobName);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 停止调度作业</span></div><div class="line">   unschedule(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>DisableJobService#remove(...)</code> 方法，从<strong>作业禁用队列</strong>中删除作业，实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableJobNode.getDisableJobNodePath(jobName));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>DisableJobService#remove(...)</code> 方法，从<strong>作业禁用队列</strong>中删除作业，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableJobNode.getDisableJobNodePath(jobName));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
 <ul>
-<li><p>调用 <code>CloudJobConfigurationService#remove(...)</code> 方法，删除云作业配置。 </p>
+<li>
+<p>调用 <code>CloudJobConfigurationService#remove(...)</code> 方法，删除云作业配置。</p>
 </li>
-<li><p>调用 <code>#reschedule(...)</code> 方法，重新调度作业。</p>
+<li>
+<p>调用 <code>#reschedule(...)</code> 方法，重新调度作业。</p>
 </li>
 </ul>
 <p>存储在注册中心( Zookeeper )的 云作业配置被删除时，<strong>云作业配置变更监听器</strong>( CloudJobConfigurationListener )会监听到，并执行删除相应逻辑，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CloudJobConfigurationListener</span> <span class="keyword">implements</span> <span class="title">TreeCacheListener</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CoordinatorRegistryCenter regCenter;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ProducerManager producerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReadyService readyService;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CloudJobConfigurationListener</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> ProducerManager producerManager)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.regCenter = regCenter;</div><div class="line">        readyService = <span class="keyword">new</span> ReadyService(regCenter);</div><div class="line">        <span class="keyword">this</span>.producerManager = producerManager;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">childEvent</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> TreeCacheEvent event)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        String path = <span class="keyword">null</span> == event.getData() ? <span class="string">""</span> : event.getData().getPath();</div><div class="line">        <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_ADDED)) &#123;</div><div class="line">            <span class="comment">// ... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_UPDATED)) &#123;</div><div class="line">            <span class="comment">// ... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_REMOVED)) &#123;</div><div class="line">            String jobName = path.substring(CloudJobConfigurationNode.ROOT.length() + <span class="number">1</span>, path.length());</div><div class="line">            producerManager.unschedule(jobName);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CloudJobConfigurationListener</span> <span class="keyword">implements</span> <span class="title">TreeCacheListener</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CoordinatorRegistryCenter regCenter;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ProducerManager producerManager;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReadyService readyService;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CloudJobConfigurationListener</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> ProducerManager producerManager)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.regCenter = regCenter;</div><div class="line">        readyService = <span class="keyword">new</span> ReadyService(regCenter);</div><div class="line">        <span class="keyword">this</span>.producerManager = producerManager;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">childEvent</span><span class="params">(<span class="keyword">final</span> CuratorFramework client, <span class="keyword">final</span> TreeCacheEvent event)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        String path = <span class="keyword">null</span> == event.getData() ? <span class="string">""</span> : event.getData().getPath();</div><div class="line">        <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_ADDED)) &#123;</div><div class="line">            <span class="comment">// ... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_UPDATED)) &#123;</div><div class="line">            <span class="comment">// ... 省略无关代码</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isJobConfigNode(event, path, Type.NODE_REMOVED)) &#123;</div><div class="line">            String jobName = path.substring(CloudJobConfigurationNode.ROOT.length() + <span class="number">1</span>, path.length());</div><div class="line">            producerManager.unschedule(jobName);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>调用 <code>#reschedule(...)</code> 方法，重新调度作业。</li>
 </ul>
-<h2 id="2-6-触发一次云作业"><a href="#2-6-触发一次云作业" class="headerlink" title="2.6 触发一次云作业"></a>2.6 触发一次云作业</h2><p>调用 <code>CloudJobRestfulApi#trigger(...)</code> 方法，触发一次云作业，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/trigger"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">trigger</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 常驻作业不允许触发一次作业</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; config = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (config.isPresent() &amp;&amp; CloudJobExecutionType.DAEMON == config.get().getJobExecutionType()) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(<span class="string">"Daemon job '%s' cannot support trigger."</span>, jobName);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将瞬时作业放入待执行队列</span></div><div class="line">   facadeService.addTransient(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>2.6 触发一次云作业</h2>
+<p>调用 <code>CloudJobRestfulApi#trigger(...)</code> 方法，触发一次云作业，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/trigger"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">trigger</span><span class="params">(<span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 常驻作业不允许触发一次作业</span></div><div class="line">   Optional&lt;CloudJobConfiguration&gt; config = configService.load(jobName);</div><div class="line">   <span class="keyword">if</span> (config.isPresent() &amp;&amp; CloudJobExecutionType.DAEMON == config.get().getJobExecutionType()) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(<span class="string">"Daemon job '%s' cannot support trigger."</span>, jobName);</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 将瞬时作业放入待执行队列</span></div><div class="line">   facadeService.addTransient(jobName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
 <li>目前<strong>常驻</strong>作业<strong>不支持</strong>触发一次云作业。如果想实现该功能，需要 Elastic-Job-Cloud-Scheduler 通过 Mesos 发送自定义消息，通知 Elastic-Job-Cloud-Executor 触发该作业对应的任务们。</li>
 <li>调用 <code>FacadeService#addTransient(...)</code> 方法，将瞬时作业放入<strong>待执行队列</strong>。当且仅当云作业配置 <code>JobCoreConfiguration.misfire = true</code> 时，该作业在<strong>待执行队列</strong>的执行次数不断累积加一。在<a href="http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first/?self" rel="external nofollow noopener noreferrer" target="_blank">《Elastic-Job-Cloud 源码分析 —— 作业调度（一）》「3.2.3 ProducerJob」</a>有详细解析。</li>
 </ul>
-<h1 id="3-云作业应用操作"><a href="#3-云作业应用操作" class="headerlink" title="3. 云作业应用操作"></a>3. 云作业应用操作</h1><p>我们可以使用<strong>运维平台</strong>或 Restful API 对云作业应用进行操作。前者是对后者的界面包装，如下图所示：</p>
+<h1>3. 云作业应用操作</h1>
+<p>我们可以使用<strong>运维平台</strong>或 Restful API 对云作业应用进行操作。前者是对后者的界面包装，如下图所示：</p>
 <p><img src="http://www.yunai.me/images/Elastic-Job/2017_12_28/02.png" alt=""></p>
-<h2 id="3-1-注册云作业应用"><a href="#3-1-注册云作业应用" class="headerlink" title="3.1 注册云作业应用"></a>3.1 注册云作业应用</h2><p><a href="http://www.yunai.me/Elastic-Job/cloud-job-config/?self">《Elastic-Job-Cloud 源码分析 —— 作业配置》「2.2 操作云作业App配置」</a>有详细解析。</p>
-<h2 id="3-2-更新云作业应用配置"><a href="#3-2-更新云作业应用配置" class="headerlink" title="3.2 更新云作业应用配置"></a>3.2 更新云作业应用配置</h2><p>调用 <code>CloudAppRestfulApi#update(...)</code> 方法，更新云作业应用配置，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="meta">@PUT</span></div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudAppConfiguration appConfig)</span> </span>&#123;</div><div class="line">   appConfigService.update(appConfig);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// CloudAppConfigurationService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudAppConfiguration appConfig)</span> </span>&#123;</div><div class="line">   regCenter.update(CloudAppConfigurationNode.getRootNodePath(appConfig.getAppName()), CloudAppConfigurationGsonFactory.toJson(appConfig));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-3-禁用云作业应用"><a href="#3-3-禁用云作业应用" class="headerlink" title="3.3 禁用云作业应用"></a>3.3 禁用云作业应用</h2><p>调用 <code>CloudAppRestfulApi#disable(...)</code> 方法，禁用云作业应用，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disable</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 将应用放入禁用队列</span></div><div class="line">       disableAppService.add(appName);</div><div class="line">       <span class="comment">// 停止应用对应所有作业的调度</span></div><div class="line">       <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">           <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">               producerManager.unschedule(each.getJobName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>3.1 注册云作业应用</h2>
+<p><a href="http://www.yunai.me/Elastic-Job/cloud-job-config/?self">《Elastic-Job-Cloud 源码分析 —— 作业配置》「2.2 操作云作业App配置」</a>有详细解析。</p>
+<h2>3.2 更新云作业应用配置</h2>
+<p>调用 <code>CloudAppRestfulApi#update(...)</code> 方法，更新云作业应用配置，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="meta">@PUT</span></div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudAppConfiguration appConfig)</span> </span>&#123;</div><div class="line">   appConfigService.update(appConfig);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// CloudAppConfigurationService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">final</span> CloudAppConfiguration appConfig)</span> </span>&#123;</div><div class="line">   regCenter.update(CloudAppConfigurationNode.getRootNodePath(appConfig.getAppName()), CloudAppConfigurationGsonFactory.toJson(appConfig));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2>3.3 禁用云作业应用</h2>
+<p>调用 <code>CloudAppRestfulApi#disable(...)</code> 方法，禁用云作业应用，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@POST</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">disable</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 将应用放入禁用队列</span></div><div class="line">       disableAppService.add(appName);</div><div class="line">       <span class="comment">// 停止应用对应所有作业的调度</span></div><div class="line">       <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">           <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">               producerManager.unschedule(each.getJobName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>DisableAppService#add(...)</code> 方法，将应用放入<strong>禁用应用队列</strong>，实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// DisableAppService.java</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableAppService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (regCenter.getNumChildren(DisableAppNode.ROOT) &gt; env.getFrameworkConfiguration().getJobStateQueueSize()) &#123;</div><div class="line">            log.warn(<span class="string">"Cannot add disable app, caused by read state queue size is larger than &#123;&#125;."</span>, env.getFrameworkConfiguration().getJobStateQueueSize());</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        String disableAppNodePath = DisableAppNode.getDisableAppNodePath(appName);</div><div class="line">        <span class="keyword">if</span> (!regCenter.isExisted(disableAppNodePath)) &#123;</div><div class="line">            regCenter.persist(disableAppNodePath, appName);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableAppNode.java</span></div><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableAppNode</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> String ROOT = StateNode.ROOT + <span class="string">"/disable/app"</span>;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DISABLE_APP = ROOT + <span class="string">"/%s"</span>; <span class="comment">// %s = $&#123;APP_NAME&#125;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>DisableAppService#add(...)</code> 方法，将应用放入<strong>禁用应用队列</strong>，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// DisableAppService.java</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableAppService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (regCenter.getNumChildren(DisableAppNode.ROOT) &gt; env.getFrameworkConfiguration().getJobStateQueueSize()) &#123;</div><div class="line">            log.warn(<span class="string">"Cannot add disable app, caused by read state queue size is larger than &#123;&#125;."</span>, env.getFrameworkConfiguration().getJobStateQueueSize());</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        String disableAppNodePath = DisableAppNode.getDisableAppNodePath(appName);</div><div class="line">        <span class="keyword">if</span> (!regCenter.isExisted(disableAppNodePath)) &#123;</div><div class="line">            regCenter.persist(disableAppNodePath, appName);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableAppNode.java</span></div><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DisableAppNode</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> String ROOT = StateNode.ROOT + <span class="string">"/disable/app"</span>;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DISABLE_APP = ROOT + <span class="string">"/%s"</span>; <span class="comment">// %s = $&#123;APP_NAME&#125;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li>DisableAppService，禁用应用队列服务。</li>
-<li><p>禁用应用队列存储在注册中心( Zookeeper )的<strong>持久</strong>数据节点 <code>/${NAMESPACE}/state/disable/app/${APP_NAME}</code>，存储值为应用名。使用 zkClient 查看如下： </p>
-  <figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">    [zk: localhost:2181(CONNECTED) 6] ls /elastic-job-cloud/state/disable/app</div><div class="line">[example_app]</div></pre></td></tr></table></figure>
+<li>
+<p>DisableAppService，禁用应用队列服务。</p>
+</li>
+<li>
+<p>禁用应用队列存储在注册中心( Zookeeper )的<strong>持久</strong>数据节点 <code>/${NAMESPACE}/state/disable/app/${APP_NAME}</code>，存储值为应用名。使用 zkClient 查看如下：</p>
+<p><figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">    [zk: localhost:2181(CONNECTED) 6] ls /elastic-job-cloud/state/disable/app</div><div class="line">[example_app]</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
 </li>
-<li><p>遍历应用对应所有作业，调用 <code>ProducerManager#unschedule(...)</code> 方法，停止作业调度。</p>
+<li>
+<p>遍历应用对应所有作业，调用 <code>ProducerManager#unschedule(...)</code> 方法，停止作业调度。</p>
 </li>
 </ul>
-<h2 id="3-4-启用云作业应用"><a href="#3-4-启用云作业应用" class="headerlink" title="3.4 启用云作业应用"></a>3.4 启用云作业应用</h2><p>调用 <code>CloudAppRestfulApi#enable(...)</code> 方法，启用云作业应用，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enable</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) <span class="keyword">throws</span> JSONException </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 从禁用应用队列中删除应用</span></div><div class="line">       disableAppService.remove(appName);</div><div class="line">       <span class="comment">// 重新开启应用对应所有作业的调度</span></div><div class="line">       <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">           <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">               producerManager.reschedule(each.getJobName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableAppService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableAppNode.getDisableAppNodePath(appName));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="3-5-注销云作业应用"><a href="#3-5-注销云作业应用" class="headerlink" title="3.5 注销云作业应用"></a>3.5 注销云作业应用</h2><p>调用 <code>CloudAppRestfulApi#deregister(...)</code> 方法，注销云作业应用，实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 移除应用和应用对应所有作业的配置</span></div><div class="line">       removeAppAndJobConfigurations(appName);</div><div class="line">       <span class="comment">// 停止应用对应的执行器( Elastic-Job-Cloud-Scheduler )</span></div><div class="line">       stopExecutors(appName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2>3.4 启用云作业应用</h2>
+<p>调用 <code>CloudAppRestfulApi#enable(...)</code> 方法，启用云作业应用，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;/disable"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enable</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) <span class="keyword">throws</span> JSONException </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 从禁用应用队列中删除应用</span></div><div class="line">       disableAppService.remove(appName);</div><div class="line">       <span class="comment">// 重新开启应用对应所有作业的调度</span></div><div class="line">       <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">           <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">               producerManager.reschedule(each.getJobName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// DisableAppService.java</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   regCenter.remove(DisableAppNode.getDisableAppNodePath(appName));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2>3.5 注销云作业应用</h2>
+<p>调用 <code>CloudAppRestfulApi#deregister(...)</code> 方法，注销云作业应用，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@DELETE</span></div><div class="line"><span class="meta">@Path</span>(<span class="string">"/&#123;appName&#125;"</span>)</div><div class="line"><span class="meta">@Consumes</span>(MediaType.APPLICATION_JSON)</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deregister</span><span class="params">(@PathParam(<span class="string">"appName"</span>)</span> <span class="keyword">final</span> String appName) </span>&#123;</div><div class="line">   <span class="keyword">if</span> (appConfigService.load(appName).isPresent()) &#123;</div><div class="line">       <span class="comment">// 移除应用和应用对应所有作业的配置</span></div><div class="line">       removeAppAndJobConfigurations(appName);</div><div class="line">       <span class="comment">// 停止应用对应的执行器( Elastic-Job-Cloud-Scheduler )</span></div><div class="line">       stopExecutors(appName);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>#removeAppAndJobConfigurations(...)</code> 方法，移除应用和应用对应所有作业的配置，实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">removeAppAndJobConfigurations</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 注销(移除)应用对应所有作业的配置</span></div><div class="line">   <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">       <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">           producerManager.deregister(each.getJobName());</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 从禁用应用队列中删除应用</span></div><div class="line">   disableAppService.remove(appName);</div><div class="line">   <span class="comment">// 删除云作业App配置</span></div><div class="line">   appConfigService.remove(appName);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>#removeAppAndJobConfigurations(...)</code> 方法，移除应用和应用对应所有作业的配置，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">removeAppAndJobConfigurations</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   <span class="comment">// 注销(移除)应用对应所有作业的配置</span></div><div class="line">   <span class="keyword">for</span> (CloudJobConfiguration each : jobConfigService.loadAll()) &#123;</div><div class="line">       <span class="keyword">if</span> (appName.equals(each.getAppName())) &#123;</div><div class="line">           producerManager.deregister(each.getJobName());</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">   <span class="comment">// 从禁用应用队列中删除应用</span></div><div class="line">   disableAppService.remove(appName);</div><div class="line">   <span class="comment">// 删除云作业App配置</span></div><div class="line">   appConfigService.remove(appName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
-<li><p>调用 <code>#stopExecutors(...)</code> 方法，停止应用对应的执行器( Elastic-Job-Cloud-Scheduler )，实现代码如下：</p>
-  <figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">stopExecutors</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       Collection&lt;ExecutorStateInfo&gt; executorBriefInfo = mesosStateService.executors(appName);</div><div class="line">       <span class="keyword">for</span> (ExecutorStateInfo each : executorBriefInfo) &#123;</div><div class="line">           producerManager.sendFrameworkMessage(ExecutorID.newBuilder().setValue(each.getId()).build(),</div><div class="line">                   SlaveID.newBuilder().setValue(each.getSlaveId()).build(), <span class="string">"STOP"</span>.getBytes());</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> JSONException ex) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java </span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendFrameworkMessage</span><span class="params">(<span class="keyword">final</span> ExecutorID executorId, <span class="keyword">final</span> SlaveID slaveId, <span class="keyword">final</span> <span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line">    schedulerDriver.sendFrameworkMessage(executorId, slaveId, data);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>
+<p>调用 <code>#stopExecutors(...)</code> 方法，停止应用对应的执行器( Elastic-Job-Cloud-Scheduler )，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">// CloudAppRestfulApi.java</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">stopExecutors</span><span class="params">(<span class="keyword">final</span> String appName)</span> </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">       Collection&lt;ExecutorStateInfo&gt; executorBriefInfo = mesosStateService.executors(appName);</div><div class="line">       <span class="keyword">for</span> (ExecutorStateInfo each : executorBriefInfo) &#123;</div><div class="line">           producerManager.sendFrameworkMessage(ExecutorID.newBuilder().setValue(each.getId()).build(),</div><div class="line">                   SlaveID.newBuilder().setValue(each.getSlaveId()).build(), <span class="string">"STOP"</span>.getBytes());</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> JSONException ex) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobSystemException(ex);</div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// ProducerManager.java </span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendFrameworkMessage</span><span class="params">(<span class="keyword">final</span> ExecutorID executorId, <span class="keyword">final</span> SlaveID slaveId, <span class="keyword">final</span> <span class="keyword">byte</span>[] data)</span> </span>&#123;</div><div class="line">    schedulerDriver.sendFrameworkMessage(executorId, slaveId, data);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <ul>
-<li><p>调用 <code>SchedulerDriver#sendFrameworkMessage(...)</code> 方法，通过 Mesos 向云作业应用对应的执行器们( Elastic-Job-Cloud-Executor ) 发送消息为 <code>&quot;STOP&quot;</code> 从而关闭执行器。Elastic-Job-Cloud-Executor 会接收到 Mesos 消息，调用 <code>TaskExecutor#frameworkMessage(...)</code> 方法，关闭自己。实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">frameworkMessage</span><span class="params">(<span class="keyword">final</span> ExecutorDriver executorDriver, <span class="keyword">final</span> <span class="keyword">byte</span>[] bytes)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != bytes &amp;&amp; <span class="string">"STOP"</span>.equals(<span class="keyword">new</span> String(bytes))) &#123;</div><div class="line">        log.error(<span class="string">"call frameworkMessage executor stopped."</span>);</div><div class="line">        executorDriver.stop();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>调用 <code>SchedulerDriver#sendFrameworkMessage(...)</code> 方法，通过 Mesos 向云作业应用对应的执行器们( Elastic-Job-Cloud-Executor ) 发送消息为 <code>&quot;STOP&quot;</code> 从而关闭执行器。Elastic-Job-Cloud-Executor 会接收到 Mesos 消息，调用 <code>TaskExecutor#frameworkMessage(...)</code> 方法，关闭自己。实现代码如下：</li>
+</ul>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">frameworkMessage</span><span class="params">(<span class="keyword">final</span> ExecutorDriver executorDriver, <span class="keyword">final</span> <span class="keyword">byte</span>[] bytes)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != bytes &amp;&amp; <span class="string">"STOP"</span>.equals(<span class="keyword">new</span> String(bytes))) &#123;</div><div class="line">        log.error(<span class="string">"call frameworkMessage executor stopped."</span>);</div><div class="line">        executorDriver.stop();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 </li>
 </ul>
-</li>
-</ul>
-<h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>Elastic-Job-Cloud 作业调度两篇内容到此就结束啦。后续我们会更新大家关心的<a href="http://www.yunai.me?todo">《Elastic-Job-Cloud 源码分析 —— 高可用》</a>是如何实现的噢。</p>
+<h1>666. 彩蛋</h1>
+<p>Elastic-Job-Cloud 作业调度两篇内容到此就结束啦。后续我们会更新大家关心的<a href="http://www.yunai.me?todo">《Elastic-Job-Cloud 源码分析 —— 高可用》</a>是如何实现的噢。</p>
 <p><img src="http://www.yunai.me/images/Elastic-Job/2017_12_28/03.png" alt=""></p>
 <p>道友，赶紧上车，分享一波朋友圈！</p>
 ]]></content>
@@ -201,8 +330,9 @@
       &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 云作业操作&lt;/a&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2.
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 云作业操作&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2
     
     </summary>
     
@@ -1081,11 +1211,13 @@ Mesos 0.23 里发布称为 fetcher 缓存的新功能。fetcher 缓存确保每�
     <link href="http://www.yunai.me/Architecture/how-to-read-source-code/"/>
     <id>http://www.yunai.me/Architecture/how-to-read-source-code/</id>
     <published>2017-12-01T16:00:00.000Z</published>
-    <updated>2017-08-29T04:52:39.000Z</updated>
+    <updated>2017-09-05T15:11:14.000Z</updated>
     
     <content type="html"><![CDATA[<h1>0. 从零开始</h1>
-<p>视频：</p>
-<p>&lt;iframe frameborder=&quot;0&quot; width=&quot;640&quot; height=&quot;498&quot; src=&quot;https://v.qq.com/iframe/player.html?vid=p0543tzm648&amp;tiny=0&amp;auto=0&quot; allowfullscreen&gt;&lt;/iframe&gt;</p>
+<p>一个喝了假酒的视频：</p>
+<p><a href="https://v.qq.com/x/page/p0543tzm648.html" rel="external nofollow noopener noreferrer" target="_blank">视频传送门</a><br>
+<a href="https://v.qq.com/x/page/p0543tzm648.html" rel="external nofollow noopener noreferrer" target="_blank">视频传送门</a><br>
+<a href="https://v.qq.com/x/page/p0543tzm648.html" rel="external nofollow noopener noreferrer" target="_blank">视频传送门</a></p>
 <p>请关注笔者的公众号：芋道源码</p>
 <ul>
 <li>专注源码解析三十年！</li>
@@ -1176,8 +1308,8 @@ Mesos 0.23 里发布称为 fetcher 缓存的新功能。fetcher 缓存确保每�
     <summary type="html">
     
       &lt;h1&gt;0. 从零开始&lt;/h1&gt;
-&lt;p&gt;视频：&lt;/p&gt;
-&lt;p&gt;&amp;lt;iframe frameborder=&amp;quot;0&amp;quot; width=&amp;quot;640&amp;quot; height=&amp;quot;498&amp;quot; src=&amp;quot;https://v.qq.com/
+&lt;p&gt;一个喝了假酒的视频：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://v.qq.com/x/page/p0543tzm648.html&quot; rel=&quot;external nofollow noopener noreferrer&quot; target=
     
     </summary>
     
@@ -3414,302 +3546,6 @@ OdevitySortByNameJobShardingStrategy则可以根据作业名称重新分配作�
 &lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 作业注册表&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;#&quot;&gt;3
-    
-    </summary>
-    
-      <category term="Elastic-Job-Lite" scheme="http://www.yunai.me/categories/Elastic-Job-Lite/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Elastic-Job-Lite 源码分析 —— 作业配置</title>
-    <link href="http://www.yunai.me/Elastic-Job/job-config/"/>
-    <id>http://www.yunai.me/Elastic-Job/job-config/</id>
-    <published>2017-09-08T16:00:00.000Z</published>
-    <updated>2017-09-02T09:55:04.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><strong>本文基于 Elastic-Job V2.1.5 版本分享</strong></p>
-<ul>
-<li><a href="#">1. 概述</a></li>
-<li><a href="#">2. 作业配置</a>
-<ul>
-<li><a href="#">2.1 注册中心配置</a></li>
-<li><a href="#">2.2 Lite作业配置</a>
-<ul>
-<li><a href="#">2.2.1 作业类型配置</a></li>
-<li><a href="#">2.2.2 作业核心配置</a></li>
-</ul>
-</li>
-<li><a href="#">2.3 作业事件配置</a></li>
-<li><a href="#">2.4 作业监听器</a></li>
-</ul>
-</li>
-<li><a href="#">3. 作业配置服务</a>
-<ul>
-<li><a href="#">3.1 读取作业配置</a></li>
-<li><a href="#">3.2 持久化作业配置</a></li>
-<li><a href="#">3.3 校验本机时间是否合法</a></li>
-</ul>
-</li>
-<li><a href="#">666. 彩蛋</a></li>
-</ul>
-<hr>
-<p><img src="http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
-<blockquote>
-<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
-<ol>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
-<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
-<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
-<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
-<li><strong>认真的</strong>源码交流微信群。</li>
-</ol>
-</blockquote>
-<hr>
-<h1>1. 概述</h1>
-<p>本文主要分享 <strong>Elastic-Job-Lite 作业配置</strong>。</p>
-<p>涉及到主要类的类图如下( <a href="http://www.yunai.me/images/Elastic-Job/2017_09_09/01.png">打开大图</a> )：</p>
-<p><img src="http://www.yunai.me/images/Elastic-Job/2017_09_09/01.png" alt=""></p>
-<ul>
-<li><strong>黄色</strong>的类在 <code>elastic-job-common-core</code> 项目里，为 Elastic-Job-Lite、Elastic-Job-Cloud <strong>公用</strong>作业配置类。</li>
-</ul>
-<p>另外建议你已经( 非必须 )：</p>
-<ul>
-<li>阅读过<a href="http://dangdangdotcom.github.io/elastic-job/elastic-job-lite/02-guide/config-manual/" rel="external nofollow noopener noreferrer" target="_blank">《官方文档 —— 配置手册》</a></li>
-<li>运行过 <a href="https://github.com/dangdangdotcom/elastic-job/blob/8926e94aa7c48dc635a36518da2c4b10194420a5/elastic-job-example/elastic-job-example-lite-java/src/main/java/com/dangdang/ddframe/job/example/JavaMain.java" rel="external nofollow noopener noreferrer" target="_blank">JavaMain.java</a></li>
-</ul>
-<blockquote>
-<p>你行好事会因为得到赞赏而愉悦<br>
-同理，开源项目贡献者会因为 Star 而更加有动力<br>
-为 Elastic-Job 点赞！<a href="https://github.com/dangdangdotcom/elastic-job/stargazers" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
-</blockquote>
-<h1>2. 作业配置</h1>
-<p>一个<strong>作业( ElasticJob )<strong>的调度，需要配置</strong>独有</strong>的一个<strong>作业调度器( JobScheduler )</strong>，两者是 <code>1 : 1</code> 的关系。<strong>这点大家要注意下，当然下文看代码也会看到。</strong></p>
-<p>作业调度器的创建可以配置四个参数：</p>
-<ol>
-<li>注册中心( CoordinatorRegistryCenter )：用于协调分布式服务。<strong>必填</strong>。</li>
-<li>Lite作业配置( LiteJobConfiguration )：<strong>必填</strong>。</li>
-<li>作业事件总线( JobEventBus )：对作业事件<strong>异步</strong>监听。<strong>选填</strong>。</li>
-<li>作业监听器( ElasticJobListener )：对作业执行前，执行后进行<strong>同步</strong>监听。<strong>选填</strong>。</li>
-</ol>
-<h2>2.1 注册中心配置</h2>
-<p>Elastic-Job 抽象了<strong>注册中心接口( RegistryCenter )</strong>，并提供了默认<strong>基于 Zookeeper 的注册中心实现( ZookeeperRegistryCenter )</strong>。</p>
-<p>ZookeeperRegistryCenter 对应配置类为 ZookeeperConfiguration。该类注释很完整，可以点击<a href="https://github.com/dangdangdotcom/elastic-job/blob/7dc099541a16de49f024fc59e46377a726be7f6b/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/reg/zookeeper/ZookeeperConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">链接</a>直接查看源码，这里我们重点说下 <code>namespace</code> 属性。如果你有多个<strong>不同</strong> Elastic-Job集群 时，使用相同 Zookeeper，可以配置不同的 <code>namespace</code> 进行隔离。</p>
-<p>注册中心的<strong>初始化</strong>，我们会在<a href="http://www.yunai.me/Elastic-Job/reg-center-zookeeper/?self">《Elastic-Job-Lite 源码解析 —— 注册中心》</a>详细分享。</p>
-<h2>2.2 Lite作业配置</h2>
-<p><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-lite/elastic-job-lite-core/src/main/java/com/dangdang/ddframe/job/lite/config/LiteJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">LiteJobConfiguration</a> 继承自接口 <a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/JobRootConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">JobRootConfiguration</a>，作为 Elastic-Job-Lite 里的作业( LiteJob )配置。<em>Elastic-Job-Cloud 的作业( CloudJob )对应另外的配置类，也实现了该接口。</em></p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">LiteJobConfiguration</span> <span class="keyword">implements</span> <span class="title">JobRootConfiguration</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobTypeConfiguration typeConfig;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> monitorExecution;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> maxTimeDiffSeconds;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> monitorPort;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobShardingStrategyClass;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> reconcileIntervalMinutes;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> disabled;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> overwrite;</div><div class="line">    </div><div class="line">    <span class="comment">// .... 省略部分get方法</span></div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</div><div class="line">    </div><div class="line">        <span class="comment">// .... 省略部分属性</span></div><div class="line">    </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> LiteJobConfiguration <span class="title">build</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> LiteJobConfiguration(jobConfig, monitorExecution, maxTimeDiffSeconds, monitorPort, jobShardingStrategyClass, reconcileIntervalMinutes, disabled, overwrite);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>
-<p><code>typeConfig</code>：作业类型配置。<strong>必填</strong>。</p>
-</li>
-<li>
-<p><code>monitorExecution</code>：监控作业运行时状态。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/Elastic-Job/job-execute/?self">《Elastic-Job-Lite 源码解析 —— 作业执行》</a>详细分享。</p>
-<blockquote>
-<p>每次作业执行时间和间隔时间均<strong>非常短</strong>的情况，建议不监控作业运行时状态以提升效率。因为是瞬时状态，所以无必要监控。请用户自行增加数据堆积监控。并且不能保证数据重复选取，应在作业中实现幂等性。<br>
-每次作业执行时间和间隔时间均<strong>较长的</strong>情况，建议监控作业运行时状态，可保证数据不会重复选取。</p>
-</blockquote>
-</li>
-<li>
-<p><code>monitorPort</code>：作业监控端口。默认为 <code>-1</code>，不开启作业监控端口。选填。在<a href="http://www.yunai.me/Elastic-Job/job-monitor/?self">《Elastic-Job-Lite 源码解析 —— 作业监控服务》</a>详细分享。</p>
-<blockquote>
-<p>建议配置作业监控端口, 方便开发者dump作业信息。<br>
-使用方法: echo “dump” | nc 127.0.0.1 9888</p>
-</blockquote>
-</li>
-<li>
-<p><code>maxTimeDiffSeconds</code>：设置最大容忍的本机与注册中心的时间误差秒数。默认为 <code>-1</code>，不检查时间误差。选填。</p>
-</li>
-<li>
-<p><code>jobShardingStrategyClass</code>：作业分片策略实现类全路径。默认为使用分配侧路。选填。在<a href="http://www.yunai.me/Elastic-Job/job-sharding-strategy/?self">《Elastic-Job-Lite 源码解析 —— 作业分片策略》</a>详细分享。</p>
-</li>
-<li>
-<p><code>reconcileIntervalMinutes</code>：修复作业服务器不一致状态服务调度间隔时间，配置为小于1的任意值表示不执行修复。默认为 <code>10</code>。在<a href="http://www.yunai.me/Elastic-Job/reconcile/?self">《Elastic-Job-Lite 源码解析 —— 自诊断修复 》</a>详细分享。</p>
-</li>
-<li>
-<p><code>disabled</code>：作业是否禁用执行。默认为 <code>false</code>。选填。</p>
-</li>
-<li>
-<p><code>overwrite</code>：设置使用本地作业配置覆盖注册中心的作业配置。默认为 <code>false</code>。选填。建议使用**运维平台( console )**配置作业配置，统一管理。</p>
-</li>
-<li>
-<p>Builder 类：使用该类配置 LiteJobConfiguration 属性，调用 <code>#build()</code> 方法最终生成作业配置。参见：<a href="http://blog.csdn.net/top_code/article/details/8469297" rel="external nofollow noopener noreferrer" target="_blank">《JAVA设计模式 — 生成器模式(Builder)》</a>。</p>
-</li>
-</ul>
-<h3>2.2.1 作业类型配置</h3>
-<p>作业类型配置<strong>接口</strong>( <a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/JobTypeConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">JobTypeConfiguration</a> ) 有三种配置实现，针对三种作业类型：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">配置实现</th>
-<th style="text-align:left">作业</th>
-<th style="text-align:left">说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/simple/SimpleJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">SimpleJobConfiguration</a></td>
-<td style="text-align:left">SimpleJob</td>
-<td style="text-align:left">简单作业。例如：订单过期作业</td>
-</tr>
-<tr>
-<td style="text-align:left"><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/dataflow/DataflowJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">DataflowJobConfiguration</a></td>
-<td style="text-align:left">DataflowJob</td>
-<td style="text-align:left">数据流作业。TODO：笔者暂时未了解流式处理数据，不误人子弟</td>
-</tr>
-<tr>
-<td style="text-align:left"><a href="https://github.com/dangdangdotcom/elastic-job/blob/6617853bf059df373e2cb6ce959038c583ae5064/elastic-job-common/elastic-job-common-core/src/main/java/com/dangdang/ddframe/job/config/script/ScriptJobConfiguration.java" rel="external nofollow noopener noreferrer" target="_blank">ScriptJobConfiguration</a></td>
-<td style="text-align:left">ScriptJob</td>
-<td style="text-align:left">脚本作业。例如：调用 shell 脚本备份数据库作业</td>
-</tr>
-</tbody>
-</table>
-<p>三种<strong>配置类</strong>属性对比如：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">属性</th>
-<th style="text-align:left">SimpleJob</th>
-<th style="text-align:left">DataflowJob</th>
-<th style="text-align:left">ScriptJob</th>
-<th style="text-align:left">说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><code>coreConfig</code></td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">作业核心配置</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>jobType</code></td>
-<td style="text-align:left">JobType.SIMPLE</td>
-<td style="text-align:left">JobType.DATAFLOW</td>
-<td style="text-align:left">JobType.SCRIPT</td>
-<td style="text-align:left">作业类型</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>jobClass</code></td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">√ (默认：ScriptJob.class)</td>
-<td style="text-align:left">作业实现类全路径</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>streamingProcess</code></td>
-<td style="text-align:left"></td>
-<td style="text-align:left">√</td>
-<td style="text-align:left"></td>
-<td style="text-align:left">是否流式处理数据</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>scriptCommandLine</code></td>
-<td style="text-align:left"></td>
-<td style="text-align:left"></td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">脚本型作业执行命令行</td>
-</tr>
-</tbody>
-</table>
-<p><strong>作业类型配置不仅仅适用于 Elastic-Job-Lite，也适用于 Elastic-Job-Cloud。</strong></p>
-<h3>2.2.2 作业核心配置</h3>
-<p>作业核心配置( JobCoreConfiguration )，我们可以看到在每种作业类型配置都有该属性( <code>coreConfig</code> )。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobCoreConfiguration</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobName;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String cron;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> shardingTotalCount;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String shardingItemParameters;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String jobParameter;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> failover;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> misfire;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String description;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobProperties jobProperties;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</div><div class="line">    </div><div class="line">        <span class="comment">// .... 省略部分属性</span></div><div class="line">    </div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> JobCoreConfiguration <span class="title">build</span><span class="params">()</span> </span>&#123;</div><div class="line">            Preconditions.checkArgument(!Strings.isNullOrEmpty(jobName), <span class="string">"jobName can not be empty."</span>);</div><div class="line">            Preconditions.checkArgument(!Strings.isNullOrEmpty(cron), <span class="string">"cron can not be empty."</span>);</div><div class="line">            Preconditions.checkArgument(shardingTotalCount &gt; <span class="number">0</span>, <span class="string">"shardingTotalCount should larger than zero."</span>);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> JobCoreConfiguration(jobName, cron, shardingTotalCount, shardingItemParameters, jobParameter, failover, misfire, description, jobProperties);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>
-<p><code>jobName</code>：作业名称。<strong>必填。</strong></p>
-</li>
-<li>
-<p><code>cron</code>：cron表达式，用于控制作业触发时间。<strong>必填。</strong></p>
-</li>
-<li>
-<p><code>shardingTotalCount</code>：作业分片总数。如果一个作业启动超过作业分片总数的节点，只有 <code>shardingTotalCount</code> 会执行作业。**必填。**在<a href="http://www.yunai.me/Elastic-Job/job-sharding-strategy/?self">《Elastic-Job-Lite 源码解析 —— 作业分片策略 》</a>详细分享。</p>
-</li>
-<li>
-<p><code>shardingItemParameters</code>：分片序列号和参数。选填。</p>
-<blockquote>
-<p>分片序列号和参数用等号分隔，多个键值对用逗号分隔<br>
-分片序列号从0开始，<strong>不可大于或等于</strong>作业分片总数<br>
-如：<br>
-0=a,1=b,2=c</p>
-</blockquote>
-</li>
-<li>
-<p><code>jobParameter</code>：作业自定义参数。选填。</p>
-<blockquote>
-<p>作业自定义参数，可通过传递该参数为作业调度的业务方法传参，用于实现带参数的作业<br>
-例：每次获取的数据量、作业实例从数据库读取的主键等</p>
-</blockquote>
-</li>
-<li>
-<p><code>failover</code>：是否开启作业执行失效转移。<strong>开启表示如果作业在一次作业执行中途宕机，允许将该次未完成的作业在另一作业节点上补偿执行</strong>。默认为 <code>false</code>。选填。在<a href="http://www.yunai.me/Elastic-Job/job-failover/?self">《Elastic-Job-Lite 源码解析 —— 作业失效转移 》</a>详细分享。</p>
-</li>
-<li>
-<p><code>misfire</code>：是否开启错过作业重新执行。默认为 <code>true</code>。选填。在<a href="http://www.yunai.me/Elastic-Job/job-execute/?self">《Elastic-Job-Lite 源码解析 —— 作业执行 》</a>详细分享。</p>
-</li>
-<li>
-<p><code>description</code>：作业描述。选填。</p>
-</li>
-<li>
-<p><code>jobProperties</code>：作业属性配置。选填。在<a href="http://www.yunai.me/Elastic-Job/job-execute/?self">《Elastic-Job-Lite 源码解析 —— 作业执行 》</a>详细分享。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">JobProperties</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> EnumMap&lt;JobPropertiesEnum, String&gt; map = <span class="keyword">new</span> EnumMap&lt;&gt;(JobPropertiesEnum.class);</div><div class="line">    </div><div class="line">   <span class="keyword">public</span> <span class="keyword">enum</span> JobPropertiesEnum &#123;</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 作业异常处理器.</div><div class="line">         */</div><div class="line">        JOB_EXCEPTION_HANDLER(<span class="string">"job_exception_handler"</span>, JobExceptionHandler.class, DefaultJobExceptionHandler.class.getCanonicalName()),</div><div class="line">        </div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 线程池服务处理器.</div><div class="line">         */</div><div class="line">        EXECUTOR_SERVICE_HANDLER(<span class="string">"executor_service_handler"</span>, ExecutorServiceHandler.class, DefaultExecutorServiceHandler.class.getCanonicalName());</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String key;</div><div class="line">    </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;?&gt; classType;</div><div class="line">        </div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String defaultValue;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li><code>JOB_EXCEPTION_HANDLER</code>：用于扩展<strong>异常处理</strong>类。</li>
-<li><code>EXECUTOR_SERVICE_HANDLER</code>：用于扩展<strong>作业处理线程池</strong>类。</li>
-<li>通过这个属性，我们可以自定义<strong>每个作业</strong>的异常处理和线程池服务。</li>
-</ul>
-</li>
-</ul>
-<h2>2.3 作业事件配置</h2>
-<p>通过作业事件配置( JobEventConfiguration )，实现对作业事件的<strong>异步</strong>监听、处理。在<a href="http://www.yunai.me/Elastic-Job/job-event-trace/?self">《Elastic-Job-Lite 源码解析 —— 作业事件追踪》</a>详细分享。</p>
-<h2>2.4 作业监听器</h2>
-<p>通过配置作业监听器( ElasticJobListener )，实现对作业执行的<strong>同步</strong>监听、处理。在<a href="http://www.yunai.me/Elastic-Job/job-listener/?self">《Elastic-Job-Lite 源码解析 —— 作业监听器》</a>详细分享。</p>
-<h1>3. 作业配置服务</h1>
-<p>多个 Elastic-Job-Lite 使用相同<strong>注册中心</strong>和相同 <strong><code>namespace</code></strong> 组成集群，实现高可用。集群中，使用作业配置服务( ConfigurationService ) 共享作业配置。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ConfigurationService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 时间服务</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> TimeService timeService;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 作业节点数据访问类</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> JobNodeStorage jobNodeStorage;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConfigurationService</span><span class="params">(<span class="keyword">final</span> CoordinatorRegistryCenter regCenter, <span class="keyword">final</span> String jobName)</span> </span>&#123;</div><div class="line">        jobNodeStorage = <span class="keyword">new</span> JobNodeStorage(regCenter, jobName);</div><div class="line">        timeService = <span class="keyword">new</span> TimeService();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>
-<p>JobNodeStorage，封装注册中心，提供存储服务。在<a href="http://www.yunai.me/Elastic-Job/job-storage/?self">《Elastic-Job-Lite 源码解析 —— 作业数据存储》</a>详细分享。</p>
-</li>
-<li>
-<p>TimeService，时间服务，提供当前时间查询。</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TimeService</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 获取当前时间的毫秒数.</div><div class="line">     * </div><div class="line">     * <span class="doctag">@return</span> 当前时间的毫秒数</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getCurrentMillis</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> System.currentTimeMillis();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-</li>
-</ul>
-<h2>3.1 读取作业配置</h2>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 读取作业配置.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> fromCache 是否从缓存中读取</div><div class="line">* <span class="doctag">@return</span> 作业配置</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> LiteJobConfiguration <span class="title">load</span><span class="params">(<span class="keyword">final</span> <span class="keyword">boolean</span> fromCache)</span> </span>&#123;</div><div class="line">   String result;</div><div class="line">   <span class="keyword">if</span> (fromCache) &#123; <span class="comment">// 缓存</span></div><div class="line">       result = jobNodeStorage.getJobNodeData(ConfigurationNode.ROOT);</div><div class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> == result) &#123;</div><div class="line">           result = jobNodeStorage.getJobNodeDataDirectly(ConfigurationNode.ROOT);</div><div class="line">       &#125;</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       result = jobNodeStorage.getJobNodeDataDirectly(ConfigurationNode.ROOT);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">return</span> LiteJobConfigurationGsonFactory.fromJson(result);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2>3.2 持久化作业配置</h2>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 持久化分布式作业配置信息.</div><div class="line">* </div><div class="line">* <span class="doctag">@param</span> liteJobConfig 作业配置</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">persist</span><span class="params">(<span class="keyword">final</span> LiteJobConfiguration liteJobConfig)</span> </span>&#123;</div><div class="line">   checkConflictJob(liteJobConfig);</div><div class="line">   <span class="keyword">if</span> (!jobNodeStorage.isJobNodeExisted(ConfigurationNode.ROOT) || liteJobConfig.isOverwrite()) &#123;</div><div class="line">       jobNodeStorage.replaceJobNode(ConfigurationNode.ROOT, LiteJobConfigurationGsonFactory.toJson(liteJobConfig));</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>
-<p>调用 <code>#checkConflictJob(...)</code> 方法<strong>校验</strong>注册中心存储的作业配置的作业实现类全路径( <code>jobClass</code> )和当前的是否相同，如果不同，则认为是<strong>冲突</strong>，不允许存储：</p>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkConflictJob</span><span class="params">(<span class="keyword">final</span> LiteJobConfiguration liteJobConfig)</span> </span>&#123;</div><div class="line">   Optional&lt;LiteJobConfiguration&gt; liteJobConfigFromZk = find();</div><div class="line">   <span class="keyword">if</span> (liteJobConfigFromZk.isPresent()</div><div class="line">           &amp;&amp; !liteJobConfigFromZk.get().getTypeConfig().getJobClass().equals(liteJobConfig.getTypeConfig().getJobClass())) &#123; <span class="comment">// jobClass 是否相同</span></div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobConfigurationException(<span class="string">"Job conflict with register center. The job '%s' in register center's class is '%s', your job class is '%s'"</span>, </div><div class="line">               liteJobConfig.getJobName(), liteJobConfigFromZk.get().getTypeConfig().getJobClass(), liteJobConfig.getTypeConfig().getJobClass());</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-</li>
-</ul>
-<ul>
-<li>当注册中心<strong>未存储</strong>该作业配置 或者 当前作业配置允许替换注册中心作业配置( <code>overwrite = true</code> )时，持久化作业配置。</li>
-</ul>
-<h2>3.3 校验本机时间是否合法</h2>
-<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* 检查本机与注册中心的时间误差秒数是否在允许范围.</div><div class="line">* </div><div class="line">* <span class="doctag">@throws</span> JobExecutionEnvironmentException 本机与注册中心的时间误差秒数不在允许范围所抛出的异常</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkMaxTimeDiffSecondsTolerable</span><span class="params">()</span> <span class="keyword">throws</span> JobExecutionEnvironmentException </span>&#123;</div><div class="line">   <span class="keyword">int</span> maxTimeDiffSeconds =  load(<span class="keyword">true</span>).getMaxTimeDiffSeconds();</div><div class="line">   <span class="keyword">if</span> (-<span class="number">1</span>  == maxTimeDiffSeconds) &#123;</div><div class="line">       <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">long</span> timeDiff = Math.abs(timeService.getCurrentMillis() - jobNodeStorage.getRegistryCenterTime());</div><div class="line">   <span class="keyword">if</span> (timeDiff &gt; maxTimeDiffSeconds * <span class="number">1000L</span>) &#123;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> JobExecutionEnvironmentException(</div><div class="line">               <span class="string">"Time different between job server and register center exceed '%s' seconds, max time different is '%s' seconds."</span>, timeDiff / <span class="number">1000</span>, maxTimeDiffSeconds);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>Elastic-Job-Lite 作业触发是<strong>依赖本机时间</strong>，相同集群使用注册中心时间为基准，校验本机与注册中心的时间误差是否在允许范围内( <code>LiteJobConfiguration.maxTimeDiffSeconds</code> )。</li>
-</ul>
-<h1>666. 彩蛋</h1>
-<p>Elastic-Job-Lite 源码解析系列第一篇文章，希望大家多多支持，预计全部更新完会有 15+ 篇。Elastic-Job-Cloud 源码系列后续也会更新。</p>
-<p>道友，分享一波<strong>微信朋友圈</strong>支持支持支持，可好？</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;strong&gt;本文基于 Elastic-Job V2.1.5 版本分享&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;#&quot;&gt;1. 概述&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2. 作业配置&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;#&quot;&gt;2.
     
     </summary>
     

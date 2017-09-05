@@ -1,3 +1,4 @@
+http://www.yunai.me/Elastic-Job/cloud-job-failover/
 http://www.yunai.me/Elastic-Job/cloud-local-executor/
 http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor-second/
 http://www.yunai.me/Elastic-Job/cloud-job-scheduler-and-executor-first/
