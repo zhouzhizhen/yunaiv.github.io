@@ -1,3 +1,4 @@
+http://www.iocoder.cn/Elastic-Job/cloud-high-availability/
 http://www.iocoder.cn/Elastic-Job/cloud-job-failover/
 http://www.iocoder.cn/Elastic-Job/cloud-local-executor/
 http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/

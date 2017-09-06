@@ -1,4 +1,4 @@
-title: Elastic-Job-Cloud 源码分析 —— 作业失效转移【编辑中】
+title: Elastic-Job-Cloud 源码分析 —— 作业失效转移
 date: 2018-01-10
 tags:
 categories: Elastic-Job-Cloud
@@ -257,7 +257,6 @@ public void add(final TaskContext taskContext) {
    String failoverTaskNodePath = FailoverNode.getFailoverTaskNodePath(taskContext.getMetaInfo().toString());
    if (!regCenter.isExisted(failoverTaskNodePath) // 判断不在失效转移队列
            && !runningService.isTaskRunning(taskContext.getMetaInfo())) { // 判断不在运行中
-       // TODO Daemon类型作业增加存储是否立即失效转移
        regCenter.persist(failoverTaskNodePath, taskContext.getId());
    }
 }

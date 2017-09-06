@@ -484,7 +484,7 @@ List<TaskRequest> taskRequests = launchingTasks.getPendingTasks();
        return result;
     }
     ```
-    * 调用 `FailoverService#getAllEligibleJobContexts()` 方法，从**失效转移队列**中获取所有有资格执行的作业上下文。**TaskLaunchScheduledService 提交的任务还可能来自失效转移队列**。本文暂时不解析失效转移队列相关实现，避免增加复杂度影响大家的理解，在[《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](http://www.iocoder.cn?todo)详细解析。
+    * 调用 `FailoverService#getAllEligibleJobContexts()` 方法，从**失效转移队列**中获取所有有资格执行的作业上下文。**TaskLaunchScheduledService 提交的任务还可能来自失效转移队列**。本文暂时不解析失效转移队列相关实现，避免增加复杂度影响大家的理解，在[《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](http://www.iocoder.cn/Elastic-Job/cloud-job-failover/?self)详细解析。
     * 调用 `ReadyService#getAllEligibleJobContexts(...)` 方法，从**待执行队列**中获取所有有资格执行的作业上下文。
 
         ```Java
@@ -1737,7 +1737,7 @@ public void statusUpdate(final SchedulerDriver schedulerDriver, final Protos.Tas
 
     另外会调用 `FacadeService#removeRunning(...)`、`#unAssignTask(...)` 方法。
 
-* 当更新 Mesos 任务状态为 `TASK_ERROR` 等等时，调用 `FacadeService#recordFailoverTask(...)` 方法，在 [《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](TODO)详细解析。
+* 当更新 Mesos 任务状态为 `TASK_ERROR` 等等时，调用 `FacadeService#recordFailoverTask(...)` 方法，在 [《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](http://www.iocoder.cn/Elastic-Job/cloud-job-failover/?self)详细解析。
 
     另外会调用 `FacadeService#removeRunning(...)` 和 `#unAssignTask(...)` 方法。
     

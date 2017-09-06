@@ -583,7 +583,7 @@ public void deregister(@PathParam("appName") final String appName) {
 
 # 666. 彩蛋
 
-Elastic-Job-Cloud 作业调度两篇内容到此就结束啦。后续我们会更新大家关心的[《Elastic-Job-Cloud 源码分析 —— 高可用》](http://www.iocoder.cn?todo)是如何实现的噢。
+Elastic-Job-Cloud 作业调度两篇内容到此就结束啦。后续我们会更新大家关心的[《Elastic-Job-Cloud 源码分析 —— 高可用》](http://www.iocoder.cn/Elastic-Job/cloud-high-availability/?self)是如何实现的噢。
 
 ![](http://www.iocoder.cn/images/Elastic-Job/2017_12_28/03.png)
 

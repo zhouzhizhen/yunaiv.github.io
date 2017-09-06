@@ -279,8 +279,8 @@ public final class JobStatusTraceEvent implements JobEvent {
        TASK_KILLED, TASK_LOST, TASK_FAILED,  TASK_DROPPED, TASK_GONE, TASK_GONE_BY_OPERATOR, TASK_UNREACHABLE, TASK_UNKNOWN
     }
     ```
-    * Elastic-Job-Lite / Elastic-Job-Cloud  TASK_STAGING、TASK_RUNNING、TASK_FINISHED、TASK_ERROR 四种执行状态。
-    * 其他执行状态暂时未使用到。
+    * Elastic-Job-Lite 使用  TASK_STAGING、TASK_RUNNING、TASK_FINISHED、TASK_ERROR 四种执行状态。
+    * Elastic-Job-Cloud 使用所有执行状态。
 
 关系数据库表 `JOB_STATUS_TRACE_LOG` 结构如下：
 
@@ -399,6 +399,23 @@ private JobStatusTraceEvent createJobStatusTraceEvent(final TaskContext taskCont
 }
 ```
 * 任务提交调度服务( TaskLaunchScheduledService )提交任务时，记录发布作业状态追踪事件(State.TASK_STAGING)。
+
+Elastic-Job-Cloud 根据 Mesos Master 通知任务状态变更，记录**多种**作业状态追踪事件，实现代码如下：
+
+```Java
+// SchedulerEngine.java
+@Override
+public void statusUpdate(final SchedulerDriver schedulerDriver, final Protos.TaskStatus taskStatus) {
+   String taskId = taskStatus.getTaskId().getValue();
+   TaskContext taskContext = TaskContext.from(taskId);
+   String jobName = taskContext.getMetaInfo().getJobName();
+   log.trace("call statusUpdate task state is: {}, task id is: {}", taskStatus.getState(), taskId);
+   //
+   jobEventBus.post(new JobStatusTraceEvent(jobName, taskContext.getId(), taskContext.getSlaveId(), Source.CLOUD_SCHEDULER,
+           taskContext.getType(), String.valueOf(taskContext.getMetaInfo().getShardingItems()), State.valueOf(taskStatus.getState().name()), taskStatus.getMessage()));
+   // ... 省略无关代码
+}
+```
 
 ## 3.2 作业执行追踪事件
 

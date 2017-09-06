@@ -59,7 +59,8 @@ permalink: Elastic-Job/why-read-Elastic-Job-source-code
 * 《Elastic-Job-Cloud 源码解析 —— 作业分片策略》在《Elastic-Job-Cloud 源码解析 —— 作业调度（一）》包含
 * 《Elastic-Job-Cloud 源码解析 —— 作业监听器》该功能暂不支持
 * 《Elastic-Job-Cloud 源码解析 —— 作业监控服务》该功能暂不支持
-* 《Elastic-Job-Cloud 源码解析 —— 运维平台》融合在每一张里
+* 《Elastic-Job-Cloud 源码解析 —— 运维平台》融合在每一张里，**统计相关暂时未解析**
+* 《Elastic-Job-Cloud 源码解析 —— 诊断自修复》《Elastic-Job-Cloud 源码解析 —— 高可用》包含
 
 ## XXL-JOB 
 

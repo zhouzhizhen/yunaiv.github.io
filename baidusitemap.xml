@@ -4,11 +4,65 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-failover/</loc>
-    <lastmod>2017-09-06T11:12:27.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-high-availability/</loc>
+    <lastmod>2017-09-06T18:31:02.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Cloud 源码分析 —— 作业失效转移【编辑中】</title>
+        <title>Elastic-Job-Cloud 源码分析 —— 高可用【编辑中】</title>
+        <pubTime>2018-01-14T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/</loc>
+    <lastmod>2017-09-06T12:55:10.000Z</lastmod>
+    <data>
+        <display>
+        <title>Elastic-Job-Cloud 源码分析 —— 作业调度（二）</title>
+        <pubTime>2017-12-27T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/why-read-Elastic-Job-source-code/</loc>
+    <lastmod>2017-09-06T12:53:47.000Z</lastmod>
+    <data>
+        <display>
+        <title>Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？</title>
+        <pubTime>2017-08-31T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-failover/</loc>
+    <lastmod>2017-09-06T12:51:12.000Z</lastmod>
+    <data>
+        <display>
+        <title>Elastic-Job-Cloud 源码分析 —— 作业失效转移</title>
         <pubTime>2018-01-09T16:00:00.000Z</pubTime>
         
          
@@ -22,17 +76,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-event-trace/</loc>
+    <lastmod>2017-09-06T12:09:34.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
-        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Lite 源码分析 —— 作业事件追踪</title>
+        <pubTime>2017-11-13T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
           
         </display>
     </data>
@@ -40,17 +94,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first/</loc>
+    <lastmod>2017-09-06T12:03:27.000Z</lastmod>
     <data>
         <display>
-        <title>Docker 网络 —— Flannel 配置</title>
-        <pubTime>2017-02-03T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Cloud 源码分析 —— 作业调度（一）</title>
+        <pubTime>2017-12-20T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Docker" url="http://www.iocoder.cn/categories/Docker/"/>
+              <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
           
         </display>
     </data>
@@ -58,17 +112,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Architecture/talk-about-global-id/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-execute/</loc>
+    <lastmod>2017-09-06T12:03:02.000Z</lastmod>
     <data>
         <display>
-        <title>谈谈 ID</title>
-        <pubTime>2017-03-03T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Lite 源码分析 —— 作业执行</title>
+        <pubTime>2017-09-22T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
           
         </display>
     </data>
@@ -76,71 +130,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper/</loc>
+    <lastmod>2017-09-06T12:02:14.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
-        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
+        <title>Elastic-Job-Lite 源码分析 —— 注册中心</title>
+        <pubTime>2017-09-29T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 为什么阅读 MyCAT 源码？</title>
-        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>闲聊如何阅读源码（音频）</title>
-        <pubTime>2017-12-01T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 调试环境搭建</title>
-        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
+              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
           
         </display>
     </data>
@@ -238,17 +238,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/why-read-Elastic-Job-source-code/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/topic/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？</title>
-        <pubTime>2017-08-31T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Topic</title>
+        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
           
         </display>
     </data>
@@ -256,17 +256,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Cloud 源码分析 —— 作业调度（一）</title>
-        <pubTime>2017-12-20T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
+        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
           
         </display>
     </data>
@@ -310,17 +310,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper/</loc>
+    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Lite 源码分析 —— 注册中心</title>
-        <pubTime>2017-09-29T16:00:00.000Z</pubTime>
+        <title>Docker 网络 —— Flannel 配置</title>
+        <pubTime>2017-02-03T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
+              <breadCrumb title="Docker" url="http://www.iocoder.cn/categories/Docker/"/>
           
         </display>
     </data>
@@ -400,17 +400,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-execute/</loc>
+    <loc>http://www.iocoder.cn/Architecture/talk-about-global-id/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Lite 源码分析 —— 作业执行</title>
-        <pubTime>2017-09-22T16:00:00.000Z</pubTime>
+        <title>谈谈 ID</title>
+        <pubTime>2017-03-03T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
+              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
           
         </display>
     </data>
@@ -562,17 +562,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-event-trace/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Elastic-Job-Lite 源码分析 —— 作业事件追踪</title>
-        <pubTime>2017-11-13T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
+        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Elastic-Job-Lite" url="http://www.iocoder.cn/categories/Elastic-Job-Lite/"/>
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
           
         </display>
     </data>
@@ -580,17 +580,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
+    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
-        <pubTime>2017-08-13T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析 —— 为什么阅读 MyCAT 源码？</title>
+        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
           
         </display>
     </data>
@@ -616,6 +616,24 @@
 
     
   <url>
+    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <data>
+        <display>
+        <title>闲聊如何阅读源码（音频）</title>
+        <pubTime>2017-12-01T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
@@ -634,17 +652,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/topic/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Topic</title>
-        <pubTime>2017-04-06T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
+        <pubTime>2017-08-13T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
           
         </display>
     </data>
@@ -688,35 +706,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
+    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— 分布式主键</title>
-        <pubTime>2017-08-11T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析 —— 调试环境搭建</title>
+        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>Elastic-Job-Cloud 源码分析 —— 作业调度（二）</title>
-        <pubTime>2017-12-27T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
+              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
           
         </display>
     </data>
@@ -796,12 +796,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-1/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 路由（一）之分库分表配置</title>
-        <pubTime>2017-08-03T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— 分布式主键</title>
+        <pubTime>2017-08-11T16:00:00.000Z</pubTime>
         
          
            
@@ -1012,17 +1012,35 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/namesrv-intro/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-1/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 之 Namesrv 小结</title>
-        <pubTime>2017-04-04T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 路由（一）之分库分表配置</title>
+        <pubTime>2017-08-03T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-bed/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— 分布式事务（一）之最大努力型</title>
+        <pubTime>2017-08-19T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
           
         </display>
     </data>
@@ -1054,24 +1072,6 @@
         <display>
         <title>RocketMQ 源码分析 —— Message</title>
         <pubTime>2017-04-07T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/RocketMQ/why-read-RocketMQ-source-code/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— 为什么阅读 RocketMQ 源码？</title>
-        <pubTime>2017-03-22T16:00:00.000Z</pubTime>
         
          
            
@@ -1120,6 +1120,24 @@
 
     
   <url>
+    <loc>http://www.iocoder.cn/RocketMQ/why-read-RocketMQ-source-code/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— 为什么阅读 RocketMQ 源码？</title>
+        <pubTime>2017-03-22T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.iocoder.cn/RocketMQ/message-schedule-and-retry/</loc>
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     <data>
@@ -1138,12 +1156,30 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-bed/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/namesrv-intro/</loc>
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— 分布式事务（一）之最大努力型</title>
-        <pubTime>2017-08-19T16:00:00.000Z</pubTime>
+        <title>RocketMQ 之 Namesrv 小结</title>
+        <pubTime>2017-04-04T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— 结果归并</title>
+        <pubTime>2017-08-15T16:00:00.000Z</pubTime>
         
          
            
@@ -1167,24 +1203,6 @@
            
              
               <breadCrumb title="Elastic-Job-Cloud" url="http://www.iocoder.cn/categories/Elastic-Job-Cloud/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    <data>
-        <display>
-        <title>Sharding-JDBC 源码分析 —— 结果归并</title>
-        <pubTime>2017-08-15T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
           
         </display>
     </data>

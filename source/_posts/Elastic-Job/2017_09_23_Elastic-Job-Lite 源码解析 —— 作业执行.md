@@ -545,7 +545,7 @@ private void execute(final ShardingContexts shardingContexts, final JobExecution
    if (shardingContexts.isAllowSendJobEvent()) {
        jobFacade.postJobStatusTraceEvent(taskId, State.TASK_RUNNING, "");
    }
-   // TODO
+   //
    try {
        process(shardingContexts, executionSource);
    } finally {
