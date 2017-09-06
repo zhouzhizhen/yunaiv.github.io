@@ -20,7 +20,7 @@ permalink: Elastic-Job/job-event-trace
 
 -------
 
-![](http://www.yunai.me/images/common/wechat_mp_2017_07_31.jpg)
+![](http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg)
 
 > 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -39,9 +39,9 @@ permalink: Elastic-Job/job-event-trace
 
 Elastic-Job 提供了事件追踪功能，可通过事件订阅的方式处理调度过程的重要事件，用于查询、统计和监控。Elastic-Job 目前订阅两种事件，基于**关系型数据库**记录事件。
 
-涉及到主要类的类图如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/01.png) )：
+涉及到主要类的类图如下( [打开大图](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/01.png) )：
 
-![](http://www.yunai.me/images/Elastic-Job/2017_11_14/01.png)
+![](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/01.png)
 
 * 以上类在 `com.dangdang.ddframe.job.event` 包，不仅为 Elastic-Job-Lite，而且为 Elastic-Job-Cloud 实现了事件追踪功能。
 * 作业**事件**：粉色的类。
@@ -95,7 +95,7 @@ public final class JobEventBus {
 }
 ```
 
-* JobEventBus 基于 [Google Guava EventBus](https://github.com/google/guava/wiki/EventBusExplained)，在[《Sharding-JDBC 源码分析 —— SQL 执行》「4.1 EventBus」](http://www.yunai.me/Sharding-JDBC/sql-execute)有详细分享。这里要注意的是 AsyncEventBus( **异步事件总线** )，注册在其上面的监听器是**异步**监听执行，事件发布无需阻塞等待监听器执行完逻辑，所以对性能不存在影响。
+* JobEventBus 基于 [Google Guava EventBus](https://github.com/google/guava/wiki/EventBusExplained)，在[《Sharding-JDBC 源码分析 —— SQL 执行》「4.1 EventBus」](http://www.iocoder.cn/Sharding-JDBC/sql-execute)有详细分享。这里要注意的是 AsyncEventBus( **异步事件总线** )，注册在其上面的监听器是**异步**监听执行，事件发布无需阻塞等待监听器执行完逻辑，所以对性能不存在影响。
 * 使用 JobEventConfiguration( 作业事件配置 ) 创建事件监听器，调用 `#register()` 方法进行注册监听。
 
     ```Java
@@ -302,9 +302,9 @@ CREATE TABLE `JOB_STATUS_TRACE_LOG` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
 ```
 
-* Elastic-Job-Lite 一次作业执行记录如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/02.png) )：
+* Elastic-Job-Lite 一次作业执行记录如下( [打开大图](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/02.png) )：
 
-    ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/02.png)
+    ![](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/02.png)
 
 **JobStatusTraceEvent 在 Elastic-Job-Lite 发布时机**：
 
@@ -497,9 +497,9 @@ CREATE TABLE `JOB_EXECUTION_LOG` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
 ```
 
-* Elastic-Job-Lite 一次作业**多作业分片项**执行记录如下( [打开大图](http://www.yunai.me/images/Elastic-Job/2017_11_14/03.png) )：
+* Elastic-Job-Lite 一次作业**多作业分片项**执行记录如下( [打开大图](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/03.png) )：
 
-    ![](http://www.yunai.me/images/Elastic-Job/2017_11_14/03.png)
+    ![](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/03.png)
 
 **JobExecutionEvent 在 Elastic-Job-Lite 发布时机**：
 
@@ -725,7 +725,7 @@ public final class JobEventRdbListener extends JobEventRdbIdentity implements Jo
 旁白君：瞎比比了这么长，能不能简单粗暴一点。  
 芋道君：是是是。
 
-![](http://www.yunai.me/images/Elastic-Job/2017_11_14/04.png)
+![](http://www.iocoder.cn/images/Elastic-Job/2017_11_14/04.png)
 
 道友，赶紧上车，分享一波朋友圈！
 

@@ -13,7 +13,7 @@ keywords: Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分�
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://www.yunai.me
+url: http://www.iocoder.cn
 root: /
 permalink: :title/
 permalink_defaults:
@@ -87,7 +87,7 @@ leancloud_visitors:
 # 百度链接主动提交
 baidu_url_submit:
   count: 100 # 提交最新的一个链接
-  host: www.yunai.me # 在百度站长平台中注册的域名
+  host: www.iocoder.cn # 在百度站长平台中注册的域名
   token: LkeCeFXLKy9m9Cqc # 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
   path: baidu_urls.txt # 文本文档的地址， 新链接会保存在此文本文档里
 

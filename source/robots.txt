@@ -10,5 +10,5 @@ Allow: /Elastic-Job/
 Disallow: /css/
 Disallow: /js/
 Disallow: /lib/
-Sitemap: http://www.yunai.me/sitemap.xml
-Sitemap: http://www.yunai.me/baidusitemap.xml
+Sitemap: http://www.iocoder.cn/sitemap.xml
+Sitemap: http://www.iocoder.cn/baidusitemap.xml

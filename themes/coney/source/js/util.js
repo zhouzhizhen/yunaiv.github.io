@@ -114,7 +114,7 @@ function handleVIPURL() {
                         'content' : prefix + '<span style="color: red">，今日' + prefix2 + '已关注人数：' + numbers + '</span>'
                         + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>'
                         + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
-                        + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                        + '<img width="400" src="http://www.iocoder.cn/images/common/wechat_mp_simple.png" />'
                         ,
                         'buttons' :{
                             '已关注，关闭窗口（公众号发送：【嘿嘿】查看文章）' : function() {
@@ -161,7 +161,7 @@ function handleAlert() {
                 'content' : prefix + '<span style="color: red">，今日' + prefix2 + '已关注人数：' + numbers + '</span>'
                 + '<p style="color: red">关注后，欢迎加入【源码圈】微信群交流</p>'
                 + '<p style="color: red">一起看源码，读源码，提升技术！</p>'
-                + '<img width="400" src="http://www.yunai.me/images/common/wechat_mp_simple.png" />'
+                + '<img width="400" src="http://www.iocoder.cn/images/common/wechat_mp_simple.png" />'
                 + '<p style="color: blue">抱歉，该弹窗每天弹出 ' + alertMax + ' 次。</p>'
                 ,
                 'buttons' :{
@@ -193,7 +193,7 @@ $(document).ready(function(){
         } else {
             search += '?vip';
         }
-        window.location.href = 'http://www.yunai.me' + search;
+        window.location.href = 'http://www.iocoder.cn' + search;
         return;
     }
 

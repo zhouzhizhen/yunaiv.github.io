@@ -2,7 +2,7 @@
 menu:
   文章: /
   Github: https://github.com/YunaiV
-  微信公众号: http://www.yunai.me/images/common/wechat_mp_2017_07_31_bak.jpg
+  微信公众号: http://www.iocoder.cn/images/common/wechat_mp_2017_07_31_bak.jpg
   友链: /link_url
 #  归档: /archives
 ## you can create `tags` and `categories` folders in `../source`.
@@ -83,7 +83,7 @@ jiathis:
 ####Baidu Analytics
 baidu_analytics:
   enable: true
-  id: ef4ed89f6dc83d01803a2440ae21e666 # your baidu analytics id
+  id: 9e70e3362807c1bd185a79655b307027 # your baidu analytics id
 
 ####Baidu Share
 baidu_share:
