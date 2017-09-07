@@ -921,7 +921,7 @@ private CronTrigger createTrigger(final String cron) {
 }
 ```
 
-* `org.quartz.jobStore.misfireThreshold` 设置超过 1 毫秒，作业分片项即被视为错过执行。
+* `org.quartz.jobStore.misfireThreshold` 设置最大允许超过 1 毫秒，作业分片项即被视为错过执行。
 * `#withMisfireHandlingInstructionDoNothing()` 设置 Quartz 系统不会立刻再执行任务，而是等到距离目前时间最近的预计时间执行。**重新执行被错过执行的作业交给 Elastic-Job-Lite 处理**。
 * 使用 TriggerListener 监听被错过执行的作业分片项：
 

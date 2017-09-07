@@ -304,7 +304,18 @@ public final class CloudJobConfigurationListener implements TreeCacheListener {
 
 * CloudJobConfigurationListener 实现 TreeCacheListener 实现对 Zookeeper 数据变更的监听。对 TreeCacheListener 感兴趣的同学，可以查看 [Apache Curator](https://curator.apache.org/) 相关知识。
 * 调用 `ReadyService#remove(...)` 方法，将作业从**待运行队列**删除。TODO，为啥要删除？
-* 调用 `ReadyService#setMisfireDisabled(...)` 方法，设置禁用错过重执行。TODO misfired
+* 调用 `ReadyService#setMisfireDisabled(...)` 方法，设置禁用错过重执行。实现代码如下：
+
+    ```Java
+    public void setMisfireDisabled(final String jobName) {
+       Optional<CloudJobConfiguration> cloudJobConfig = configService.load(jobName);
+       if (cloudJobConfig.isPresent() && null != regCenter.getDirectly(ReadyNode.getReadyJobNodePath(jobName))) {
+           regCenter.persist(ReadyNode.getReadyJobNodePath(jobName), "1");
+       }
+    }
+    ```
+    * **瞬时作业**开启 `misfire` 功能时，当任务执行过久触发 `misifre` 会不断累积待执行次数。如果关闭 `misfire` 功能，需要将多次执行次数归 `"1"`。
+
 * 调用 `ProducerManager#reschedule(...)` 方法，重新调度作业。TODO，为啥要重复调用这个方法？
 
 ## 2.5 注销云作业

@@ -665,7 +665,10 @@ Elastic-Job-Lite 也会存在作业节点 和 Zookeeper 数据不一致的情况
 
 # 666. 彩蛋
 
-给英文和半斤八两的同学一本葵花宝典：[《Mesos中文手册》](https://mesos-cn.gitbooks.io/mesos-cn/content/)。
+给英文和我一样半斤八两的同学一本葵花宝典+辟邪剑谱：
+
+* [《Mesos中文手册》](https://mesos-cn.gitbooks.io/mesos-cn/content/)。
+* [《Mesos 容错、故障》](http://www.jianshu.com/p/726e28ea488a)
 
 ![](http://www.iocoder.cn/images/Elastic-Job/2018_01_15/03.png)
 

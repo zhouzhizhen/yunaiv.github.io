@@ -368,7 +368,7 @@ public static final class ProducerJob implements Job {
     }
     ```
     * **添加瞬时作业到待执行作业队列** 和 **添加常驻作业到待执行作业队列**基本是一致的。
-    * TODO :misfire
+    * 当作业配置允许 `misfire`，则不断累积作业可执行次数。
 
 ## 3.3 小结
 
@@ -400,7 +400,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
 }
 ```
 
-* 每 10 秒执行提交任务( `#runOneIteration()` )。对 Guava AbstractScheduledService 不了解的同学，可以阅读完本文后 Google 下。
+* 每 10 秒执行提交任务( `#runOneIteration()` )。对 Guava AbstractScheduledService 不了解的同学，可以阅读完本文后 Google 下。因为是通过每 10 秒轮询的方式提交任务，所以**瞬时作业**的执行时间不是非常严格，存在略有延迟，这个实际在使用需要注意的。那**常驻作业**呢，看完本文，你就会知道答案。
 
 `#runOneIteration()` 方法相对比较复杂，我们一块一块拆解，**耐心**理解。实现代码如下：
 
@@ -1733,7 +1733,7 @@ public void statusUpdate(final SchedulerDriver schedulerDriver, final Protos.Tas
     }
     ```
 
-* 当更新 Mesos 任务状态为 `TASK_KILLED` 时，调用 `FacadeService#addDaemonJobToReadyQueue(...)` 方法，将常驻作业放入待执行队列。在[《Elastic-Job-Cloud 源码分析 —— 作业调度（二）》](http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/?self)进一步解析。TODO
+* 当更新 Mesos 任务状态为 `TASK_KILLED` 时，调用 `FacadeService#addDaemonJobToReadyQueue(...)` 方法，将常驻作业放入待执行队列。**为什么要将常驻作业放入待执行队列呢？**被 Kill 掉的作业后续要继续调度执行，如果不加入待执行队列，TaskLaunchScheduledService 就无法提交作业给 Elastic-Job-Cloud-Executor 继续调度执行。
 
     另外会调用 `FacadeService#removeRunning(...)`、`#unAssignTask(...)` 方法。
 
