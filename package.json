@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "hexo": {
-    "version": "3.3.7"
+    "version": "3.3.9"
   },
   "dependencies": {
     "gulp-csso": "^3.0.0",
