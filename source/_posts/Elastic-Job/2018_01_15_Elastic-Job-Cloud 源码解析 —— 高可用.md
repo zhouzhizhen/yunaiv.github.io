@@ -1,4 +1,4 @@
-title: Elastic-Job-Cloud 源码分析 —— 高可用【编辑中】
+title: Elastic-Job-Cloud 源码分析 —— 高可用
 date: 2018-01-15
 tags:
 categories: Elastic-Job-Cloud
@@ -7,6 +7,19 @@ permalink: Elastic-Job/cloud-high-availability
 -------
 
 **本文基于 Elastic-Job V2.1.5 版本分享**
+
+- [1. 概述](#)
+- [2. Scheduler 集群](#)
+- [3. Scheduler 部署](#)
+- [4. Scheduler 故障转移](#)
+- [5. Scheduler 数据存储](#)
+	- [5.1 RunningService](#)
+	- [5.2 ProducerManager](#)
+	- [5.3 TaskScheduler](#)
+- [6. Mesos Master 崩溃](#)
+- [7. Mesos Slave 崩溃](#)
+- [8. Scheduler 核对](#)
+- [666. 彩蛋](#)
 
 -------
 
@@ -27,7 +40,7 @@ permalink: Elastic-Job/cloud-high-availability
 
 一个高可用的 Elastic-Job-Cloud 组成如下图：
 
-![](../../../images/Elastic-Job/2018_01_15/01.png)
+![](http://www.iocoder.cn/images/Elastic-Job/2018_01_15/01.png)
 
 * Mesos Master 集群
 * Mesos Slave 集群
@@ -250,7 +263,7 @@ public void takeLeadership(final CuratorFramework client) throws Exception {
         ```
 
 * 当发生 JobSystemException 异常时，即调用 `SchedulerElectionCandidate#startLeadership()` 方法发生异常( `SchedulerElectionCandidate#stopLeadership()` 实际不会抛出异常 )，调用 `System.exit(1)` 方法，Elastic-Job-Cloud-Scheduler 主节点**异常崩溃**。
-    * 目前猜测**可能**有种情况会导致异常崩溃。（1）一个 Elastic-Job-Cloud-Scheduler 集群有两个节点 A / B，通过选举 A 成为主节点；（2）突然 Zookeeper 集群崩溃，恢复后，A 节点选举**恰好**又成为主节点，因为未调用 `SchedulerElectionCandidate#stopLeadership()` 关闭原来的各种服务，导致**再次**调用 `SchedulerElectionCandidate#startLeadership()` 会发生异常，例如说 RestfulService 服务，需要占用一个端口提供服务，重新初始化，会发生端口冲突抛出异常。笔者尝试模拟过一个 Elastic-Job-Cloud-Scheduler + Zookeeper 的情况，能够触发该情况，步骤如下：（1）Zookeeper 启动；（2）Elastic-Job-Cloud-Scheduler 启动，选举成为主节点，正常初始化；（3）重启 Zookeeper；（4）Elastic-Job-Cloud-Scheduler 再次选举成为主节点，异常初始化崩溃。**如果真出现这种情况怎么办呢？**在「3. Scheduler 部署」揭晓答案。
+    * 目前猜测**可能**有种情况会导致异常崩溃。（1）一个 Elastic-Job-Cloud-Scheduler 集群有两个节点 A / B，通过选举 A 成为主节点；（2）突然 Zookeeper 集群崩溃，恢复后，A 节点选举**恰好**又成为主节点，因为未调用 `SchedulerElectionCandidate#stopLeadership()` 关闭原来的各种服务，导致**再次**调用 `SchedulerElectionCandidate#startLeadership()` 会发生异常，例如说 RestfulService 服务，需要占用一个端口提供服务，重新初始化，会发生端口冲突抛出异常。笔者尝试模拟，通过一个 Elastic-Job-Cloud-Scheduler + Zookeeper 的情况，能够触发该情况，步骤如下：（1）Zookeeper 启动；（2）Elastic-Job-Cloud-Scheduler 启动，选举成为主节点，正常初始化；（3）重启 Zookeeper；（4）Elastic-Job-Cloud-Scheduler 再次选举成为主节点，因为 RestfulService 端口冲突异常初始化崩溃。**如果真出现这种情况怎么办呢？**在「3. Scheduler 部署」揭晓答案。
 
 Elastic-Job-Lite 在主节点选举实现方式上略有不同，有兴趣的同学可以看下[《Elastic-Job-Lite 源码分析 —— 主节点选举》](http://www.iocoder.cn/Elastic-Job/election/?self)的实现。
 
@@ -354,7 +367,7 @@ Elastic-Job-Cloud-Executor 使用注册中心( Zookeeper )存储数据。数据�
 
 整体如下图：
 
-![](../../../images/Elastic-Job/2018_01_15/02.png)
+![](http://www.iocoder.cn/images/Elastic-Job/2018_01_15/02.png)
 
 Elastic-Job-Cloud-Scheduler **各个服务**根据数据存储启动初始化。下面来看看依赖数据存储进行初始化的服务代码实现。
 
@@ -416,8 +429,7 @@ public final class RunningService {
        }
     }
     ```
-    
-    * **运行中作业队列只存储常驻作业的任务**。所以**瞬时**作业，在故障转移时，可能存在相同作业相同分片任务**同时**调度执行。举个栗子🌰，Elastic-Job-Cloud-Executor 集群有两个节点 A( 主节点 ) / B( 从节点 )，（1）A 节点每 5 分钟调度一次瞬时作业任务 T ，T 每次执行消耗时间实际超过 5 分钟( 先不要考虑是否合理 )。（2）A 节点崩溃，B 节点成为主节点，5 分钟后调度 T 作业，因为**运行中作业队列只存储常驻作业的任务**，`RUNNING_TASKS` 不存在，因此可以调度 T 作业，实际 T 作业正在 Elastic-Job-Cloud-Executor 执行中。
+    * **运行中作业队列只存储常驻作业的任务**。所以**瞬时**作业，在故障转移时，可能存在相同作业相同分片任务**同时**调度执行。举个栗子🌰，Elastic-Job-Cloud-Scheduler 集群有两个节点 A( 主节点 ) / B( 从节点 )，（1）A 节点每 5 分钟调度一次瞬时作业任务 T ，T 每次执行消耗时间实际超过 5 分钟( 先不要考虑是否合理 )。（2）A 节点崩溃，B 节点成为主节点，5 分钟后调度 T 作业，因为**运行中作业队列只存储常驻作业的任务**，恢复后的 `RUNNING_TASKS` 不存在该作业任务，因此可以调度 T 作业，实际 T 作业正在 Elastic-Job-Cloud-Executor 执行中。
 
 ## 5.2 ProducerManager
 
@@ -655,7 +667,20 @@ Elastic-Job-Lite 也会存在作业节点 和 Zookeeper 数据不一致的情况
 
 给英文和半斤八两的同学一本葵花宝典：[《Mesos中文手册》](https://mesos-cn.gitbooks.io/mesos-cn/content/)。
 
-![](../../../images/Elastic-Job/2018_01_15/03.png)
+![](http://www.iocoder.cn/images/Elastic-Job/2018_01_15/03.png)
 
+整个 Elastic-Job-Cloud 完结，撒花！
+
+收获蛮多的，学习的第一套基于云原生( CloudNative )实现的中间件，期待有基于云原生的服务化中间件。
+
+一开始因为 Elastic-Job-Cloud 基于 Mesos 实现，内心还是有点恐惧感，后面硬啃 + 搭配[《Mesos 框架构建分布式应用》](http://product.dangdang.com/24187450.html)，比预想的时间快了一半完成这个系列。在这里强烈推荐这本书。另外，等时间相对空，会研究下另外一个沪江开源的基于 Mesos 实现的分布式调度系统 [Juice](https://github.com/HujiangTechnology/Juice)。不是很确定会不会出源码解析的文章，尽量输出噶。
+
+后面会继续更新源码解析系列，下一个系列应该是[《tcc-transaction 源码解析》](https://github.com/changmingxie/tcc-transaction)。在选择要研究的 tcc 中间件还是蛮纠结的，哈哈，这里听从 [zhisheng](http://www.54tianzhisheng.cn/) 的建议。如果不好，我保证会打死你的。
+
+希望坚持不懈的分享源码解析会有更多的同行者阅读。确实，源码解析的受众略小。
+
+![](http://www.iocoder.cn/images/Elastic-Job/2018_01_15/04.png)
+
+道友，赶紧上车，分享一波朋友圈！
 
 
