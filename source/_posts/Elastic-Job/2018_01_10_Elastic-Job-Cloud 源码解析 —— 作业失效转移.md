@@ -194,22 +194,28 @@ public final class SchedulerEngine implements Scheduler {
     * [《Mesos 官方文档 —— high-availability-framework-guide》](http://mesos.apache.org/documentation/latest/high-availability-framework-guide/)搜索标题 "Dealing with Partitioned or Failed Agents"。
     * [《Mesos 官方文档 —— agent-recovery》](http://mesos.apache.org/documentation/latest/agent-recovery/)搜索关标题 "Agent Recovery"。
 
-   因为 Elastic-Job-Cloud-Scheduler 注册到 Mesos Master 时，开启了 `checkpoint` 。有什么用呢？Mesos Slave 重启后，不会关闭运行在它上面的执行器( Elastic-Job-Cloud-Scheduler )。表现如下：
+   因为 Elastic-Job-Cloud-Scheduler 注册到 Mesos Master 时，开启了 `checkpoint` 和 `PARTITION_AWARE`。开启 `checkpoint` 后，Mesos Slave 会将记录**检查点**信息， Mesos Slave 重启后，会读取检查点检查信息，**重新连接上( 不会关闭 )**运行在它上面的执行器( Elastic-Job-Cloud-Scheduler )。开启 `PARTITION_AWARE` 后，TASK_LOST 会被区分成 TASK_UNREACHABLE, TASK_DROPPED, TASK_GONE, TASK_GONE_BY_OPERATOR, and TASK_UNKNOWN。表现如下：
    
    * `kill -9` 模拟 Mesos Slave 异常崩溃，等待 Mesos Master 发现 Mesos Slave 已经关闭
    * 调度器( Elastic-Job-Cloud-Scheduler ) 接收直接由 Mesos Master 发送的该 Mesos Slave 上的每个任务 TASK_UNREACHABLE。
    * Mesos Slave 重启完成。
    * 执行器( Elastic-Job-Cloud-Executor ) 重新注册到重启好的 Mesos Slave ，并继续运行任务。
   
-  如果 Elastic-Job-Cloud-Scheduler 注册到 Mesos Master 时，关闭了 `checkpoint`，表现同 **TASK_LOST** 描述的过程。
+  如果 Elastic-Job-Cloud-Scheduler 注册到 Mesos Master 时，关闭了 `PARTITION_AWARE` 和 `checkpoint`，表现同 **TASK_LOST** 描述的过程。
 
-  开启 `checkpoint` 实现代码如下：
+  开启 `checkpoint` 和 `PARTITION_AWARE` 实现代码如下：
       
       ```Java
       // SchedulerService.java
       private SchedulerDriver getSchedulerDriver(final TaskScheduler taskScheduler, final JobEventBus jobEventBus, final FrameworkIDService frameworkIDService) {
             Protos.FrameworkInfo.Builder builder = Protos.FrameworkInfo.newBuilder();
+            // PARTITION_AWARE
             builder.addCapabilitiesBuilder().setType(Protos.FrameworkInfo.Capability.Type.PARTITION_AWARE);
+            Protos.FrameworkInfo frameworkInfo = builder.setUser(mesosConfig.getUser()).setName(frameworkName)
+                .setHostname(mesosConfig.getHostname()).setFailoverTimeout(FRAMEWORK_FAILOVER_TIMEOUT_SECONDS)
+                .setWebuiUrl(WEB_UI_PROTOCOL + env.getFrameworkHostPort())
+                .setCheckpoint(true) // checkpoint
+                .build();
             // ... 省略无关代码
        }
       ```
