@@ -14,7 +14,17 @@ permalink: TCC-Transaction/tcc-core
 * `tcc-transaction-api` ：tcc-transaction 使用 API。
 * `tcc-transaction-spring` ：tcc-transaction Spring 支持。
 
-下面一起来简单理解下 **TCC 型事务的概念**。
+> 你行好事会因为得到赞赏而愉悦  
+> 同理，开源项目贡献者会因为 Star 而更加有动力  
+> 为 TCC-Transaction 点赞！[传送门](https://github.com/changmingxie/tcc-transaction)
+
+OK，开始我们的第一段 TCC 旅程吧。
+
+ps：笔者假设你已经阅读过[《tcc-transaction 官方文档 —— 使用指南1.2.x》](https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x)。
+
+ps2：**未特殊说明的情况下，本文事务指的是 TCC事务**。
+
+# 2. TCC 原理
 
 > FROM https://support.hwclouds.com/devg-servicestage/zh-cn_topic_0056814426.html  
 > **TCC事务**  
@@ -36,7 +46,7 @@ permalink: TCC-Transaction/tcc-core
 
 整体流程如下图：
 
-![](../../../images/TCC-Transaction/2018_02_08/01.jpeg)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/01.jpeg)
 
 * **红框部分**功能由 `tcc-transaction-core` 实现：
     * 启动业务活动
@@ -48,30 +58,78 @@ permalink: TCC-Transaction/tcc-core
     * Confirm 操作
     * Cancel 操作 
 
-// TODO TCC 与 2PC
+**与 2PC协议 比较**：
+
+* 位于业务服务层而非自愿层
+* 没有单独的准备( Prepare )阶段，Try 操作兼备自愿操作与准备能力
+* Try 操作可以灵活选择业务资源的锁定粒度
+* 较高开发成本
 
 参考资料：
 
 * [《支付宝运营架构中柔性事务指的是什么？》](https://www.zhihu.com/question/31813039)
 * [《分布式事务的典型处理方式:2PC、TCC、异步确保和最大努力型》](http://kaimingwan.com/post/fen-bu-shi/fen-bu-shi-shi-wu-de-dian-xing-chu-li-fang-shi-2pc-tcc-yi-bu-que-bao-he-zui-da-nu-li-xing)
 
-> 你行好事会因为得到赞赏而愉悦  
-> 同理，开源项目贡献者会因为 Star 而更加有动力  
-> 为 TCC-Transaction 点赞！[传送门](https://github.com/changmingxie/tcc-transaction)
+# 3. TCC-Transaction 原理
 
-OK，开始我们的第一段 TCC 旅程吧。
+在 TCC 里，一个业务活动可以有多个事务，每个业务操作归属于不同的事务，即一个事务可以包含多个业务操作。TCC-Transaction 将每个业务操作抽象成**事务参与者**，每个事务可以包含多个**参与者**。
 
-ps：笔者假设你已经阅读过[《tcc-transaction 官方文档 —— 使用指南1.2.x》](https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x)。
+参与者需要声明 try / confirm / cancel 三个类型的方法，和 TCC 的操作一一对应。在程序里，通过 @Compensable 注解标记在 try 方法上，并填写对应的 confirm / cancel 方法，示例代码如下：
 
-ps2：**未特殊说明的情况下，本文事务指的是 TCC事务**。
+```Java
+// try
+@Compensable(confirmMethod = "confirmRecord", cancelMethod = "cancelRecord", transactionContextEditor = MethodTransactionContextEditor.class)
+public String record(TransactionContext transactionContext, CapitalTradeOrderDto tradeOrderDto) {}
 
-ps3：本文采用**"倒序"**( 例如，Domain => Dao => Service => Controller )分享代码实现，建议阅读方式：简读 x 1 + 深读 x 1。采用**"倒序"**的方式，你可以比较整体的理解每一层的实现。
+// confirm
+public void confirmRecord(TransactionContext transactionContext, CapitalTradeOrderDto tradeOrderDto) {}
 
-# 2. 事务与参与者
+// cancel
+public void cancelRecord(TransactionContext transactionContext, CapitalTradeOrderDto tradeOrderDto) {}
+```
 
-在 TCC 里，**一个**事务( `org.mengyun.tcctransaction.Transaction` ) 可以有**多个**参与者( `org.mengyun.tcctransaction.Participant` )参与业务活动。类图关系如下( [打开大图](../../../images/TCC-Transaction/2018_02_08/02.png) )：
+* 在示例代码中，我们看到 TransactionContext，事务上下文，这个是怎么生成的呢？这里先卖一个关子。
 
-![](../../../images/TCC-Transaction/2018_02_08/02.png)
+TCC-Transaction 有两个拦截器，通过对 @Compensable AOP 切面( 参与者 try 方法 )进行拦截，透明化对参与者 confirm / cancel 方法调用，从而实现 TCC 。**简化**流程如下图：
+
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/03.png)
+
+第一个拦截器，可补偿事务拦截器，实现如下功能：
+
+* 在 Try 阶段，对事务的发起、传播。
+* 在 Confirm / Cancel 阶段，对事务提交或回滚。
+* **为什么会有对事务的传播呢**？在远程调用服务的参与者时，会通过**"参数"**( 需要序列化 )的形式传递事务给远程参与者。
+
+第二个拦截器，资源协调者拦截器，实现如下功能：
+
+* 在 Try 阶段，添加参与者到事务中。当事务上下文不存在时，进行创建。
+
+实际拦截器对事务的处理会比上图复杂一些，在本文[「6. 事务拦截器」](#)详细解析。
+
+在 TCC-Transaction 代码实现上，组件分层如下图：
+
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/04.png)
+
+本文按照如下顺序分享：
+
+* [「4. 事务拦截器」](#)
+* [「5. 事务管理器」](#)
+* [「6. 事务管理器」](#)
+
+内容是**自下而上**的方式分享，每个组件可以更加整体的被认识。当然这可能对你理解时产生一脸闷逼，所以推荐两种阅读方式：
+
+* 简读 x 1 + 深读 x 1
+* 倒着读，发现未分享的方法，全文检索该方法。
+
+事务存储器与事务恢复Job在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
+
+# 4. 事务与参与者
+
+在 TCC 里，**一个**事务( `org.mengyun.tcctransaction.Transaction` ) 可以有**多个**参与者( `org.mengyun.tcctransaction.Participant` )参与业务活动。类图关系如下( [打开大图](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/02.png) )：
+
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/02.png)
+
+## 4.1 事务
 
 **Transaction 实现代码如下**：
 
@@ -168,7 +226,7 @@ public class Transaction implements Serializable {
     }
     ``` 
     * TODO 为什么要继承 Xid 接口？
-    * 一个**全局事务**包含的多个参与者，每个参与者都形成自己的**分支事务**，它们使用全局事务编号( `globalTransactionId` ) 进行关联。下文会看到这块具体的代码实现。TODO
+
 * status，事务状态( TransactionStatus )。`org.mengyun.tcctransaction.api.TransactionStatus` 实现代码如下：
 
     ```Java
@@ -196,7 +254,7 @@ public class Transaction implements Serializable {
     public enum TransactionType {
     
         /**
-         * 全局事务
+         * 根事务
          */
         ROOT(1),
         /**
@@ -207,14 +265,16 @@ public class Transaction implements Serializable {
         int id;
     }
     ```
+    * 在[「6.2 可补偿事务拦截器」](#)有详细解析，可以看到看到这两种事务是如何发起。
 
-* retriedCount，重试次数。在 TCC 过程中，可能参与者异常崩溃，这个时候会进行重试直到成功或超过最大次数。在[《TCC-Transaction 源码解析 —— 事务恢复》](http://www.iocoder.cn?todo)详细解析。
-* version，版本号，用于乐观锁更新事务。下文会看到这块具体的代码实现。TODO
-* participants，事务参与者集合。
+* retriedCount，重试次数。在 TCC 过程中，可能参与者异常崩溃，这个时候会进行重试直到成功或超过最大次数。在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
+* version，版本号，用于乐观锁更新事务。在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
 * attachments，附带属性映射。在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn?todo)详细解析。
 * 提供 `#enlistParticipant()` 方法，添加事务参与者。
 * 提供 `#commit()` 方法，调用参与者们提交事务。
 * 提供 `#rollback()` 方法，调用参与者回滚事务。
+
+## 4.2 参与者
 
 **Participant 实现代码如下**：
 
@@ -260,7 +320,7 @@ public class Participant implements Serializable {
 }
 ```
 
-* xid，**分支**事务编号。
+* xid，参与者事务编号。通过 `TransactionXid.globalTransactionId` 属性，关联上其所属的事务。当参与者进行远程调用时，远程的**分支**事务的事务编号等于该参与者的事务编号。通过事务编号的关联，TCC Confirm / Cancel 阶段，使用参与者的事务编号和远程的**分支**事务进行关联，从而实现事务的提交和回滚，在[「5.2 传播发起分支事务」 + 「6.2 可补偿事务拦截器」](#)可以看到具体实现。
 * confirmInvocationContext，确认执行业务方法调用上下文( InvocationContext )。`org.mengyun.tcctransaction.InvocationContext` 实现代码如下：
 
     ```Java
@@ -286,7 +346,7 @@ public class Participant implements Serializable {
         private Object[] args;
     }
     ```
-    * InvocationContext，执行方法调用上下文，记录类、方法名、参数类型数组、参数数组。通过这些属性，可以执行提交 / 回滚事务。在 `org.mengyun.tcctransaction.Terminator` 会看到具体的代码实现。
+    * InvocationContext，执行方法调用上下文，记录类、方法名、参数类型数组、参数数组。通过这些属性，可以执行提交 / 回滚事务。在 `org.mengyun.tcctransaction.Terminator` 会看到具体的代码实现。**本质上，TCC 通过多个参与者的 try / confirm / cancel 方法，实现事务的最终一致性**。
 
 * cancelInvocationContext，取消执行业务方法调用上下文( InvocationContext )。
 * terminator，执行器( Terminator )。`org.mengyun.tcctransaction.Terminator` 实现代码如下：
@@ -316,20 +376,20 @@ public class Participant implements Serializable {
     
     }
     ```
-    * TODO FactoryBuilder
-    * TransactionContextEditor，在本文[「4.1 Compensable」](#)详细解析。
-* transactionContextEditorClass，TODO
+    * FactoryBuilder，工厂 Builder，感兴趣的同学点击[链接](https://github.com/YunaiV/tcc-transaction/blob/8553baad29597603d9007d61aec3ea5201632d1b/tcc-transaction-core/src/main/java/org/mengyun/tcctransaction/support/FactoryBuilder.java)查看，已经添加完整中文代码注释。
+    * TransactionContextEditor，在本文[「6.1 Compensable」](#)详细解析。
+* transactionContextEditorClass，事务上下文编辑，在[「6.1 Compensable」](#)详细解析。
 * 提交 `#commit()` 方法，提交参与者自己的事务。
 * 提交 `#rollback()` 方法，回滚参与者自己的事务。 
 
 
-# 3. 事务管理器
+# 5. 事务管理器
 
 `org.mengyun.tcctransaction.TransactionManager`，事务管理器，提供事务的获取、发起、提交、回滚，参与者的新增等等方法。
 
-## 3.1 发起根事务
+## 5.1 发起根事务
 
-提供 `begin()` 方法，发起根事务。该方法在**调用方法类型为 MethodType.ROOT 并且 事务处于 Try 阶段**被调用。TODO
+提供 `begin()` 方法，发起根事务。该方法在**调用方法类型为 MethodType.ROOT 并且 事务处于 Try 阶段**被调用。MethodType 在[「6.2 可补偿事务拦截器」](#)详细解析。
 
 实现代码如下：
 
@@ -367,7 +427,7 @@ public Transaction begin() {
     }
     ```
     * 目前该构造方法只有 `TransactionManager#begin()` 在调用，即只创建**根事务**。
-* 调用 `TransactionRepository#crete()` 方法，存储事务。TODO
+* 调用 `TransactionRepository#crete()` 方法，存储事务。
 * 调用 `#registerTransaction(...)` 方法，注册事务到当前线程事务队列。实现代码如下：
 
     ```Java
@@ -392,9 +452,9 @@ public Transaction begin() {
     * **可能有同学会比较好奇，为什么使用队列存储当前线程事务**？TCC-Transaction 支持**多个**的事务**独立存在**，后创建的事务先提交，类似 Spring 的`org.springframework.transaction.annotation.Propagation.REQUIRES_NEW` 。在下文，很快我们就会看到 TCC-Transaction 自己的 `org.mengyun.tcctransaction.api.Propagation` 。
 
     
-## 3.2 传播发起分支事务
+## 5.2 传播发起分支事务
 
-调用 `#propagationNewBegin(...)` 方法，传播发起**分支**事务。该方法在**调用方法类型为 MethodType.PROVIDER 并且 事务处于 Try 阶段**被调用。TODO
+调用 `#propagationNewBegin(...)` 方法，传播发起**分支**事务。该方法在**调用方法类型为 MethodType.PROVIDER 并且 事务处于 Try 阶段**被调用。MethodType 在[「6.2 可补偿事务拦截器」](#)详细解析。
 
 实现代码如下：
 
@@ -430,12 +490,12 @@ public Transaction propagationNewBegin(TransactionContext transactionContext) {
     }
     ```
     * **分支**事务使用传播的事务上下文的事务编号。
-* 调用 `TransactionRepository#crete()` 方法，存储事务。TODO 这里想想怎么说清楚。会在对应服务在存储一次transaction。
+* 调用 `TransactionRepository#crete()` 方法，存储事务。为什么要存储**分支**事务，在[「6.3 资源协调者拦截器」](#)详细解析。
 * 调用 `#registerTransaction(...)` 方法，注册事务到当前线程事务队列。
 
-## 3.3 传播获取分支事务
+## 5.3 传播获取分支事务
 
-调用 `#propagationExistBegin(...)` 方法，传播发起**分支**事务。该方法在**调用方法类型为 MethodType.PROVIDER 并且 事务处于 Confirm / Cancel 阶段**被调用。TODO
+调用 `#propagationExistBegin(...)` 方法，传播发起**分支**事务。该方法在**调用方法类型为 MethodType.PROVIDER 并且 事务处于 Confirm / Cancel 阶段**被调用。MethodType 在[「6.2 可补偿事务拦截器」](#)详细解析。
 
 实现代码如下：
 
@@ -467,7 +527,7 @@ public Transaction propagationExistBegin(TransactionContext transactionContext) 
 * 调用 `#registerTransaction(...)` 方法，注册事务到当前线程事务队列。
 * 为什么此处是**分支**事务呢？结合 `#propagationNewBegin(...)` 思考下。 
 
-## 3.4 提交事务
+## 5.4 提交事务
 
 调用 `#commit(...)` 方法，提交事务。该方法在**事务处于 Confirm / Cancel 阶段**被调用。
 
@@ -517,7 +577,7 @@ public void commit() {
 * 调用 `Transaction#commit(...)` 方法， **提交**事务。
 * 调用 `TransactionRepository#delete(...)` 方法，**删除**事务。
 
-## 3.5 回滚事务
+## 5.5 回滚事务
 
 调用 `#rollback(...)` 方法，取消事务，和 `#commit()` 方法基本类似。该方法在**事务处于 Confirm / Cancel 阶段**被调用。
 
@@ -552,9 +612,9 @@ public void rollback() {
 * 调用 `Transaction#rollback(...)` 方法， **回滚**事务。
 * 调用 `TransactionRepository#delete(...)` 方法，**删除**事务。
 
-## 3.6 添加参与者到事务
+## 5.6 添加参与者到事务
 
-调用 `#enlistParticipant(...)` 方法，添加参与者到事务。该方法在**事务处于 Try 阶段**被调用。TODO
+调用 `#enlistParticipant(...)` 方法，添加参与者到事务。该方法在**事务处于 Try 阶段**被调用，在[「6.3 资源协调者拦截器」](#)有详细解析。
 
 实现代码如下：
 
@@ -578,9 +638,9 @@ public void enlistParticipant(Participant participant) {
 * 调用 `Transaction#enlistParticipant(...)` 方法， 添加参与者到事务。
 * 调用 `TransactionRepository#update(...)` 方法， **更新**事务。
 
-# 4. 事务拦截器
+# 6. 事务拦截器
 
-TCC-Transaction 基于 `org.mengyun.tcctransaction.api.@Compensable` **注解** + `org.aspectj.lang.annotation.@Aspect` **AOP 切面**实现业务方法的 TCC 事务声明**拦截**，同 Spring 的 `org.springframework.transaction.annotation.@Transactional` 的实现。
+TCC-Transaction 基于 `org.mengyun.tcctransaction.api.@Compensable` + `org.aspectj.lang.annotation.@Aspect` **注解** **AOP 切面**实现业务方法的 TCC 事务声明**拦截**，同 Spring 的 `org.springframework.transaction.annotation.@Transactional` 的实现。
 
 TCC-Transaction 有两个拦截器：
 
@@ -589,7 +649,7 @@ TCC-Transaction 有两个拦截器：
 
 在分享拦截器的实现之前，我们先一起看看 @Compensable 注解。
 
-## 4.1 Compensable
+## 6.1 Compensable
 
 @Compensable，标记可补偿的方法注解。实现代码如下：
 
@@ -646,7 +706,7 @@ public @interface Compensable {
 
 * confirmMethod，确认执行业务方法名。
 * cancelMethod，取消执行业务方法名。
-* TransactionContextEditor，事务上下文编辑器( TransactionContextEditor )，用于设置和获得事务上下文( TransactionContext )。`org.mengyun.tcctransaction.api.TransactionContextEditor` 接口代码如下：
+* TransactionContextEditor，事务上下文编辑器( TransactionContextEditor )，用于设置和获得事务上下文( TransactionContext )，在[「6.3 资源协调者拦截器」](#)可以看到被调用，此处只看它的代码实现。`org.mengyun.tcctransaction.api.TransactionContextEditor` 接口代码如下：
 
     ```Java
     public interface TransactionContextEditor {
@@ -713,7 +773,7 @@ public @interface Compensable {
             }
         }
         ```
-        * x TODO 参数
+        * x
         
   * NullableTransactionContextEditor，无事务上下文编辑器实现。实现代码如下：
 
@@ -733,7 +793,7 @@ public @interface Compensable {
 
   * DubboTransactionContextEditor，Dubbo 事务上下文编辑器实现，通过 Dubbo 隐式传参方式获得事务上下文，在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn?todo)详细解析。
 
-## 4.2 可补偿事务拦截器
+## 6.2 可补偿事务拦截器
 
 先一起来看下可补偿事务拦截器对应的切面 `org.mengyun.tcctransaction.interceptor.CompensableTransactionAspect`，实现代码如下：
 
@@ -823,7 +883,7 @@ public class CompensableTransactionInterceptor {
     }
     ```
 
-* 调用 `TransactionContextEditor#get(...)` 方法，从参数中获得事务上下文。
+* 调用 `TransactionContextEditor#get(...)` 方法，从参数中获得事务上下文。**为什么从参数中可以获得事务上下文呢**？在[「6.3 资源协调者拦截器」](#)揭晓答案。
 * 调用 `TransactionManager#isTransactionActive()` 方法，当前线程是否在事务中。实现代码如下：
 
     ```Java
@@ -856,6 +916,7 @@ public class CompensableTransactionInterceptor {
        return true;
     }
     ```
+    * 当传播级别为 Propagation.MANDATORY 时，要求必须在事务中。
 
 * 调用 `CompensableMethodUtils#calculateMethodType(...)` 方法，计算方法类型。实现代码如下：
 
@@ -881,13 +942,365 @@ public class CompensableTransactionInterceptor {
        }
     }
     ```
-    * TODO
+    * 计算方法类型( MethodType )的目的，可以根据不同方法类型，做不同的事务处理。
+    * 方法类型为 MethodType.ROOT 时，发起**根事务**，判断条件如下二选一：
+        * 事务传播级别为 Propagation.REQUIRED，并且当前没有事务。
+        * 事务传播级别为 Propagation.REQUIRES_NEW，新建事务，如果当前存在事务，把当前事务挂起。**此时，事务管理器的当前线程事务队列可能会存在多个事务**。
+   * 方法类型为 MethodType.ROOT 时，发起**分支事务**，判断条件如下二选一：
+        * 事务传播级别为 Propagation.REQUIRED，并且当前不存在事务，**并且方法参数传递了事务上下文**。
+        * 事务传播级别为 Propagation.PROVIDER，并且当前不存在事务，**并且方法参数传递了事务上下文**。
+        * **当前不存在事务，方法参数传递了事务上下文是什么意思**？当跨服务**远程**调用时，被调用服务本身( **服务提供者** )不在事务中，通过传递事务上下文参数，融入当前事务。
+   * 方法类型为 MethodType.Normal 时，不进行事务处理。
+   * MethodType.CONSUMER 项目已经不再使用，猜测已废弃。
 
-*     
+* 当方法类型为 MethodType.ROOT 时，调用 `#rootMethodProceed(...)` 方法，发起 **TCC 整体流程**。实现代码如下：
 
-## 4.3 资源协调者拦截器
+    ```Java
+    private Object rootMethodProceed(ProceedingJoinPoint pjp) throws Throwable {
+       Object returnValue;
+       Transaction transaction = null;
+       try {
+           // 发起根事务
+           transaction = transactionManager.begin();
+           // 执行方法原逻辑
+           try {
+               returnValue = pjp.proceed();
+           } catch (Throwable tryingException) {
+               if (isDelayCancelException(tryingException)) { // 是否延迟回滚
+               } else {
+                   logger.warn(String.format("compensable transaction trying failed. transaction content:%s", JSON.toJSONString(transaction)), tryingException);
+                   // 回滚事务
+                   transactionManager.rollback();
+               }
+               throw tryingException;
+           }
+           // 提交事务
+           transactionManager.commit();
+       } finally {
+           // 将事务从当前线程事务队列移除
+           transactionManager.cleanAfterCompletion(transaction);
+       }
+       return returnValue;
+    }
+    ```
+    
+    * 调用 `#transactionManager()` 方法，发起**根事务**，**TCC Try 阶段开始**。
+    * 调用 `ProceedingJoinPoint#proceed()` 方法，执行方法**原逻辑( 即 Try 逻辑 )**。
+    * 当原逻辑执行异常时，**TCC Try 阶段失败**，调用 `TransactionManager#rollback(...)` 方法，**TCC Cancel 阶段**，回滚事务。TODO 延迟回滚
+    * 当原逻辑执行成功时，**TCC Try 阶段成功**，调用 `TransactionManager#commit(...)` 方法，**TCC Confirm 阶段**，提交事务。
+    * 调用 `TransactionManager#cleanAfterCompletion(...)` 方法，将事务从当前线程事务队列移除，避免线程冲突。实现代码如下：
 
-## 4.4 
+        ```Java
+        // TransactionManager.java
+        public void cleanAfterCompletion(Transaction transaction) {
+            if (isTransactionActive() && transaction != null) {
+                Transaction currentTransaction = getCurrentTransaction();
+                if (currentTransaction == transaction) {
+                    CURRENT.get().pop();
+                } else {
+                    throw new SystemException("Illegal transaction when clean after completion");
+                }
+            }
+        }
+        ```
+        * x
+
+* 当方法类型为 Propagation.PROVIDER 时，服务提供者参与 **TCC 整体流程**。实现代码如下：
+
+    ```Java
+    private Object providerMethodProceed(ProceedingJoinPoint pjp, TransactionContext transactionContext) throws Throwable {
+       Transaction transaction = null;
+       try {
+           switch (TransactionStatus.valueOf(transactionContext.getStatus())) {
+               case TRYING:
+                   // 传播发起分支事务
+                   transaction = transactionManager.propagationNewBegin(transactionContext);
+                   return pjp.proceed();
+               case CONFIRMING:
+                   try {
+                       // 传播获取分支事务
+                       transaction = transactionManager.propagationExistBegin(transactionContext);
+                       // 提交事务
+                       transactionManager.commit();
+                   } catch (NoExistedTransactionException excepton) {
+                       //the transaction has been commit,ignore it.
+                   }
+                   break;
+               case CANCELLING:
+                   try {
+                       // 传播获取分支事务
+                       transaction = transactionManager.propagationExistBegin(transactionContext);
+                       // 回滚事务
+                       transactionManager.rollback();
+                   } catch (NoExistedTransactionException exception) {
+                       //the transaction has been rollback,ignore it.
+                   }
+                   break;
+           }
+       } finally {
+           // 将事务从当前线程事务队列移除
+           transactionManager.cleanAfterCompletion(transaction);
+       }
+       // 返回空值
+       Method method = ((MethodSignature) (pjp.getSignature())).getMethod();
+       return ReflectionUtils.getNullValue(method.getReturnType());
+    }
+    ```
+    * 当事务处于 TransactionStatus.TRYING 时，调用 `TransactionManager#propagationExistBegin(...)` 方法，传播发起**分支**事务。发起**分支**事务完成后，调用 `ProceedingJoinPoint#proceed()` 方法，执行方法**原逻辑( 即 Try 逻辑 )**。
+        * **为什么要传播发起分支事务**？在**根事务**进行 Confirm / Cancel 时，调用**根事务**上的参与者们提交或回滚事务时，进行远程服务方法调用的参与者，可以通过自己的事务编号关联上传播的**分支**事务( 两者的事务编号相等 )，进行事务的提交或回滚。
+    * 当事务处于 TransactionStatus.CONFIRMING 时，调用 `TransactionManager#commit()` 方法，提交事务。
+    * 当事务处于 TransactionStatus.CANCELLING 时，调用 `TransactionManager#rollback()` 方法，提交事务。
+    * 调用 `TransactionManager#cleanAfterCompletion(...)` 方法，将事务从当前线程事务队列移除，避免线程冲突。
+    * 当事务处于 TransactionStatus.CONFIRMING / TransactionStatus.CANCELLING 时，调用 `ReflectionUtils#getNullValue(...)` 方法，返回空值。**为什么返回空值**？Confirm / Cancel 相关方法，是通过 AOP 切面调用，只调用，不处理返回值，但是又不能没有返回值，因此直接返回空。实现代码如下：
+    
+        ```Java
+        public static Object getNullValue(Class type) {
+           // 处理基本类型
+           if (boolean.class.equals(type)) {
+               return false;
+           } else if (byte.class.equals(type)) {
+               return 0;
+           } else if (short.class.equals(type)) {
+               return 0;
+           } else if (int.class.equals(type)) {
+               return 0;
+           } else if (long.class.equals(type)) {
+               return 0;
+           } else if (float.class.equals(type)) {
+               return 0;
+           } else if (double.class.equals(type)) {
+               return 0;
+           }
+           // 处理对象
+           return null;
+        }
+        ```
+
+* 当方法类型为 Propagation.NORMAL 时，执行方法原逻辑，**不进行事务处理**。
+
+## 6.3 资源协调者拦截器
+
+先一起来看下资源协调者拦截器  对应的切面 `org.mengyun.tcctransaction.interceptor.CompensableTransactionAspect`，实现代码如下：
+
+```Java
+@Aspect
+public abstract class ResourceCoordinatorAspect {
+
+    private ResourceCoordinatorInterceptor resourceCoordinatorInterceptor;
+
+    @Pointcut("@annotation(org.mengyun.tcctransaction.api.Compensable)")
+    public void transactionContextCall() {
+    }
+
+    @Around("transactionContextCall()")
+    public Object interceptTransactionContextMethod(ProceedingJoinPoint pjp) throws Throwable {
+        return resourceCoordinatorInterceptor.interceptTransactionContextMethod(pjp);
+    }
+
+    public void setResourceCoordinatorInterceptor(ResourceCoordinatorInterceptor resourceCoordinatorInterceptor) {
+        this.resourceCoordinatorInterceptor = resourceCoordinatorInterceptor;
+    }
+
+    public abstract int getOrder();
+}
+```
+
+* 通过 `org.aspectj.lang.annotation.@Pointcut` + `org.aspectj.lang.annotation.@Around` 注解，配置对 **@Compensable 注解的方法**进行拦截，调用 `ResourceCoordinatorInterceptor#interceptTransactionContextMethod(...)` 方法进行处理。
+
+**ResourceCoordinatorInterceptor 实现代码如下**：
+
+```Java
+public class ResourceCoordinatorInterceptor {
+
+    private TransactionManager transactionManager;
+
+    public Object interceptTransactionContextMethod(ProceedingJoinPoint pjp) throws Throwable {
+        Transaction transaction = transactionManager.getCurrentTransaction();
+        if (transaction != null) {
+            switch (transaction.getStatus()) {
+                case TRYING:
+                    // 添加事务参与者
+                    enlistParticipant(pjp);
+                    break;
+                case CONFIRMING:
+                    break;
+                case CANCELLING:
+                    break;
+            }
+        }
+        // 执行方法原逻辑
+        return pjp.proceed(pjp.getArgs());
+    }
+}
+```
+
+* 当事务处于 TransactionStatus.TRYING 时，调用 `#enlistParticipant(...)` 方法，添加事务参与者。
+* 调用 `ProceedingJoinPoint#proceed(...)` 方法，执行方法原逻辑。
+
+**`ResourceCoordinatorInterceptor#enlistParticipant()` 实现代码如下**：
+
+```Java
+private void enlistParticipant(ProceedingJoinPoint pjp) throws IllegalAccessException, InstantiationException {
+   // 获得 @Compensable 注解
+   Method method = CompensableMethodUtils.getCompensableMethod(pjp);
+   if (method == null) {
+       throw new RuntimeException(String.format("join point not found method, point is : %s", pjp.getSignature().getName()));
+   }
+   Compensable compensable = method.getAnnotation(Compensable.class);
+   // 获得 确认执行业务方法 和 取消执行业务方法
+   String confirmMethodName = compensable.confirmMethod();
+   String cancelMethodName = compensable.cancelMethod();
+   // 获取 当前线程事务第一个(头部)元素
+   Transaction transaction = transactionManager.getCurrentTransaction();
+   // 创建 事务编号
+   TransactionXid xid = new TransactionXid(transaction.getXid().getGlobalTransactionId());
+   // TODO
+   if (FactoryBuilder.factoryOf(compensable.transactionContextEditor()).getInstance().get(pjp.getTarget(), method, pjp.getArgs()) == null) {
+       FactoryBuilder.factoryOf(compensable.transactionContextEditor()).getInstance().set(new TransactionContext(xid, TransactionStatus.TRYING.getId()), pjp.getTarget(), ((MethodSignature) pjp.getSignature()).getMethod(), pjp.getArgs());
+   }
+   // 获得类
+   Class targetClass = ReflectionUtils.getDeclaringType(pjp.getTarget().getClass(), method.getName(), method.getParameterTypes());
+   // 创建 确认执行方法调用上下文 和 取消执行方法调用上下文
+   InvocationContext confirmInvocation = new InvocationContext(targetClass,
+           confirmMethodName,
+           method.getParameterTypes(), pjp.getArgs());
+   InvocationContext cancelInvocation = new InvocationContext(targetClass,
+           cancelMethodName,
+           method.getParameterTypes(), pjp.getArgs());
+   // 创建 事务参与者
+   Participant participant =
+           new Participant(
+                   xid,
+                   confirmInvocation,
+                   cancelInvocation,
+                   compensable.transactionContextEditor());
+   // 添加 事务参与者 到 事务
+   transactionManager.enlistParticipant(participant);
+}
+```
+
+* 调用 `CompensableMethodUtils#getCompensableMethod(...)` 方法，获得带 @Compensable 注解的方法。
+* 调用 `#getCurrentTransaction()` 方法， 获取事务。
+* 调用 TransactionXid 构造方法，创建**分支**事务编号。实现代码如下：
+
+    ```Java
+    /**
+     * 全局事务编号
+     */
+    private byte[] globalTransactionId;
+    /**
+     * 分支事务编号
+     */
+    private byte[] branchQualifier;
+    
+    public TransactionXid(byte[] globalTransactionId) {
+       this.globalTransactionId = globalTransactionId;
+       branchQualifier = uuidToByteArray(UUID.randomUUID()); // 生成 分支事务编号
+    }
+    ```
+    * 分支事务编号( `branchQualifier` ) 需要生成。
+* TODO TransactionContext 和 Participant 的关系。
+* 调用 `ReflectionUtils#getDeclaringType(...)` 方法，获得声明 @Compensable 方法的实际类。TODO 为什么这么做？dubbo？实现代码如下：
+
+    ```Java
+    public static Class getDeclaringType(Class aClass, String methodName, Class<?>[] parameterTypes) {
+       Method method;
+       Class findClass = aClass;
+       do {
+           Class[] clazzes = findClass.getInterfaces();
+           for (Class clazz : clazzes) {
+               try {
+                   method = clazz.getDeclaredMethod(methodName, parameterTypes);
+               } catch (NoSuchMethodException e) {
+                   method = null;
+               }
+               if (method != null) {
+                   return clazz;
+               }
+           }
+           findClass = findClass.getSuperclass();
+       } while (!findClass.equals(Object.class));
+       return aClass;
+    }
+    ```
+
+* 调用 InvocationContext 构造方法，分别创建确认执行方法调用上下文和取消执行方法调用上下文。实现代码如下：
+
+    ```Java
+    /**
+    * 类
+    */
+    private Class targetClass;
+    /**
+    * 方法名
+    */
+    private String methodName;
+    /**
+    * 参数类型数组
+    */
+    private Class[] parameterTypes;
+    /**
+    * 参数数组
+    */
+    private Object[] args;
+        
+    public InvocationContext(Class targetClass, String methodName, Class[] parameterTypes, Object... args) {
+      this.methodName = methodName;
+      this.parameterTypes = parameterTypes;
+      this.targetClass = targetClass;
+      this.args = args;
+    }
+    ```
+
+* 调用 Participant 构造方法，创建事务参与者。实现代码如下：
+
+    ```Java
+    public class Participant implements Serializable {
+    
+        private static final long serialVersionUID = 4127729421281425247L;
+    
+        /**
+         * 事务编号
+         */
+        private TransactionXid xid;
+        /**
+         * 确认执行业务方法调用上下文
+         */
+        private InvocationContext confirmInvocationContext;
+        /**
+         * 取消执行业务方法
+         */
+        private InvocationContext cancelInvocationContext;
+        /**
+         * 执行器
+         */
+        private Terminator terminator = new Terminator();
+        /**
+         * 事务上下文编辑
+         */
+        Class<? extends TransactionContextEditor> transactionContextEditorClass;
+    
+        public Participant() {
+        }
+    
+        public Participant(TransactionXid xid, InvocationContext confirmInvocationContext, InvocationContext cancelInvocationContext, Class<? extends TransactionContextEditor> transactionContextEditorClass) {
+            this.xid = xid;
+            this.confirmInvocationContext = confirmInvocationContext;
+            this.cancelInvocationContext = cancelInvocationContext;
+            this.transactionContextEditorClass = transactionContextEditorClass;
+        }
+    }
+    ```
+
+* 调用 `TransactionManager#enlistParticipant(...)` 方法，添加事务参与者到事务。
 
 # 666. 彩蛋
+
+受限于本人的能力，蛮多处表达不够清晰或者易懂，非常抱歉。如果你对任何地方有任何疑问，欢迎添加本人微信号( wangwenbin-server )，期待与你的交流。不限于 TCC，也可以是分布式事务，也可以是微服务，以及等等。
+
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/05.png)
+
+外送一本武林秘籍：带中文注释的 TCC-Transaction 仓库地址，目前正在慢慢完善。传送门：[https://github.com/YunaiV/tcc-transaction](https://github.com/YunaiV/tcc-transaction)。
+
+胖友，分享一个朋友圈可好？
 
