@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://www.iocoder.cn/TCC-Transaction/build-debugging-environment/</loc>
+    <loc>http://www.iocoder.cn/TCC-Transaction/tcc-core/</loc>
     
-    <lastmod>2017-09-12T14:58:53.000Z</lastmod>
+    <lastmod>2017-09-13T16:31:21.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/TCC-Transaction/transaction-repository-and-recovery/</loc>
+    
+    <lastmod>2017-09-13T16:29:31.000Z</lastmod>
     
   </url>
   
@@ -72,13 +79,6 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/MyCAT/sharding-result-merge-first/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.iocoder.cn/MyCAT/two-table-share-join/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
@@ -121,21 +121,21 @@
   </url>
   
   <url>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-2/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -177,7 +177,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -198,7 +198,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
+    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -226,14 +226,14 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
+    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
+    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -275,7 +275,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
+    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -317,21 +317,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-2/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -345,7 +331,21 @@
   </url>
   
   <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.iocoder.cn/MyCAT/single-db-single-table-select/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/MyCAT/sharding-result-merge-first/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -394,7 +394,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -415,7 +415,14 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/RocketMQ/message-schedule-and-retry/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     
@@ -429,28 +436,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-schedule-and-retry/</loc>
-    
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
-    
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-tcc/</loc>
-    
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     
@@ -464,7 +450,28 @@
   </url>
   
   <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
+    
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-bed/</loc>
+    
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
+    
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     

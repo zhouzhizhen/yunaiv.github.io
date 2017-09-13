@@ -4,12 +4,30 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/TCC-Transaction/build-debugging-environment/</loc>
-    <lastmod>2017-09-12T14:58:53.000Z</lastmod>
+    <loc>http://www.iocoder.cn/TCC-Transaction/tcc-core/</loc>
+    <lastmod>2017-09-13T16:31:21.000Z</lastmod>
     <data>
         <display>
         <title>TCC-Transaction 源码分析 —— TCC 实现</title>
         <pubTime>2018-02-07T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="TCC-Transaction" url="http://www.iocoder.cn/categories/TCC-Transaction/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/TCC-Transaction/transaction-repository-and-recovery/</loc>
+    <lastmod>2017-09-13T16:29:31.000Z</lastmod>
+    <data>
+        <display>
+        <title>TCC-Transaction 源码分析 —— 事务存储与恢复</title>
+        <pubTime>2018-02-14T16:00:00.000Z</pubTime>
         
          
            
@@ -184,24 +202,6 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/MyCAT/sharding-result-merge-first/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
-        <pubTime>2017-06-12T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.iocoder.cn/MyCAT/two-table-share-join/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
@@ -310,12 +310,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
-        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
+        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
         
          
            
@@ -328,17 +328,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— JDBC实现与读写分离</title>
-        <pubTime>2017-08-17T16:00:00.000Z</pubTime>
+        <title>Docker —— 学习笔记</title>
+        <pubTime>2017-01-05T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+              <breadCrumb title="Docker" url="http://www.iocoder.cn/categories/Docker/"/>
           
         </display>
     </data>
@@ -346,17 +346,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-2/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 路由（二）之分库分表路由</title>
-        <pubTime>2017-08-05T16:00:00.000Z</pubTime>
+        <title>RocketMQ 源码分析 —— Message 拉取与消费（上）</title>
+        <pubTime>2017-05-03T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
           
         </display>
     </data>
@@ -454,17 +454,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>RocketMQ 源码分析 —— Message 拉取与消费（下）</title>
-        <pubTime>2017-05-10T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— JDBC实现与读写分离</title>
+        <pubTime>2017-08-17T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
           
         </display>
     </data>
@@ -508,17 +508,17 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
+    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Docker —— 学习笔记</title>
-        <pubTime>2017-01-05T16:00:00.000Z</pubTime>
+        <title>闲聊如何阅读源码（音频）</title>
+        <pubTime>2017-12-01T16:00:00.000Z</pubTime>
         
          
            
              
-              <breadCrumb title="Docker" url="http://www.iocoder.cn/categories/Docker/"/>
+              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
           
         </display>
     </data>
@@ -580,24 +580,6 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>闲聊如何阅读源码（音频）</title>
-        <pubTime>2017-12-01T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="技术杂文" url="http://www.iocoder.cn/categories/%E6%8A%80%E6%9C%AF%E6%9D%82%E6%96%87/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
@@ -609,6 +591,24 @@
            
              
               <breadCrumb title="Docker" url="http://www.iocoder.cn/categories/Docker/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码分析 —— 为什么阅读 MyCAT 源码？</title>
+        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
           
         </display>
     </data>
@@ -706,12 +706,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/MyCAT/why-read-MyCAT-source-code/</loc>
+    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>MyCAT 源码分析 —— 为什么阅读 MyCAT 源码？</title>
-        <pubTime>2017-05-21T16:00:00.000Z</pubTime>
+        <title>MyCAT 源码分析 —— 调试环境搭建</title>
+        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
         
          
            
@@ -814,48 +814,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-route-2/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
-        <pubTime>2017-08-13T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/MyCAT/build-debugging-environment/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>MyCAT 源码分析 —— 调试环境搭建</title>
-        <pubTime>2017-05-22T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</loc>
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    <data>
-        <display>
-        <title>Sharding-JDBC 源码分析 —— 为什么阅读 Sharding-JDBC 源码？</title>
-        <pubTime>2017-07-15T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 路由（二）之分库分表路由</title>
+        <pubTime>2017-08-05T16:00:00.000Z</pubTime>
         
          
            
@@ -886,12 +850,48 @@
 
     
   <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/why-read-Sharding-JDBC-source-code/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— 为什么阅读 Sharding-JDBC 源码？</title>
+        <pubTime>2017-07-15T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.iocoder.cn/MyCAT/single-db-single-table-select/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
         <title>MyCAT 源码分析 —— 【单库单表】查询</title>
         <pubTime>2017-05-29T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="MyCAT" url="http://www.iocoder.cn/categories/MyCAT/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/MyCAT/sharding-result-merge-first/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    <data>
+        <display>
+        <title>MyCAT 源码解析 —— 分片结果合并（一）</title>
+        <pubTime>2017-06-12T16:00:00.000Z</pubTime>
         
          
            
@@ -1012,12 +1012,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-execute/</loc>
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— 分布式主键</title>
-        <pubTime>2017-08-11T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 执行</title>
+        <pubTime>2017-08-13T16:00:00.000Z</pubTime>
         
          
            
@@ -1066,30 +1066,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/distributed-id/</loc>
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 路由改写</title>
-        <pubTime>2017-08-09T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-parse-3/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    <data>
-        <display>
-        <title>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL</title>
-        <pubTime>2017-07-26T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— 分布式主键</title>
+        <pubTime>2017-08-11T16:00:00.000Z</pubTime>
         
          
            
@@ -1120,12 +1102,12 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-parse-3/</loc>
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     <data>
         <display>
-        <title>Sharding-JDBC 源码分析 —— 结果归并</title>
-        <pubTime>2017-08-15T16:00:00.000Z</pubTime>
+        <title>Sharding-JDBC 源码分析 —— SQL 解析（三）之查询SQL</title>
+        <pubTime>2017-07-26T16:00:00.000Z</pubTime>
         
          
            
@@ -1156,24 +1138,6 @@
 
     
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    <data>
-        <display>
-        <title>RocketMQ 源码分析 —— Message</title>
-        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
-        
-         
-           
-             
-              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://www.iocoder.cn/Elastic-Job/cloud-local-executor/</loc>
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     <data>
@@ -1192,6 +1156,24 @@
 
     
   <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— SQL 路由改写</title>
+        <pubTime>2017-08-09T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-bed/</loc>
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     <data>
@@ -1203,6 +1185,42 @@
            
              
               <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/result-merger/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>Sharding-JDBC 源码分析 —— 结果归并</title>
+        <pubTime>2017-08-15T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="Sharding-JDBC" url="http://www.iocoder.cn/categories/Sharding-JDBC/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
+    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ 源码分析 —— Message</title>
+        <pubTime>2017-04-07T16:00:00.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="RocketMQ" url="http://www.iocoder.cn/categories/RocketMQ/"/>
           
         </display>
     </data>
