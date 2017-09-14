@@ -1,5 +1,6 @@
 title: TCC-Transaction 源码分析 —— TCC 实现
 date: 2018-02-08
+
 tags:
 categories: TCC-Transaction
 permalink: TCC-Transaction/tcc-core
@@ -153,7 +154,9 @@ TCC-Transaction 有两个拦截器，通过对 @Compensable AOP 切面( 参与�
 * 简读 x 1 + 深读 x 1
 * 倒着读，发现未分享的方法，全文检索该方法。
 
-事务存储器与事务恢复Job在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
+事务存储器在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self)详细解析。
+
+事务恢复在[《TCC-Transaction 源码解析 —— 事务恢复》](http://www.iocoder.cn/TCC-Transaction/transaction-recovery/?self)详细解析。
 
 # 4. 事务与参与者
 
@@ -256,7 +259,7 @@ public class Transaction implements Serializable {
         private byte[] branchQualifier;
         
     }
-    ``` 
+    ```
     * TODO 为什么要继承 Xid 接口？
 
 * status，事务状态( TransactionStatus )。`org.mengyun.tcctransaction.api.TransactionStatus` 实现代码如下：
@@ -299,9 +302,9 @@ public class Transaction implements Serializable {
     ```
     * 在[「6.2 可补偿事务拦截器」](#)有详细解析，可以看到看到这两种事务是如何发起。
 
-* retriedCount，重试次数。在 TCC 过程中，可能参与者异常崩溃，这个时候会进行重试直到成功或超过最大次数。在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
-* version，版本号，用于乐观锁更新事务。在[《TCC-Transaction 源码解析 —— 事务存储于恢复》](http://www.iocoder.cn?todo)详细解析。
-* attachments，附带属性映射。在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn?todo)详细解析。
+* retriedCount，重试次数。在 TCC 过程中，可能参与者异常崩溃，这个时候会进行重试直到成功或超过最大次数。在[《TCC-Transaction 源码解析 —— 事务恢复》](http://www.iocoder.cn/TCC-Transaction/transaction-recovery/?self)详细解析。
+* version，版本号，用于乐观锁更新事务。在[《TCC-Transaction 源码解析 —— 事务存储器》](http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self)详细解析。
+* attachments，附带属性映射。在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn/TCC-Transaction/dubbo-support/?self)详细解析。
 * 提供 `#enlistParticipant()` 方法，添加事务参与者。
 * 提供 `#commit()` 方法，调用参与者们提交事务。
 * 提供 `#rollback()` 方法，调用参与者回滚事务。
@@ -823,7 +826,7 @@ public @interface Compensable {
         }
        ```
 
-  * DubboTransactionContextEditor，Dubbo 事务上下文编辑器实现，通过 Dubbo 隐式传参方式获得事务上下文，在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn?todo)详细解析。
+  * DubboTransactionContextEditor，Dubbo 事务上下文编辑器实现，通过 Dubbo 隐式传参方式获得事务上下文，在[《TCC-Transaction 源码解析 —— Dubbo 支持》](http://www.iocoder.cn/TCC-Transaction/dubbo-support/?self)详细解析。
 
 ## 6.2 可补偿事务拦截器
 
@@ -1230,8 +1233,9 @@ private void enlistParticipant(ProceedingJoinPoint pjp) throws IllegalAccessExce
     }
     ```
     * 分支事务编号( `branchQualifier` ) 需要生成。
+
 * TODO TransactionContext 和 Participant 的关系。
-* 调用 `ReflectionUtils#getDeclaringType(...)` 方法，获得声明 @Compensable 方法的实际类。TODO 为什么这么做？dubbo？实现代码如下：
+* 调用 `ReflectionUtils#getDeclaringType(...)` 方法，获得声明 @Compensable 方法的实际类。实现代码如下：
 
     ```Java
     public static Class getDeclaringType(Class aClass, String methodName, Class<?>[] parameterTypes) {
@@ -1332,6 +1336,8 @@ private void enlistParticipant(ProceedingJoinPoint pjp) throws IllegalAccessExce
 ![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_08/05.png)
 
 外送一本武林秘籍：带中文注释的 TCC-Transaction 仓库地址，目前正在慢慢完善。传送门：[https://github.com/YunaiV/tcc-transaction](https://github.com/YunaiV/tcc-transaction)。
+
+再送一本葵花宝典：[《TCC型分布式事务原理和实现》系列](https://my.oschina.net/fileoptions/blog/899991)。
 
 胖友，分享一个朋友圈可好？
 

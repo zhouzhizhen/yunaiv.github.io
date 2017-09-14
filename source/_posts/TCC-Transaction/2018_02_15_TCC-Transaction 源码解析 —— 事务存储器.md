@@ -6,21 +6,45 @@ permalink: TCC-Transaction/transaction-repository
 
 ---
 
+- [1. 概述](#)
+- [2. 序列化](#)
+	- [2.1 JDK 序列化实现](#)
+	- [2.2 Kyro 序列化实现](#)
+	- [2.3 JSON 序列化实现](#)
+- [3. 存储器](#)
+	- [3.1 可缓存的事务存储器抽象类](#)
+	- [3.2 JDBC 事务存储器](#)
+	- [3.3 Redis 事务存储器](#)
+	- [3.4 Zookeeper 事务存储器](#)
+	- [3.5 File 事务存储器](#)
+- [666. 彩蛋](#)
+
+---
+
+![](http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+> 5. **认真的**源码交流微信群。
+
+---
+
 # 1. 概述
 
-本文分享 **事务的存储与恢复**。主要涉及如下三个 Maven 项目：
+本文分享 **事务存储器**。主要涉及如下 Maven 项目：
 
 * `tcc-transaction-core` ：tcc-transaction 底层实现。
-* `tcc-transaction-api` ：tcc-transaction 使用 API。
-* `tcc-transaction-spring` ：tcc-transaction Spring 支持。
 
-在 TCC 的过程中，通过应用内存中的事务信息完成整个事务流程。But 实际业务场景中，如果将事务信息只放在应用内存中是不够的。例如：
+在 TCC 的过程中，根据应用内存中的事务信息完成整个事务流程。But 实际业务场景中，将事务信息只放在应用内存中是远远不够可靠的。例如：
 
 1. 应用进程异常崩溃，未完成的事务信息将丢失。
 2. 应用进程集群，当提供远程服务调用时，事务信息需要集群内共享。
 3. 发起事务的应用需要重启部署新版本，因为各种原因，有未完成的事务。
 
-因此，TCC-Transaction 将事务信息添加到内存中的同时，会使用外部存储进行持久化。目前提供多种外部存储：
+因此，TCC-Transaction 将事务信息添加到内存中的同时，会使用外部存储进行持久化。目前提供四种外部存储：
 
 * JdbcTransactionRepository，JDBC 事务存储器
 * RedisTransactionRepository，Redis 事务存储器
@@ -39,7 +63,7 @@ ps：笔者假设你已经阅读过[《tcc-transaction 官方文档 —— 使�
 
 # 2. 序列化
 
-在[《TCC-Transaction 源码分析 —— TCC 实现》「4. 事务与参与者」](http://www.iocoder.cn/TCC-Transaction/tcc-core/?self)，可以看到 Transaction 是一个比较复杂的对象，内嵌 Participant 数组，而 Participant 本身也是复杂的对象，内嵌了更多的其他对象，因此，存储器在持久化 Transaction 时，会经过序列化进行存储。
+在[《TCC-Transaction 源码分析 —— TCC 实现》「4. 事务与参与者」](http://www.iocoder.cn/TCC-Transaction/tcc-core/?self)，可以看到 Transaction 是一个比较复杂的对象，内嵌 Participant 数组，而 Participant 本身也是复杂的对象，内嵌了更多的其他对象，因此，存储器在持久化 Transaction 时，需要序列化后才能存储。
 
 `org.mengyun.tcctransaction.serializer.ObjectSerializer`，对象序列化**接口**。实现代码如下：
 
@@ -67,7 +91,7 @@ public interface ObjectSerializer<T> {
 
 ## 2.3 JSON 序列化实现
 
-JDK 和 Kyro 的序列化实现，肉眼无法直观具体存储事务的信息，你可以通过实现 ObjectSerializer 接口，实现自定义的 JSON 序列化实现。
+JDK 和 Kyro 的序列化实现，肉眼无法直观具体存储事务的信息，你可以通过实现 ObjectSerializer 接口，实现自定义的 JSON 序列化。
 
 # 3. 存储器
 
@@ -378,7 +402,7 @@ CREATE TABLE `TCC_TRANSACTION` (
 * `TRANSACTION_ID`，仅仅数据库自增，无实际用途。
 * `CONTENT`，Transaction 序列化。
 
-ps：点击[链接](TODO)查看 JdbcTransactionRepository 代码实现，已经添加完整中文注释。
+ps：点击[链接](https://github.com/YunaiV/tcc-transaction/blob/c164ff5ab29d31e08bc7061de5bc7403f3e40f1d/tcc-transaction-core/src/main/java/org/mengyun/tcctransaction/repository/JdbcTransactionRepository.java)查看 JdbcTransactionRepository 代码实现，已经添加完整中文注释。
 
 ## 3.3 Redis 事务存储器
 
@@ -472,7 +496,7 @@ protected List<Transaction> doFindAllUnmodifiedSince(Date date) {
 }
 ```
 
-ps：点击[链接](TODO)查看 RedisTransactionRepository 代码实现，已经添加完整中文注释。
+ps：点击[链接](https://github.com/YunaiV/tcc-transaction/blob/c164ff5ab29d31e08bc7061de5bc7403f3e40f1d/tcc-transaction-core/src/main/java/org/mengyun/tcctransaction/repository/RedisTransactionRepository.java)查看 RedisTransactionRepository 代码实现，已经添加完整中文注释。
 
 > FROM [《TCC-Transaction 官方文档 —— 使用指南1.2.x》](https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x#%E9%85%8D%E7%BD%AEtcc-transaction)  
 > 使用 RedisTransactionRepository 需要配置 Redis 服务器如下：  
@@ -534,7 +558,7 @@ public class ZooKeeperTransactionRepository extends CachableTransactionRepositor
 * data：调用 `TransactionSerializer#serialize(...)` 方法，序列化 Transaction。
 * version：使用 Zookeeper 数据节点自带版本功能。这里要注意下，Transaction 的版本从 1 开始，而 Zookeeper 数据节点版本从 0 开始。
 
-ps：点击[链接](TODO)查看 RedisTransactionRepository 代码实现，已经添加完整中文注释。
+ps：点击[链接](https://github.com/YunaiV/tcc-transaction/blob/c164ff5ab29d31e08bc7061de5bc7403f3e40f1d/tcc-transaction-core/src/main/java/org/mengyun/tcctransaction/repository/ZooKeeperTransactionRepository.java)查看 ZooKeeperTransactionRepository 代码实现，已经添加完整中文注释。
 
 另外，在生产上暂时不建议使用 ZooKeeperTransactionRepository，原因有两点：
 
@@ -547,10 +571,17 @@ ps：点击[链接](TODO)查看 RedisTransactionRepository 代码实现，已经
 
 `org.mengyun.tcctransaction.repository.FileSystemTransactionRepository`，File 事务存储器，将 Transaction 存储到文件系统。
 
-实现上和 ZooKeeperTransactionRepository，区别主要在于不支持乐观锁更新。有兴趣的同学点击[链接](TODO)查看，这里就不拓展开来。
+实现上和 ZooKeeperTransactionRepository，区别主要在于不支持乐观锁更新。有兴趣的同学点击[链接](https://github.com/YunaiV/tcc-transaction/blob/c164ff5ab29d31e08bc7061de5bc7403f3e40f1d/tcc-transaction-core/src/main/java/org/mengyun/tcctransaction/repository/FileSystemTransactionRepository.java)查看，这里就不拓展开来。
 
 另外，在生产上不建议使用 FileSystemTransactionRepository，因为不支持多节点共享。用分布式存储挂载文件另说，当然还是不建议，因为不支持乐观锁并发更新。
 
 # 666. 彩蛋
 
+这篇略( 超 )微( 级 )水更，哈哈哈，为[《TCC-Transaction 源码分析 —— 事务恢复》](http://www.iocoder.cn/TCC-Transaction/transaction-recover/?self)做铺垫啦。
+
+使用 RedisTransactionRepository 和 ZooKeeperTransactionRepository 存储事务还是 Get 蛮多点的。
+
+![](../../../images/TCC-Transaction/2018_02_15/01.png)
+
+胖友，分享一个朋友圈可好？
 
