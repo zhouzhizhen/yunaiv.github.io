@@ -6,20 +6,38 @@ permalink: TCC-Transaction/console
 
 ---
 
+- [1. 概述](#)
+- [2. 数据访问层](#)
+	- [2.1 JDBC 事务 DAO](#)
+	- [2.2 Redis 事务 DAO](#)
+- [3. 控制层](#)
+	- [3.1 查看未完成的事务列表](#)
+	- [3.2 重置事务恢复重试次数](#)
+- [666. 彩蛋](#)
+
 ---
+
+![](http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+> 5. **认真的**源码交流微信群。
 
 ---
 
 # 1. 概述
 
-本文分享 **运维平台**。TCC-Transaction 提供了相对精简的运维，用于查看在[《TCC-Transaction 源码分析 —— 事务存储器》](http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self)提到的**事务存储**。目前只有两个功能：
+本文分享 **运维平台**。TCC-Transaction 提供了相对精简的运维平台，用于查看在[《TCC-Transaction 源码分析 —— 事务存储器》](http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self)提到的**事务存储**。目前暂时只有两个功能：
 
 * 查看未完成的事务列表
 * 重置事务恢复重试次数
 
 运维平台( Maven 项目 `tcc-transaction-server` ) 整体代码结构如下：
 
-![](../../../images/TCC-Transaction/2018_02_28/01.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_28/01.png)
 
 本文自下而上，Dao => Controller => UI 的顺序进行解析实现。
 
@@ -125,9 +143,9 @@ public class JdbcTransactionDao implements TransactionDao {
     jdbc.password=123456
     ```
     * 在 `appcontext-server-dao.xml`，配置数据源 Bean 对象。
-    * 在 `tcc-transaction-server.properties` 配置数据源属性。
+    * 在 `tcc-transaction-server.properties`，配置数据源属性。
 
-* `domainSuffix`，domian 和 表后缀( `suffix` ) 的映射关系。配置方式如下：
+* `domainSuffix`，`domian` 和 表后缀( `suffix` ) 的映射关系。配置方式如下：
 
     ```XML
     // jdbc-domain-suffix.properties
@@ -138,8 +156,7 @@ public class JdbcTransactionDao implements TransactionDao {
     * 键 ：domain。
     * 值 ：suffix。
 
-// TODO 数据源
-// TODO 代码注释
+JdbcTransactionDao 代码实现上比较易懂，点击[链接](https://github.com/YunaiV/tcc-transaction/blob/e54c3e43a2e47a7765bdb18a485860cb31acbb72/tcc-transaction-server/src/main/java/org/mengyun/tcctransaction/server/dao/JdbcTransactionDao.java)查看，已经添加中文注释。
 
 ## 2.2 Redis 事务 DAO
 
@@ -196,9 +213,8 @@ public class RedisTransactionDao implements TransactionDao {
     redis.password=
     redis.db=0
     ```
-    
     * 在 `appcontext-server-dao.xml`，配置 Redis 连接池 Bean 对象。
-    * 在 `tcc-transaction-server.properties` 配置 Redis 连接池属性。
+    * 在 `tcc-transaction-server.properties`，配置 Redis 连接池属性。
 
 * `domainKeyPrefix`，domain 和 Redis Key 前缀( `prefix` )的映射。配置方式如下：
 
@@ -210,8 +226,7 @@ public class RedisTransactionDao implements TransactionDao {
     * 键 ：domain。
     * 值 ：suffix。
 
-// TODO 代码注释
-// TODO 数据源
+RedisTransactionDao 代码实现上比较易懂，点击[链接]https://github.com/YunaiV/tcc-transaction/blob/e54c3e43a2e47a7765bdb18a485860cb31acbb72/tcc-transaction-server/src/main/java/org/mengyun/tcctransaction/server/dao/RedisTransactionDao.java)查看，已经添加中文注释。
 
 # 3. 控制层
 
@@ -246,6 +261,7 @@ public class TransactionController {
     // appcontext-server-dao.xml
     <bean id="transactionDao" class="org.mengyun.tcctransaction.server.dao.JdbcTransactionDao"/>
     ```
+    * 目前运维平台只能读取一个数据源，如果你的数据源是多个，需要对运维平台做一定的改造，或启动多个项目。
 
 * `tccDomain`，项目访问根目录。配置方式如下：
 
@@ -295,7 +311,7 @@ public ModelAndView manager(@PathVariable String domain, @PathVariable Integer p
 
 UI 界面如下：
 
-![](../../../images/TCC-Transaction/2018_02_28/02.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_28/02.png)
 
 ## 3.2 重置事务恢复重试次数
 
@@ -314,8 +330,17 @@ public CommonResponse<Void> reset(@PathVariable String domain, String globalTxId
 
 UI 界面如下：
 
-![](../../../images/TCC-Transaction/2018_02_28/03.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_28/03.png)
 
 # 666. 彩蛋
 
+可能有人会吐槽运维平台怎么做的这么简陋。这个不是 TCC-Transaction 一个开源项目存在的问题，其他例如 Dubbo、Disconf 等等都会存在这个情况。
+
+开源作者因为时间关系，更多的精力关注在核心代码，所以对运维友好性可能花费的精力较少。
+
+当然，因为是开源的关系，我们可以自己做运维平台反向的贡献到这些项目。
+
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_28/04.png)
+
+胖友，分享一个朋友圈可好？
 
