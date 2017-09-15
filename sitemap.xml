@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.iocoder.cn/Architecture/how-to-read-article/</loc>
+    
+    <lastmod>2017-09-15T16:49:59.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
+    
+    <lastmod>2017-09-15T15:33:01.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.iocoder.cn/TCC-Transaction/console/</loc>
     
     <lastmod>2017-09-15T15:15:46.000Z</lastmod>
@@ -12,13 +26,6 @@
     <loc>http://www.iocoder.cn/TCC-Transaction/transaction-recovery/</loc>
     
     <lastmod>2017-09-15T14:02:26.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Architecture/how-to-read-article/</loc>
-    
-    <lastmod>2017-09-15T13:53:55.000Z</lastmod>
     
   </url>
   
@@ -108,13 +115,6 @@
   
   <url>
     <loc>http://www.iocoder.cn/MyCAT/connect-mongodb/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -436,7 +436,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -450,7 +450,14 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/why-read-RocketMQ-source-code/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/jdbc-implement-and-read-write-splitting/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     
@@ -458,13 +465,6 @@
   
   <url>
     <loc>http://www.iocoder.cn/Sharding-JDBC/transaction-tcc/</loc>
-    
-    <lastmod>2017-09-06T10:53:50.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-parse-3/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     
@@ -492,14 +492,14 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-rewrite/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/why-read-RocketMQ-source-code/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message/</loc>
+    <loc>http://www.iocoder.cn/Sharding-JDBC/sql-parse-3/</loc>
     
     <lastmod>2017-09-06T10:53:50.000Z</lastmod>
     

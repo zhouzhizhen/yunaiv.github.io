@@ -1,4 +1,4 @@
-title: Sharding-JDBC 源码分析 —— SQL 路由改写
+title: Sharding-JDBC 源码分析 —— SQL 改写
 date: 2017-08-10
 tags:
 categories: Sharding-JDBC
