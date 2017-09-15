@@ -44,6 +44,14 @@ permalink: TCC-Transaction/transaction-recovery
 
 在[《TCC-Transaction 源码分析 —— 事务存储器》](http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self)中，事务信息被持久化到外部的存储器中。**事务存储是事务恢复的基础**。通过读取外部存储器中的异常事务，定时任务会按照一定频率对事务进行重试，直到事务完成或超过最大重试次数。
 
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/01.png)
+
+> 你行好事会因为得到赞赏而愉悦  
+> 同理，开源项目贡献者会因为 Star 而更加有动力  
+> 为 TCC-Transaction 点赞！[传送门](https://github.com/changmingxie/tcc-transaction)
+
+ps：笔者假设你已经阅读过[《tcc-transaction 官方文档 —— 使用指南1.2.x》](https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x)。
+
 # 2. 事务重试配置
 
 `org.mengyun.tcctransaction.recover.RecoverConfig`，事务恢复配置**接口**，实现代码如下：
