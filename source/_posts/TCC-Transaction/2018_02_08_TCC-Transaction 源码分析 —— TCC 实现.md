@@ -1020,7 +1020,7 @@ public class CompensableTransactionInterceptor {
     ```
     * 调用 `#transactionManager()` 方法，发起**根事务**，**TCC Try 阶段开始**。
     * 调用 `ProceedingJoinPoint#proceed()` 方法，执行方法**原逻辑( 即 Try 逻辑 )**。
-    * 当原逻辑执行异常时，**TCC Try 阶段失败**，调用 `TransactionManager#rollback(...)` 方法，**TCC Cancel 阶段**，回滚事务。TODO 延迟回滚
+    * 当原逻辑执行异常时，**TCC Try 阶段失败**，调用 `TransactionManager#rollback(...)` 方法，**TCC Cancel 阶段**，回滚事务。此处 `#isDelayCancelException(...)` 方法，判断异常是否为延迟取消回滚异常，部分异常不适合立即回滚事务，在[《TCC-Transaction 源码分析 —— 事务恢复》](http://www.iocoder.cn/TCC-Transaction/transaction-recovery/?self)详细解析。
     * 当原逻辑执行成功时，**TCC Try 阶段成功**，调用 `TransactionManager#commit(...)` 方法，**TCC Confirm 阶段**，提交事务。
     * 调用 `TransactionManager#cleanAfterCompletion(...)` 方法，将事务从当前线程事务队列移除，避免线程冲突。实现代码如下：
 

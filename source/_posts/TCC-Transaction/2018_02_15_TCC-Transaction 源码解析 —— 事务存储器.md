@@ -51,9 +51,9 @@ permalink: TCC-Transaction/transaction-repository
 * ZooKeeperTransactionRepository，Zookeeper 事务存储器
 * FileSystemTransactionRepository，File 事务存储器
 
-本文涉及到的类关系如下图( [打开大图](../../../images/TCC-Transaction/2018_02_15/01.png) )：
+本文涉及到的类关系如下图( [打开大图](http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/01.png) )：
 
-![](../../../images/TCC-Transaction/2018_02_15/01.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/01.png)
 
 > 你行好事会因为得到赞赏而愉悦  
 > 同理，开源项目贡献者会因为 Star 而更加有动力  
@@ -581,7 +581,7 @@ ps：点击[链接](https://github.com/YunaiV/tcc-transaction/blob/c164ff5ab29d3
 
 使用 RedisTransactionRepository 和 ZooKeeperTransactionRepository 存储事务还是 Get 蛮多点的。
 
-![](../../../images/TCC-Transaction/2018_02_15/01.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/02.png)
 
 胖友，分享一个朋友圈可好？
 
