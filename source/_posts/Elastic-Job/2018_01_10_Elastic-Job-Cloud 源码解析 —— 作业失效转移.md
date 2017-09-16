@@ -170,7 +170,7 @@ public final class SchedulerEngine implements Scheduler {
         * 
     
     * **常驻**作业，调用 `DaemonTaskScheduler#(...)` 方法，初始化发生**异常**。
-    * 因为上述的种种异常，调用 `ExecutorDriver#sendStatusUpdate(...)`，更新 Mesos 任务状态为 TASK_ERROR。另外，调用 `ExecutorDriver#stop()` 方法，关闭自己。**这意味着，一个执行器上如果存在一个作业任务发生 TASK_ERROR，其他作业任务即使是正常的，也会更新作业任务状态为 TASK_FAILED**。这块千万要注意。TODO 这个需要确认下。
+    * 因为上述的种种异常，调用 `ExecutorDriver#sendStatusUpdate(...)`，更新 Mesos 任务状态为 TASK_ERROR。另外，调用 `ExecutorDriver#stop()` 方法，关闭自己。**这意味着，一个执行器上如果存在一个作业任务发生 TASK_ERROR，其他作业任务即使是正常的，也会更新作业任务状态为 TASK_FAILED**。这块千万要注意。
 
 * TASK_LOST
 

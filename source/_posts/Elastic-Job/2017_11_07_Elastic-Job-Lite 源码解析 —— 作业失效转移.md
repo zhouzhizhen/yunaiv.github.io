@@ -250,6 +250,8 @@ public void failoverIfNecessary() {
 
 旁白君：双击666，关注笔者公众号一波。
 
+此处 `JobFacade#failoverIfNecessary()` 方法，只会抓取一个失效转移的作业分片，这样带来的好处是，多个作业分片可以一起承担执行失效转移的分片集合。举个例子：一个作业集群有 A / B / C 三个节点，分成六个作业分片，如果 C 节点挂了，A / B 节点分担 C 节点的两个分片。但是，也可能会存在失效转移的分片被**漏**执行。举个例子：一个作业集群有 A / B / C 三个节点，分成九个作业分片，如果 C 节点挂了，A / B 节点分担 C 节点的两个分片，有一个被漏掉，只能等下次作业分片才能执行。未来这块算法会进行优化。
+
 # 4. 获取作业分片上下文集合
 
 在[《Elastic-Job-Lite 源码分析 —— 作业执行》「4.2 获取当前作业服务器的分片上下文」](http://www.iocoder.cn/Elastic-Job/job-execute/?self)中，我们可以看到作业执行器( AbstractElasticJobExecutor ) 执行作业时，会获取当前作业服务器的分片上下文进行执行。获取过程总体如下顺序图( [打开大图](http://www.iocoder.cn/images/Elastic-Job/2017_11_07/03.png) )：

@@ -267,7 +267,7 @@ public void update(final CloudJobConfiguration jobConfig) {
     }
     ```
 
-* 调用 `#reschedule(...)` 方法，重新调度作业。
+* 调用 `#reschedule(...)` 方法，重新调度作业。此处的调用是重复的，实际只需 CloudJobConfigurationListener 监听到配置变化，调用 `#reschedule(...)` 方法即可。
 
 存储在注册中心( Zookeeper )的 云作业配置被更新时，云作业配置变更监听( CloudJobConfigurationListener )会监听到，并执行更新相应逻辑，实现代码如下：
 
@@ -316,7 +316,7 @@ public final class CloudJobConfigurationListener implements TreeCacheListener {
     ```
     * **瞬时作业**开启 `misfire` 功能时，当任务执行过久触发 `misifre` 会不断累积待执行次数。如果关闭 `misfire` 功能，需要将多次执行次数归 `"1"`。
 
-* 调用 `ProducerManager#reschedule(...)` 方法，重新调度作业。TODO，为啥要重复调用这个方法？
+* 调用 `ProducerManager#reschedule(...)` 方法，重新调度作业。
 
 ## 2.5 注销云作业
 

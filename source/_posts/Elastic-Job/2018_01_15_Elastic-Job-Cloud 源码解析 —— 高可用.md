@@ -74,7 +74,7 @@ public final class Bootstrap {
         // 挂起 主进程
         final CountDownLatch latch = new CountDownLatch(1);
         latch.await();
-        // Hook TODO 貌似位置不对？
+        // Hook 貌似位置不对？
         Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
         
             @Override
@@ -90,6 +90,7 @@ public final class Bootstrap {
 * Bootstrap，Elastic-Job-Cloud-Scheduler 启动器（仿佛在说废话）。
 * CoordinatorRegistryCenter，用于协调分布式服务的注册中心，在[《Elastic-Job-Lite 源码分析 —— 注册中心》](http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper/?)有详细解析。
 * ZookeeperElectionService，Zookeeper 选举服务，本小节的主角。
+* ShutdownHook 关闭进程钩子，代码放置的位置不对，需要放在 `CountDownLatch#await()` 方法上面。目前实际不影响使用。
 
 调用 `ZookeeperElectionService#start()` 方法，初始化 Zookeeper 选举服务以实现 Elastic-Job-Cloud-Scheduler 主节点选举。
 
@@ -651,10 +652,11 @@ public class ReconcileService extends AbstractScheduledService {
     }
     ```
 * 为什么这里要使用 ReentrantLock 锁呢？Elastic-Job-Cloud-Scheduler 提供 CloudOperationRestfulApi，支持使用 HTTP Restful API 主动触发 `#explicitReconcile()` 和 `#implicitReconcile()` 方法，**通过锁避免并发核对**。对 CloudOperationRestfulApi 有兴趣的同学，直接点击[链接](https://github.com/dangdangdotcom/elastic-job/blob/a52d4062bf1f1d729fa4dbf2d1225e0d97778cb9/elastic-job-cloud/elastic-job-cloud-scheduler/src/main/java/com/dangdang/ddframe/job/cloud/scheduler/restful/CloudOperationRestfulApi.java)查看实现。
+* 虽然 `#implicitReconcile()` 方法，能查询到所有 Mesos 任务状的态，但是性能较差，而 `#explicitReconcile()` 方法显式查询运行中的 Mesos 任务的状态，性能更好，所以先进行调用。
+* 优化点（目前暂未实现）：Elastic-Job-Cloud-Scheduler 注册到 Mesos 和 重注册到 Mesos，都执行一次核对。
 
-TODO：为啥要先显再隐呢？
-
-TODO：This reconciliation algorithm must be run after each (re-)registration.
+    > FROM [《Elastic-Job-Lite 源码分析 —— 自诊断修复》](http://www.iocoder.cn/Elastic-Job/reconcile/?self)  
+    > This reconciliation algorithm must be run after each (re-)registration.
 
 其他 Scheduler 核对资料，有兴趣的同学可以看看：
 

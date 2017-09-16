@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-failover/</loc>
+    
+    <lastmod>2017-09-16T04:56:06.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/</loc>
+    
+    <lastmod>2017-09-16T04:53:59.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-failover/</loc>
+    
+    <lastmod>2017-09-16T04:47:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/cloud-high-availability/</loc>
+    
+    <lastmod>2017-09-16T04:31:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.iocoder.cn/Architecture/how-to-read-article/</loc>
     
     <lastmod>2017-09-15T16:49:59.000Z</lastmod>
@@ -58,13 +86,6 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second/</loc>
-    
-    <lastmod>2017-09-07T15:59:34.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first/</loc>
     
     <lastmod>2017-09-07T15:54:52.000Z</lastmod>
@@ -75,20 +96,6 @@
     <loc>http://www.iocoder.cn/Elastic-Job/job-execute/</loc>
     
     <lastmod>2017-09-07T15:29:48.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-high-availability/</loc>
-    
-    <lastmod>2017-09-07T13:01:19.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/cloud-job-failover/</loc>
-    
-    <lastmod>2017-09-07T08:34:21.000Z</lastmod>
     
   </url>
   
@@ -121,13 +128,6 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-failover/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.iocoder.cn/Elastic-Job/reconcile/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
@@ -135,7 +135,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
+    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -170,13 +170,6 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Docker/docker-network-flannel/</loc>
-    
-    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.iocoder.cn/Elastic-Job/job-config/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
@@ -185,6 +178,13 @@
   
   <url>
     <loc>http://www.iocoder.cn/Architecture/how-to-read-source-code/</loc>
+    
+    <lastmod>2017-09-06T10:53:51.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-init/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -205,7 +205,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-init/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -247,7 +247,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-first/</loc>
+    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -261,7 +261,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/RocketMQ/message-pull-and-consume-second/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-storage/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -282,14 +282,14 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-storage/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper-listener/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper-listener/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/election/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -324,7 +324,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/election/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding-strategy/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -401,7 +401,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding-strategy/</loc>
+    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
@@ -436,7 +436,7 @@
   </url>
   
   <url>
-    <loc>http://www.iocoder.cn/Elastic-Job/job-sharding/</loc>
+    <loc>http://www.iocoder.cn/Docker/docker-learning-notes/</loc>
     
     <lastmod>2017-09-06T10:53:51.000Z</lastmod>
     
