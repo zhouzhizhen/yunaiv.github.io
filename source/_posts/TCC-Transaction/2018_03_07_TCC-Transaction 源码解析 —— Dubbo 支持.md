@@ -8,6 +8,34 @@ permalink: TCC-Transaction/dubbo-support
 
 **本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
 
+- [1. 概述](#1-%E6%A6%82%E8%BF%B0)
+- [2. Dubbo 代理](#2-dubbo-%E4%BB%A3%E7%90%86)
+  - [2.1 JavassistProxyFactory](#21-javassistproxyfactory)
+    - [2.1.1 Javassist](#211-javassist)
+    - [2.1.2 TccJavassistProxyFactory](#212-tccjavassistproxyfactory)
+    - [2.1.3 TccProxy & TccClassGenerator](#213-tccproxy--tccclassgenerator)
+    - [2.1.4 配置 Dubbo Proxy](#214-%E9%85%8D%E7%BD%AE-dubbo-proxy)
+  - [2.2 JdkProxyFactory](#22-jdkproxyfactory)
+    - [2.2.1 JDK Proxy](#221-jdk-proxy)
+    - [2.2.2 TccJdkProxyFactory](#222-tccjdkproxyfactory)
+    - [2.2.3 TccInvokerInvocationHandler](#223-tccinvokerinvocationhandler)
+    - [2.2.4 配置 Dubbo Proxy](#224-%E9%85%8D%E7%BD%AE-dubbo-proxy)
+- [3. Dubbo 事务上下文编辑器](#3-dubbo-%E4%BA%8B%E5%8A%A1%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BC%96%E8%BE%91%E5%99%A8)
+- [666. 彩蛋](#666-%E5%BD%A9%E8%9B%8B)
+
+---
+
+![](http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg)
+
+> 🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+> 5. **认真的**源码交流微信群。
+
+---
+
 # 1. 概述
 
 本文分享 **Dubbo 支持**。
@@ -41,7 +69,7 @@ TCC-Transaction 通过 Dubbo Proxy 的机制，实现 `@Compensable` 属性自�
 
 Dubbo 支持( Maven 项目 `tcc-transaction-dubbo` ) 整体代码结构如下：
 
-[](http://www.iocoder.cn/images/TCC-Transaction/2018_03_07/01.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_07/01.png)
 
 * `proxy`
 * `context`
@@ -70,7 +98,7 @@ public String record(RedPacketTradeOrderDto paramRedPacketTradeOrderDto) {
 * 该代码通过 Javassist 生成的 Proxy 代码的示例。
 * `propagation=Propagation.SUPPORTS` ：支持当前事务，如果当前没有事务，就以非事务方式执行。**为什么不使用 REQUIRED** ？如果使用 REQUIRED 事务传播级别，事务恢复重试时，会发起新的事务。
 * `confirmMethod`、`cancelMethod` 使用和 try 方法**相同方法名**：**本地发起**远程服务 TCC confirm / cancel 阶段，调用相同方法进行事务的提交或回滚。远程服务的 CompensableTransactionInterceptor 会根据事务的状态是 CONFIRMING / CANCELLING 来调用对应方法。
-    * [](../../../images/TCC-Transaction/2018_03_07/02.png) 
+    * ![](../../../images/TCC-Transaction/2018_03_07/02.png) 
 * `transactionContextEditor=DubboTransactionContextEditor.class`，使用 Dubbo 事务上下文编辑器，在[「3. Dubbo 事务上下文编辑器」](#)详细分享。
 
 Dubbo Service Proxy 提供了两种生成方式：
@@ -87,7 +115,7 @@ Dubbo Service Proxy 提供了两种生成方式：
 
 Dubbo 的 Invoker 模型是非常关键的概念，看下图：
 
-[](../../../images/TCC-Transaction/2018_03_07/03.jpeg)
+![](../../../images/TCC-Transaction/2018_03_07/03.jpeg)
 
 ## 2.1 JavassistProxyFactory
 
@@ -806,7 +834,7 @@ tccJavassist=org.mengyun.tcctransaction.dubbo.proxy.javassist.TccJavassistProxyF
 
 目前 Maven 项目 `tcc-transaction-dubbo` 已经**默认**配置，引入即可。
 
-[](../../../images/TCC-Transaction/2018_03_07/05.png)
+![](../../../images/TCC-Transaction/2018_03_07/05.png)
        
 ## 2.2 JdkProxyFactory
 
@@ -986,7 +1014,7 @@ HOHO，对动态代理又学习了一遍，蛮 High 的。
 * [《Dubbo的服务暴露细节》](http://blog.kazaff.me/2015/01/27/dubbo%E4%B8%AD%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%9A%84%E7%BB%86%E8%8A%82/)。
 * [《Dubbo Provider启动主流程》](http://weifuwu.io/2016/01/03/dubbo-provider-start/)
 
-[](http://www.iocoder.cn/images/TCC-Transaction/2018_03_07/06.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_07/06.png)
 
 胖友，分享一波朋友圈可好。
 
