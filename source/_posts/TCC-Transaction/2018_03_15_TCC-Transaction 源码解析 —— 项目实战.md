@@ -14,10 +14,10 @@ permalink: TCC-Transaction/http-sample
 
 OK，首先我们简单了解下这个项目。
 
-[](../../../images/TCC-Transaction/2018_03_15/01.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_15/01.png)
 
 * 首页 => 商品列表 => 确认支付页 => 支付结果页
-* 使用账户余额 + 红包余额**联合**支付购买商品。
+* 使用账户余额 + 红包余额**联合**支付购买商品，并账户之间**转账**。
 
 项目拆分三个子 Maven 项目：
 
@@ -25,7 +25,7 @@ OK，首先我们简单了解下这个项目。
 * `tcc-transaction-http-capital` ：资金服务，提供账户余额逻辑。
 * `tcc-transaction-http-redpacket` ：红包服务，提供红包余额逻辑。
 
-![](../../../images/TCC-Transaction/2018_03_15/03.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_15/03.png)
 
 > 你行好事会因为得到赞赏而愉悦  
 > 同理，开源项目贡献者会因为 Star 而更加有动力  
@@ -35,7 +35,7 @@ OK，首先我们简单了解下这个项目。
 
 ## 2.1 商城服务
 
-![](../../../images/TCC-Transaction/2018_03_15/02.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_15/02.png)
 
 * Shop，商店表。实体代码如下：
 
@@ -467,7 +467,7 @@ OK，首先我们简单了解下这个项目。
 
 下单支付流程，整体流程如下图( [打开大图](./../../images/TCC-Transaction/2018_03_15/04.png) )：
 
-[](../../../images/TCC-Transaction/2018_03_15/04.png)
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_15/04.png)
 
 点击**【支付】**按钮，下单支付流程。实现代码如下：
 
@@ -626,7 +626,8 @@ public void makePayment(Order order, BigDecimal redPacketPayAmount, BigDecimal c
     * 设置方法注解 @Compensable
         * `propagation=Propagation.SUPPORTS` ：支持当前事务，如果当前没有事务，就以非事务方式执行。**为什么不使用 REQUIRED** ？如果使用 REQUIRED 事务传播级别，事务恢复重试时，会发起新的事务。
         * `confirmMethod`、`cancelMethod` 使用和 try 方法**相同方法名**：**本地发起**远程服务 TCC confirm / cancel 阶段，调用相同方法进行事务的提交或回滚。远程服务的 CompensableTransactionInterceptor 会根据事务的状态是 CONFIRMING / CANCELLING 来调用对应方法。
-   * 调用 `CapitalTradeOrderService#record(...)` 方法，远程调用，发起**资金**账户余额支付订单。
+   
+    * 调用 `CapitalTradeOrderService#record(...)` 方法，远程调用，发起**资金**账户余额支付订单。
         * 本地方法调用时，参数 `transactionContext` 传递 `null` 即可，TransactionContextEditor 会设置。在[《TCC-Transaction 源码分析 —— TCC 实现》「6.3 资源协调者拦截器」](http://www.iocoder.cn/TCC-Transaction/tcc-core/?self)有详细解析。
         * 远程方法调用时，参数 `transactionContext` 需要传递。Dubbo 远程方法调用实际也进行了传递，传递方式较为特殊，通过隐式船舱，在[《TCC-Transaction 源码分析 —— Dubbo 支持》「3. Dubbo 事务上下文编辑器」](http://www.iocoder.cn/TCC-Transaction/dubbo-support/?self)有详细解析。
 
@@ -847,5 +848,8 @@ public void cancelRecord(TransactionContext transactionContext, CapitalTradeOrde
 
 本系列 EOF ~撒花
 
+![](http://www.iocoder.cn/images/TCC-Transaction/2018_03_15/05.png)
+
+胖友，分享个朋友圈，可好？！
 
 
