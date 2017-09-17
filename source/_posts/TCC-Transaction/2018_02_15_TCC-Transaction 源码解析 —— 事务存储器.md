@@ -6,6 +6,8 @@ permalink: TCC-Transaction/transaction-repository
 
 ---
 
+**本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
+
 - [1. 概述](#)
 - [2. 序列化](#)
 	- [2.1 JDK 序列化实现](#)

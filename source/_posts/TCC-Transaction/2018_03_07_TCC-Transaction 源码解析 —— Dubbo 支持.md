@@ -6,9 +6,13 @@ permalink: TCC-Transaction/dubbo-support
 
 ---
 
+**本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
+
 # 1. 概述
 
-本文分享 **Dubbo 支持**。TCC-Transaction 通过 Dubbo 支持隐式传参的功能，避免自己对业务代码的入侵。可能有同学不太理解为什么说 TCC-Transaction 对业务代码有一定的入侵性，一起来看个代码例子：
+本文分享 **Dubbo 支持**。
+
+TCC-Transaction 通过 Dubbo **隐式传参**的功能，避免自己对业务代码的入侵。可能有同学不太理解为什么说 TCC-Transaction 对业务代码有一定的入侵性，一起来看个代码例子：
 
 ```Java
 public interface CapitalTradeOrderService {
@@ -29,6 +33,11 @@ public interface CapitalTradeOrderService {
 ```
 
 * 代码来自 `http-transaction-dubbo-sample` 。是不是不需要传入参数 TransactionContext。当然，注解是肯定需要的，否则 TCC-Transaction 怎么知道哪些方法是 TCC 方法。
+
+TCC-Transaction 通过 Dubbo Proxy 的机制，实现 `@Compensable` 属性自动生成，增加开发体验，也避免出错。
+
+-------
+
 
 Dubbo 支持( Maven 项目 `tcc-transaction-dubbo` ) 整体代码结构如下：
 
@@ -115,11 +124,13 @@ public class TccJavassistProxyFactory extends JavassistProxyFactory {
 
 ### 2.1.3 TccProxy & TccClassGenerator
 
-`org.mengyun.tcctransaction.dubbo.proxy.javassist.TccProxy`，TCC Proxy 工厂，生成 Dubbo Service 调用 Proxy 。笔者认为，TccProxy 改成 TccProxyFactory 更合适。
+`org.mengyun.tcctransaction.dubbo.proxy.javassist.TccProxy`，TCC Proxy 工厂，生成 Dubbo Service 调用 Proxy 。笔者认为，TccProxy 改成 TccProxyFactory 更合适，原因在下文。
+
+`org.mengyun.tcctransaction.dubbo.proxy.javassist.TccClassGenerator`，TCC 类代码生成器，基于 Javassist 实现。 
 
 **🦅案例**
 
-TccProxy 会动态生成两个类：
+一个 Dubbo Service，TccProxy 会动态生成两个类：
 
 * Dubbo Service 调用 Proxy
 * Dubbo Service 调用 ProxyFactory，生成对应的 Dubbo Service Proxy
@@ -143,6 +154,8 @@ public class TccProxy3 extends TccProxy implements TccClassGenerator.DC {
   }
 }
 ```
+* TccProxy 提供 `#newInstance(handler)` 方法，创建 Proxy，所以笔者认为，TccProxy 改成 TccProxyFactory 更合适。
+* `org.mengyun.tcctransaction.dubbo.proxy.javassist.TccClassGenerator.DC` 动态生成类标记，标记该类由 TccClassGenerator 生成的。
 
 生成 Dubbo Service 调用 **Proxy** 如下 ：
 
@@ -175,6 +188,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
 }
 ```
 * `com.alibaba.dubbo.rpc.service.EchoService`，Dubbo Service 回声服务接口，用于服务健康检查，Dubbo Service 默认自动实现该接口，点击[连接](https://github.com/alibaba/dubbo/blob/17619dfa974457b00fe27cf68ae3f9d266709666/dubbo-rpc/dubbo-rpc-api/src/main/java/com/alibaba/dubbo/rpc/service/EchoService.java)查看代码。
+* `org.mengyun.tcctransaction.dubbo.proxy.javassist.TccClassGenerator.DC` 动态生成类标记，标记该类由 TccClassGenerator 生成的。
 
 **🦅实现**
 
@@ -219,11 +233,11 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
  36:         }
  37:     }
  38: 
- 39:     // 获得 TccProxy
+ 39:     // 获得 TccProxy 工厂
  40:     TccProxy proxy = null;
  41:     synchronized (cache) {
  42:         do {
- 43:             // 从缓存中获取 TccProxy
+ 43:             // 从缓存中获取 TccProxy 工厂
  44:             Object value = cache.get(key);
  45:             if (value instanceof Reference<?>) {
  46:                 proxy = (TccProxy) ((Reference<?>) value).get();
@@ -248,7 +262,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
  65:     long id = PROXY_CLASS_COUNTER.getAndIncrement();
  66:     String pkg = null;
  67:     TccClassGenerator ccp = null; // proxy class generator
- 68:     TccClassGenerator ccm = null; // manager class generator
+ 68:     TccClassGenerator ccm = null; // proxy factory class generator
  69:     try {
  70:         // 创建 Tcc class 代码生成器
  71:         ccp = TccClassGenerator.newInstance(cl);
@@ -375,7 +389,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
     * Proxy 对象缓存
     * key ：ClassLoader
     * value.key ：Tcc Proxy 标识。使用 Tcc Proxy 实现接口名拼接
-    * value.value ：Tcc Proxy 对象
+    * value.value ：Tcc Proxy 工厂对象
     */
     private static final Map<ClassLoader, Map<String, Object>> ProxyCacheMap = new WeakHashMap<ClassLoader, Map<String, Object>>();
     ```
@@ -392,7 +406,6 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
     ```
 
 * 第 66 至 67 行
-    * `org.mengyun.tcctransaction.dubbo.proxy.javassist.TccClassGenerator`，TCC Class 代码生成器，基于 Javassit 实现。 
     * `ccm`，生成 Dubbo Service 调用 **ProxyFactory** 的代码生成器
     * `ccp`，生成 Dubbo Service 调用 **Proxy** 的代码生成器
 
@@ -444,9 +457,9 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
             }
             ```
             * x
-       
-       * 第 93 至 98 行，添加方法签名到已处理方法签名集合。多个接口可能存在相同的接口方法，跳过相同的方法，避免冲突。代码案例如下：
-       * 第 99 至 110 行，生成 Dubbo Service 调用实现代码。[](../../../images/TCC-Transaction/2018_03_07/04.png)
+
+        * 第 93 至 98 行，添加方法签名到已处理方法签名集合。多个接口可能存在相同的接口方法，跳过相同的方法，避免冲突。
+        * 第 99 至 110 行，生成 Dubbo Service 调用实现代码。案例代码如下：
             
             ```Java
               public String record(RedPacketTradeOrderDto paramRedPacketTradeOrderDto) {
@@ -456,9 +469,9 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
                 return (String)localObject;
               }
             ```
-            * x
-       
-       * 第 112 至 118 行 ：调用 `TccClassGenerator#addMethod(...)` 方法，添加生成的方法。实现代码如下：
+            * ![](../../../images/TCC-Transaction/2018_03_07/04.png)
+
+        * 第 112 至 118 行 ：调用 `TccClassGenerator#addMethod(...)` 方法，添加生成的方法。实现代码如下：
 
             ```Java
             /**
@@ -508,7 +521,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
             }
             ```
 
-  * 第 122 至 130 行，生成类名( 例如，`org.mengyun.tcctransaction.dubbo.proxy.javassist.proxy3` )，并调用 `TccClassGenerator#setClassName(...)` 方法，设置类名。实现代码如下：
+    * 第 122 至 130 行，生成类名( 例如，`org.mengyun.tcctransaction.dubbo.proxy.javassist.proxy3` )，并调用 `TccClassGenerator#setClassName(...)` 方法，设置类名。实现代码如下：
 
         ```Java
         /**
@@ -521,8 +534,9 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
            return this;
         }
         ```
+        * x
         
-   * 第 131 至 134 行，调用 `TccClassGenerator#addField(...)` 方法，添加**静态**属性 `methods` ( Dubbo Service 方法集合 )和属性 `handler` ( Dubbo InvocationHandler )。实现代码如下：
+    * 第 131 至 134 行，调用 `TccClassGenerator#addField(...)` 方法，添加**静态**属性 `methods` ( Dubbo Service 方法集合 )和属性 `handler` ( Dubbo InvocationHandler )。实现代码如下：
 
         ```Java
         /**
@@ -539,8 +553,8 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
         }
         ```
         * x
-    
-   * 第 135 至 136 行，调用 `TccClassGenerator#addConstructor(...)` 方法，添加参数为 `handler` 的构造方法。实现代码如下：
+ 
+    * 第 135 至 136 行，调用 `TccClassGenerator#addConstructor(...)` 方法，添加参数为 `handler` 的构造方法。实现代码如下：
 
         ```Java
         /**
@@ -591,7 +605,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
         ```
         * x
    
-   * 第 137 至 138 行，调用 `TccClassGenerator#addDefaultConstructor()` 方法，添加默认空构造方法。实现代码如下：
+    * 第 137 至 138 行，调用 `TccClassGenerator#addDefaultConstructor()` 方法，添加默认空构造方法。实现代码如下：
   
         ```Java
         /**
@@ -606,7 +620,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
         ```
         * x
    
-   * 第 139 行，调用 `TccClassGenerator#toClass()` 方法，**生成类**。实现代码如下：
+    * 第 139 行，调用 `TccClassGenerator#toClass()` 方法，**生成类**。实现代码如下：
 
         ```Java
           1: public Class<?> toClass() {
@@ -713,7 +727,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
         ```
         * x
    
-   * 第 154 至 155 行，调用 `TccClassGenerator#addInterface(cl)` 方法，添加生成 Proxy 实现代码的方法。代码案例如下：
+    * 第 154 至 155 行，调用 `TccClassGenerator#addInterface(cl)` 方法，添加生成 Proxy 实现代码的方法。代码案例如下：
 
        ```Java
        public Object newInstance(InvocationHandler paramInvocationHandler) {
@@ -722,7 +736,7 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
        ```
        * x
 
-   * 第 156 至 157 行，调用 `TccClassGenerator#toClass()` 方法，**生成类**。
+    * 第 156 至 157 行，调用 `TccClassGenerator#toClass()` 方法，**生成类**。
 * 第 159 行，调用 `TccProxy#newInstance()` 方法，创建 Proxy 。实现代码如下：
 
     ```Java
@@ -772,13 +786,13 @@ public class proxy3 implements TccClassGenerator.DC, RedPacketTradeOrderService,
     }
     ```
 
-* 第 172 至 180 行，设置 Proxy 缓存，并唤醒等待线程。
+* 第 172 至 180 行，设置 Proxy 工厂缓存，并唤醒等待线程。
 
 **ps：**代码比较多，收获会比较多，算是 Javassist 实战案例了。TCC-Transaction 作者在实现上述类，可能参考了 Dubbo 自带的实现：
 
-* [`com.alibaba.dubbo.common.bytecode.Wrapper`](https://github.com/alibaba/dubbo/blob/8f20e3a68efc350e3fbaa965e0a8e8a59fef1b3c/dubbo-common/src/main/java/com/alibaba/dubbo/common/bytecode/Proxy.java)
 * [`com.alibaba.dubbo.common.bytecode.Proxy`](https://github.com/alibaba/dubbo/blob/8f20e3a68efc350e3fbaa965e0a8e8a59fef1b3c/dubbo-common/src/main/java/com/alibaba/dubbo/common/bytecode/Proxy.java)
 * [`com.alibaba.dubbo.common.bytecode.ClassGenerator`](https://github.com/alibaba/dubbo/blob/8f20e3a68efc350e3fbaa965e0a8e8a59fef1b3c/dubbo-common/src/main/java/com/alibaba/dubbo/common/bytecode/ClassGenerator.java)
+* [`com.alibaba.dubbo.common.bytecode.Wrapper`](https://github.com/alibaba/dubbo/blob/8f20e3a68efc350e3fbaa965e0a8e8a59fef1b3c/dubbo-common/src/main/java/com/alibaba/dubbo/common/bytecode/Wrapper.java)
 
 ### 2.1.4 配置 Dubbo Proxy
        
@@ -796,5 +810,185 @@ tccJavassist=org.mengyun.tcctransaction.dubbo.proxy.javassist.TccJavassistProxyF
        
 ## 2.2 JdkProxyFactory
 
+### 2.2.1 JDK Proxy
+
+[《 Java JDK 动态代理（AOP）使用及实现原理分析》](http://blog.csdn.net/jiankunking/article/details/52143504#)
+
+### 2.2.2 TccJdkProxyFactory
+
+
+`org.mengyun.tcctransaction.dubbo.proxy.jd.TccJdkProxyFactory`，TCC JDK 代理工厂。实现代码如下：
+
+```Java
+public class TccJdkProxyFactory extends JdkProxyFactory {
+
+    @SuppressWarnings("unchecked")
+    public <T> T getProxy(Invoker<T> invoker, Class<?>[] interfaces) {
+        T proxy = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), interfaces, new InvokerInvocationHandler(invoker));
+        return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), interfaces, new TccInvokerInvocationHandler(proxy, invoker));
+    }
+
+}
+```
+
+* **项目启动时**，调用 `TccJavassistProxyFactory#getProxy(...)` 方法，生成 Dubbo Service 调用 Proxy。
+* **第一次**调用 `Proxy#newProxyInstance(...)` 方法，创建调用 Dubbo Service 服务的 Proxy。`com.alibaba.dubbo.rpc.proxy.InvokerInvocationHandler`，Dubbo 调用处理器，点击[连接](https://github.com/alibaba/dubbo/blob/17619dfa974457b00fe27cf68ae3f9d266709666/dubbo-rpc/dubbo-rpc-api/src/main/java/com/alibaba/dubbo/rpc/proxy/InvokerInvocationHandler.java)查看代码。
+* **第二次**调用 `Proxy#newProxyInstance(...)` 方法，创建对调用 Dubbo Service 的 Proxy 的 Proxy。为什么会有两层 Proxy？答案在下节 TccInvokerInvocationHandler 。
+
+### 2.2.3 TccInvokerInvocationHandler
+
+`org.mengyun.tcctransaction.dubbo.proxy.jdk.TccInvokerInvocationHandler`，TCC 调用处理器，在调用 Dubbo Service 服务时，使用 ResourceCoordinatorInterceptor 拦截处理。实现代码如下：
+
+```Java
+  1: public class TccInvokerInvocationHandler extends InvokerInvocationHandler {
+  2: 
+  3:     /**
+  4:      * proxy
+  5:      */
+  6:     private Object target;
+  7: 
+  8:     public TccInvokerInvocationHandler(Invoker<?> handler) {
+  9:         super(handler);
+ 10:     }
+ 11: 
+ 12:     public <T> TccInvokerInvocationHandler(T target, Invoker<T> invoker) {
+ 13:         super(invoker);
+ 14:         this.target = target;
+ 15:     }
+ 16: 
+ 17:     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+ 18:         Compensable compensable = method.getAnnotation(Compensable.class);
+ 19:         if (compensable != null) {
+ 20:             // 设置 @Compensable 属性
+ 21:             if (StringUtils.isEmpty(compensable.confirmMethod())) {
+ 22:                 ReflectionUtils.changeAnnotationValue(compensable, "confirmMethod", method.getName());
+ 23:                 ReflectionUtils.changeAnnotationValue(compensable, "cancelMethod", method.getName());
+ 24:                 ReflectionUtils.changeAnnotationValue(compensable, "transactionContextEditor", DubboTransactionContextEditor.class);
+ 25:                 ReflectionUtils.changeAnnotationValue(compensable, "propagation", Propagation.SUPPORTS);
+ 26:             }
+ 27:             // 生成切面
+ 28:             ProceedingJoinPoint pjp = new MethodProceedingJoinPoint(proxy, target, method, args);
+ 29:             // 执行
+ 30:             return FactoryBuilder.factoryOf(ResourceCoordinatorAspect.class).getInstance().interceptTransactionContextMethod(pjp);
+ 31:         } else {
+ 32:             return super.invoke(target, method, args);
+ 33:         }
+ 34:     }
+ 35: 
+ 36: }
+```
+
+* 第 18 至 26 行，设置带有 @Compensable 属性的默认属性。
+* 第 28 行，生成方法切面 `org.mengyun.tcctransaction.dubbo.proxy.jdk.MethodProceedingJoinPoint`。实现代码如下：
+
+    ```Java
+    public class MethodProceedingJoinPoint implements ProceedingJoinPoint, JoinPoint.StaticPart {
+    
+        /**
+         * 代理对象
+         */
+        private Object proxy;
+        /**
+         * 目标对象
+         */
+        private Object target;
+        /**
+         * 方法
+         */
+        private Method method;
+        /**
+         * 参数
+         */
+        private Object[] args;
+        
+        @Override
+        public Object proceed() throws Throwable {
+            // Use reflection to invoke the method.
+            try {
+                ReflectionUtils.makeAccessible(method);
+                return method.invoke(target, args);
+            } catch (InvocationTargetException ex) {
+                // Invoked method threw a checked exception.
+                // We must rethrow it. The client won't see the interceptor.
+                throw ex.getTargetException();
+            } catch (IllegalArgumentException ex) {
+                throw new SystemException("Tried calling method [" +
+                        method + "] on target [" + target + "] failed", ex);
+            } catch (IllegalAccessException ex) {
+                throw new SystemException("Could not access method [" + method + "]", ex);
+            }
+        }
+    
+        @Override
+        public Object proceed(Object[] objects) throws Throwable {
+            //        throw new UnsupportedOperationException(); // TODO 芋艿：疑问
+            return proceed();
+        }
+        
+        // ... 省略不重要的方法和对象
+    }
+    ```
+    * 该类参考 [`org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint`](https://github.com/spring-projects/spring-framework/blob/master/spring-aop/src/main/java/org/springframework/aop/aspectj/MethodInvocationProceedingJoinPoint.java) 实现。
+    * TODO【1】 proxy 和 target 是否保留一个即可？
+    * 在切面处理完成后，调用 `#proceed(...)` 方法，进行远程 Dubbo Service 服务调用。
+    * TODO【2】`#proceed(objects)` 抛出 throw new UnsupportedOperationException();。需要跟作者确认下。
+* 调用 `ResourceCoordinatorAspect#interceptTransactionContextMethod(...)` 方法，对方法切面拦截处理。**为什么无需调用 CompensableTransactionAspect 切面**？因为传播级别为 Propagation.SUPPORTS，不会发起事务。
+
+### 2.2.4 配置 Dubbo Proxy
+
+```XML
+// META-INF.dubbo/com.alibaba.dubbo.rpc.ProxyFactory
+tccJdk=org.mengyun.tcctransaction.dubbo.proxy.jdk.TccJdkProxyFactory
+
+// appcontext-service-dubbo.xml
+<dubbo:provider proxy="tccJdk"/>
+
+<dubbo:reference proxy="tccJdk" id="captialTradeOrderService"
+                     interface="org.mengyun.tcctransaction.sample.dubbo.capital.api.CapitalTradeOrderService" timeout="5000"/>
+```
+
+* ProxyFactory 的 `tccJdk` 在 Maven 项 `tcc-transaction-dubbo` 已经声明。
+* 声明 `dubbo:provider` 的 `proxy="tccJdk"`。
+* 声明 `dubbo:reference` 的 `proxy="tccJdk"`，否则不生效。
+
 # 3. Dubbo 事务上下文编辑器
+
+`org.mengyun.tcctransaction.dubbo.context.DubboTransactionContextEditor`，Dubbo 事务上下文编辑器实现，实现代码如下：
+
+```Java
+public class DubboTransactionContextEditor implements TransactionContextEditor {
+
+    @Override
+    public TransactionContext get(Object target, Method method, Object[] args) {
+        String context = RpcContext.getContext().getAttachment(TransactionContextConstants.TRANSACTION_CONTEXT);
+        if (StringUtils.isNotEmpty(context)) {
+            return JSON.parseObject(context, TransactionContext.class);
+        }
+        return null;
+    }
+
+    @Override
+    public void set(TransactionContext transactionContext, Object target, Method method, Object[] args) {
+        RpcContext.getContext().setAttachment(TransactionContextConstants.TRANSACTION_CONTEXT, JSON.toJSONString(transactionContext));
+    }
+
+}
+```
+
+* 通过 Dubbo 的隐式传参的方式，避免在 Dubbo Service 接口上声明 TransactionContext 参数，对接口产生一定的入侵。
+
+# 666. 彩蛋
+
+HOHO，对动态代理又学习了一遍，蛮 High 的。
+
+这里推荐动态代理无关，和 Dubbo 相关的文章：
+
+* [《Dubbo的服务暴露细节》](http://blog.kazaff.me/2015/01/27/dubbo%E4%B8%AD%E6%9C%8D%E5%8A%A1%E6%9A%B4%E9%9C%B2%E7%9A%84%E7%BB%86%E8%8A%82/)。
+* [《Dubbo Provider启动主流程》](http://weifuwu.io/2016/01/03/dubbo-provider-start/)
+
+[](http://www.iocoder.cn/images/TCC-Transaction/2018_03_07/06.png)
+
+胖友，分享一波朋友圈可好。
+
+
 

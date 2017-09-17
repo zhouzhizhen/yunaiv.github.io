@@ -6,6 +6,8 @@ permalink: TCC-Transaction/console
 
 ---
 
+**本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
+
 - [1. 概述](#)
 - [2. 数据访问层](#)
 	- [2.1 JDBC 事务 DAO](#)

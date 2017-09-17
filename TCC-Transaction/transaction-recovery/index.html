@@ -1,7 +1,28 @@
-<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E"><meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0"><meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214"><meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1"><meta name="sogou_site_verification" content="MpPsku240L"><title>TCC-Transaction 源码分析 —— 事务恢复 | 芋道源码 —— 纯源码解析BLOG</title><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3,minimum-scale=1"><meta name="author" content="王文斌"><meta name="description" content="1. 概述
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="google-site-verification" content="GkJ68PCnxM9Ih7Zm9v8p91FOCV7ymNCO2KdGbflLh3E">
+    <meta name="360-site-verification" content="dd6547587641bfede036f7c79561e8a0">
+    <meta name="shenma-site-verification" content="fd96cf3751972c9b05f8471d2ccadddc_1496951214">
+    <meta name="msvalidate.01" content="1D38B05050A977F6FDEDA481198343F1">
+    <meta name="sogou_site_verification" content="MpPsku240L">
+
+  
+    <title>TCC-Transaction 源码分析 —— 事务恢复 | 芋道源码 —— 纯源码解析BLOG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="王文斌">
+    
+    <meta name="description" content="本文主要基于 TCC-Transaction 1.2.3.3 正式版
+
+1. 概述
 2. 事务重试配置
 3. 事务重试定时任务
 4. 异常事务恢复
+
 4.1 加载异常事务集合
 4.2 恢复异常事务集合
 
@@ -11,6 +32,532 @@
 
 
 
-🙂🙂🙂关注微信公众号：【芋道源码】有福利：  
+🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：
 
-RocketMQ / MyCAT / Sharding-JDBC 所有源码分析文章列表 "><meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表"><link rel="alternate" href="atom.xml" title="芋道源码 —— 纯源码解析BLOG" type="application/atom+xml"><link rel="icon" href="/images/favicon.ico"><link rel="stylesheet" href="/css/style.css"><script>var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="//hm.baidu.com/hm.js?9e70e3362807c1bd185a79655b307027";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script>!function(){var t="http:"==document.location.protocol?"http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";document.write('<script src="'+t+'" id="sozz"><\/script>')}()</script><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></head></html><body><header><div><div id="textlogo"><h1 class="site-name"><a href="/" title="芋道源码 —— 纯源码解析BLOG">芋道源码 —— 纯源码解析BLOG</a></h1><a class="blog-motto">愿半生编码，如一生老友！</a></div><div class="navbar"><a class="navbutton navmobile" href="#" title="菜单"></a></div><nav class="animated"><ul><ul><li><a href="/">文章</a></li><li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li><li><a href="http://www.iocoder.cn/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li><li><a href="/link_url">友链</a></li></ul></ul></nav></div></header><div id="container"><div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div><div id="toc" class="toc-aside"><strong class="toc-title">文章目录</strong><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-概述"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-事务重试配置"><span class="toc-number">2.</span> <span class="toc-text">2. 事务重试配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-事务重试定时任务"><span class="toc-number">3.</span> <span class="toc-text">3. 事务重试定时任务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-异常事务恢复"><span class="toc-number">4.</span> <span class="toc-text">4. 异常事务恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-加载异常事务集合"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 加载异常事务集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-恢复异常事务集合"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 恢复异常事务集合</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#666-彩蛋"><span class="toc-number">5.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol></div><div id="asidepart"><aside class="clearfix"><div id="authorInfo"><div><img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"></div><div class="social-list"></div></div><div class="categorieslist"><p class="asidetitle">微信公众号福利：芋道源码</p><ul><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">0. 阅读源码葵花宝典</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">2. 您对于源码的疑问每条留言都将得到认真回复</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">3. 新的源码解析文章实时收到通知，每周六十点更新</a></li><li><a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群</a></li></ul></div><div class="categorieslist"><p class="asidetitle">分类</p><ul><li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li><li><a href="/categories/Elastic-Job-Cloud/" title="Elastic-Job-Cloud">Elastic-Job-Cloud<sup>6</sup></a></li><li><a href="/categories/Elastic-Job-Lite/" title="Elastic-Job-Lite">Elastic-Job-Lite<sup>16</sup></a></li><li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li><li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li><li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li><li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li><li><a href="/categories/TCC-Transaction/" title="TCC-Transaction">TCC-Transaction<sup>6</sup></a></li><li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>4</sup></a></li></ul></div></aside></div><div id="main" class="post" itemscope="" itemprop="blogPost"><article itemprop="articleBody"><header class="article-info clearfix"><h1 itemprop="name"><a href="/TCC-Transaction/transaction-recovery/" title="TCC-Transaction 源码分析 —— 事务恢复" itemprop="url">TCC-Transaction 源码分析 —— 事务恢复</a></h1><p class="article-author"></p><p class="article-time">总阅读量:<span id="busuanzi_value_page_pv"></span>次</p></header><div class="article-content"><ul><li><a href="#">1. 概述</a></li><li><a href="#">2. 事务重试配置</a></li><li><a href="#">3. 事务重试定时任务</a></li><li><a href="#">4. 异常事务恢复</a><ul><li><a href="#">4.1 加载异常事务集合</a></li><li><a href="#">4.2 恢复异常事务集合</a></li></ul></li><li><a href="#">666. 彩蛋</a></li></ul><hr><p><img src="http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg" alt=""></p><blockquote><p>🙂🙂🙂关注<strong>微信公众号：【芋道源码】</strong>有福利：</p><ol><li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li><li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li><li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li><li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li><li><strong>认真的</strong>源码交流微信群。</li></ol></blockquote><hr><h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>本文分享 <strong>TCC 恢复</strong>。主要涉及如下二个 package 路径下的类：</p><ul><li><code>org.mengyun.tcctransaction.recover</code><ul><li>RecoverConfig，事务恢复配置<strong>接口</strong></li><li>TransactionRecovery，事务恢复逻辑</li></ul></li><li><code>org.mengyun.tcctransaction.spring.recover</code> ：<ul><li>DefaultRecoverConfig，默认事务恢复配置<strong>实现</strong></li><li>RecoverScheduledJob，事务恢复定时任务</li></ul></li></ul><p>本文涉及到的类关系如下图( <a href="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/01.png">打开大图</a> )：</p><p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/01.png" alt=""></p><p>在<a href="http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self">《TCC-Transaction 源码分析 —— 事务存储器》</a>中，事务信息被持久化到外部的存储器中。<strong>事务存储是事务恢复的基础</strong>。通过读取外部存储器中的异常事务，定时任务会按照一定频率对事务进行重试，直到事务完成或超过最大重试次数。</p><p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/01.png" alt=""></p><blockquote><p>你行好事会因为得到赞赏而愉悦<br>同理，开源项目贡献者会因为 Star 而更加有动力<br>为 TCC-Transaction 点赞！<a href="https://github.com/changmingxie/tcc-transaction" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p></blockquote><p>ps：笔者假设你已经阅读过<a href="https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x" rel="external nofollow noopener noreferrer" target="_blank">《tcc-transaction 官方文档 —— 使用指南1.2.x》</a>。</p><h1 id="2-事务重试配置"><a href="#2-事务重试配置" class="headerlink" title="2. 事务重试配置"></a>2. 事务重试配置</h1><p><code>org.mengyun.tcctransaction.recover.RecoverConfig</code>，事务恢复配置<strong>接口</strong>，实现代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">RecoverConfig</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 最大重试次数</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getMaxRetryCount</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 恢复间隔时间，单位：秒</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getRecoverDuration</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> cron 表达式</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function">String <span class="title">getCronExpression</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    Set&lt;Class&lt;? extends Exception&gt;&gt; getDelayCancelExceptions();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 设置延迟取消异常集合</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> delayRecoverExceptions 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setDelayCancelExceptions</span><span class="params">(Set&lt;Class&lt;? extends Exception&gt;&gt; delayRecoverExceptions)</span></span>;</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure><ul><li><code>#getMaxRetryCount()</code>，单个事务恢复最大重试次数。超过最大重试次数后，目前仅打出错误日志，下文会看到实现。</li><li><code>#getRecoverDuration()</code>，单个事务恢复重试的间隔时间，单位：秒。</li><li><code>#getCronExpression()</code>，定时任务 cron 表达式。</li><li><code>#getDelayCancelExceptions()</code>，延迟取消异常集合。</li></ul><hr><p><code>org.mengyun.tcctransaction.spring.recover.DefaultRecoverConfig</code>，<strong>默认</strong>事务恢复配置实现，实现代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultRecoverConfig</span> <span class="keyword">implements</span> <span class="title">RecoverConfig</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> RecoverConfig INSTANCE = <span class="keyword">new</span> DefaultRecoverConfig();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 最大重试次数</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> maxRetryCount = <span class="number">30</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 恢复间隔时间，单位：秒</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> recoverDuration = <span class="number">120</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * cron 表达式</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> String cronExpression = <span class="string">"0 */1 * * * ?"</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> Set&lt;Class&lt;? extends Exception&gt;&gt; delayCancelExceptions = <span class="keyword">new</span> HashSet&lt;Class&lt;? extends Exception&gt;&gt;();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DefaultRecoverConfig</span><span class="params">()</span> </span>&#123;</div><div class="line">        delayCancelExceptions.add(OptimisticLockException.class);</div><div class="line">        delayCancelExceptions.add(SocketTimeoutException.class);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDelayCancelExceptions</span><span class="params">(Set&lt;Class&lt;? extends Exception&gt;&gt; delayCancelExceptions)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.delayCancelExceptions.addAll(delayCancelExceptions);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure><ul><li><code>maxRetryCount</code>，单个事务恢复最大重试次数 为 30。</li><li><code>recoverDuration</code>，单个事务恢复重试的间隔时间为 120 秒。</li><li><code>cronExpression</code>，定时任务 cron 表达式为 <code>&quot;0 */1 * * * ?&quot;</code>，每分钟执行一次。如果你希望定时任务执行的更频繁，可以修改 cron 表达式，例如 <code>0/30 * * * * ?</code>，每 30 秒执行一次。</li><li><code>delayCancelExceptions</code>，延迟取消异常集合。在 DefaultRecoverConfig 构造方法里，预先添加了 OptimisticLockException / SocketTimeoutException 。<ul><li>针对 <strong>SocketTimeoutException</strong> ：try 阶段，本地参与者调用远程参与者( 远程服务，例如 Dubbo，Http 服务)，远程参与者 try 阶段的方法逻辑执行时间较长，超过 Socket 等待时长，发生 SocketTimeoutException，如果立刻执行事务回滚，远程参与者 try 的方法未执行完成，可能导致 cancel 的方法实际未执行( try 的方法未执行完成，数据库事务【非 TCC 事务】未提交，cancel 的方法读取数据时发现未变更，导致方法实际未执行，最终 try 的方法执行完后，提交数据库事务【非 TCC 事务】，较为极端 )，最终引起数据不一致。在<strong>事务恢复</strong>时，会对这种情况的事务进行取消回滚，如果此时远程参与者的 try 的方法还未结束，还是可能发生数据不一致。<ul><li>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/87" rel="external nofollow noopener noreferrer" target="_blank">为什么 tcc 事务切面中对乐观锁与socket超时异常不做回滚处理，只抛异常？</a></li></ul></li><li>针对 OptimisticLockException ：还是 SocketTimeoutException 的情况，事务恢复间隔时间小于 Socket 超时时间，此时事务恢复调用远程参与者取消回滚事务，远程参与者下次更新事务时，会因为乐观锁更新失败，抛出 OptimisticLockException。如果 CompensableTransactionInterceptor 此时立刻取消回滚，可能会和定时任务的取消回滚冲突，因此统一交给定时任务处理。<ul><li>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/53" rel="external nofollow noopener noreferrer" target="_blank">事务恢复的疑问</a></li><li>这块笔者还有一些疑问，如果有别的可能性导致这个情况，麻烦告知下笔者。谢谢。</li></ul></li></ul></li></ul><h1 id="3-事务重试定时任务"><a href="#3-事务重试定时任务" class="headerlink" title="3. 事务重试定时任务"></a>3. 事务重试定时任务</h1><p><code>org.mengyun.tcctransaction.spring.recover.RecoverScheduledJob</code>，事务恢复定时任务，基于 Quartz 实现调度，不断不断不断执行事务恢复。实现代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecoverScheduledJob</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> TransactionRecovery transactionRecovery;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> TransactionConfigurator transactionConfigurator;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> Scheduler scheduler;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="comment">// Quartz JobDetail</span></div><div class="line">            MethodInvokingJobDetailFactoryBean jobDetail = <span class="keyword">new</span> MethodInvokingJobDetailFactoryBean();</div><div class="line">            jobDetail.setTargetObject(transactionRecovery);</div><div class="line">            jobDetail.setTargetMethod(<span class="string">"startRecover"</span>);</div><div class="line">            jobDetail.setName(<span class="string">"transactionRecoveryJob"</span>);</div><div class="line">            jobDetail.setConcurrent(<span class="keyword">false</span>); <span class="comment">// 禁止并发</span></div><div class="line">            jobDetail.afterPropertiesSet();</div><div class="line">            <span class="comment">// Quartz CronTriggerFactoryBean</span></div><div class="line">            CronTriggerFactoryBean cronTrigger = <span class="keyword">new</span> CronTriggerFactoryBean();</div><div class="line">            cronTrigger.setBeanName(<span class="string">"transactionRecoveryCronTrigger"</span>);</div><div class="line">            cronTrigger.setCronExpression(transactionConfigurator.getRecoverConfig().getCronExpression());</div><div class="line">            cronTrigger.setJobDetail(jobDetail.getObject());</div><div class="line">            cronTrigger.afterPropertiesSet();</div><div class="line">            <span class="comment">// 启动任务调度</span></div><div class="line">            scheduler.scheduleJob(jobDetail.getObject(), cronTrigger.getObject());</div><div class="line">            <span class="comment">// 启动 Quartz Scheduler</span></div><div class="line">            scheduler.start();</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SystemException(e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure><ul><li>调用 <code>MethodInvokingJobDetailFactoryBean#setConcurrent(false)</code> 方法，禁用任务并发执行。</li><li>调用 <code>MethodInvokingJobDetailFactoryBean#setTargetObject(...)</code> + <code>MethodInvokingJobDetailFactoryBean#setTargetMethod(...)</code> 方法，设置任务调用 <code>TransactionRecovery#startRecover(...)</code> 方法执行。</li></ul><p><strong>如果应用集群部署，会不会相同事务被多个定时任务同时重试</strong>？</p><p>答案是不会，事务在重试时会乐观锁更新，同时只有一个应用节点能更新成功。</p><p>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/98" rel="external nofollow noopener noreferrer" target="_blank">多机部署下，所有机器都宕机，从异常中恢复时，所有的机器岂不是都可以查询到所有的需要恢复的服务？</a></p><p>当然极端情况下，Socket 调用超时时间大于事务重试间隔，第一个节点在重试某个事务，一直未执行完成，第二个节点已经可以重试。</p><p>ps：建议，Socket 调用超时时间小于事务重试间隔。</p><p><strong>是否定时任务和应用服务器解耦</strong>？</p><p>蚂蚁金服的分布式事务服务 DTS 采用 client-server 模式：</p><ul><li>xts-client ：负责事务的创建、提交、回滚、记录。</li><li>xts-server ：负责异常事务的恢复。</li></ul><blockquote><p>FROM <a href="https://www.cloud.alipay.com/docs/2/46887" rel="external nofollow noopener noreferrer" target="_blank">《蚂蚁金融云 DTS 文档》</a><br>分布式事务服务 (Distributed Transaction Service, DTS) 是一个分布式事务框架，用来保障在大规模分布式环境下事务的最终一致性。DTS 从架构上分为 xts-client 和 xts-server 两部分，前者是一个嵌入客户端应用的 JAR 包，主要负责事务数据的写入和处理；后者是一个独立的系统，主要负责异常事务的恢复。</p></blockquote><h1 id="4-异常事务恢复"><a href="#4-异常事务恢复" class="headerlink" title="4. 异常事务恢复"></a>4. 异常事务恢复</h1><p><code>org.mengyun.tcctransaction.recover.TransactionRecovery</code>，异常事务恢复，实现主体代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionRecovery</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 启动恢复事务逻辑</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startRecover</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// 加载异常事务集合</span></div><div class="line">        List&lt;Transaction&gt; transactions = loadErrorTransactions();</div><div class="line">        <span class="comment">// 恢复异常事务集合</span></div><div class="line">        recoverErrorTransactions(transactions);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure><h2 id="4-1-加载异常事务集合"><a href="#4-1-加载异常事务集合" class="headerlink" title="4.1 加载异常事务集合"></a>4.1 加载异常事务集合</h2><p>调用 <code>#loadErrorTransactions()</code> 方法，加载异常事务集合。实现代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> List&lt;Transaction&gt; <span class="title">loadErrorTransactions</span><span class="params">()</span> </span>&#123;</div><div class="line">   TransactionRepository transactionRepository = transactionConfigurator.getTransactionRepository();</div><div class="line">   <span class="keyword">long</span> currentTimeInMillis = Calendar.getInstance().getTimeInMillis();</div><div class="line">   RecoverConfig recoverConfig = transactionConfigurator.getRecoverConfig();</div><div class="line">   <span class="keyword">return</span> transactionRepository.findAllUnmodifiedSince(<span class="keyword">new</span> Date(currentTimeInMillis - recoverConfig.getRecoverDuration() * <span class="number">1000</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure><ul><li><strong>异常事务的定义</strong>：当前时间超过 - 事务变更时间( 最后执行时间 ) &gt;= 事务恢复间隔( <code>RecoverConfig#getRecoverDuration()</code> )。这里有一点要注意，已完成的事务会从事务存储器删除。</li></ul><h2 id="4-2-恢复异常事务集合"><a href="#4-2-恢复异常事务集合" class="headerlink" title="4.2 恢复异常事务集合"></a>4.2 恢复异常事务集合</h2><p>调用 <code>#recoverErrorTransactions(...)</code> 方法，恢复异常事务集合。实现代码如下：</p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">recoverErrorTransactions</span><span class="params">(List&lt;Transaction&gt; transactions)</span> </span>&#123;</div><div class="line">   <span class="keyword">for</span> (Transaction transaction : transactions) &#123;</div><div class="line">       <span class="comment">// 超过最大重试次数</span></div><div class="line">       <span class="keyword">if</span> (transaction.getRetriedCount() &gt; transactionConfigurator.getRecoverConfig().getMaxRetryCount()) &#123;</div><div class="line">           logger.error(String.format(<span class="string">"recover failed with max retry count,will not try again. txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)));</div><div class="line">           <span class="keyword">continue</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// 分支事务超过最大可重试时间</span></div><div class="line">       <span class="keyword">if</span> (transaction.getTransactionType().equals(TransactionType.BRANCH)</div><div class="line">               &amp;&amp; (transaction.getCreateTime().getTime() +</div><div class="line">               transactionConfigurator.getRecoverConfig().getMaxRetryCount() *</div><div class="line">                       transactionConfigurator.getRecoverConfig().getRecoverDuration() * <span class="number">1000</span></div><div class="line">               &gt; System.currentTimeMillis())) &#123;</div><div class="line">           <span class="keyword">continue</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// Confirm / Cancel</span></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="comment">// 增加重试次数</span></div><div class="line">           transaction.addRetriedCount();</div><div class="line">           <span class="comment">// Confirm</span></div><div class="line">           <span class="keyword">if</span> (transaction.getStatus().equals(TransactionStatus.CONFIRMING)) &#123;</div><div class="line">               transaction.changeStatus(TransactionStatus.CONFIRMING);</div><div class="line">               transactionConfigurator.getTransactionRepository().update(transaction);</div><div class="line">               transaction.commit();</div><div class="line">               transactionConfigurator.getTransactionRepository().delete(transaction);</div><div class="line">           <span class="comment">// Cancel</span></div><div class="line">           &#125; <span class="keyword">else</span> <span class="keyword">if</span> (transaction.getStatus().equals(TransactionStatus.CANCELLING)</div><div class="line">                   || transaction.getTransactionType().equals(TransactionType.ROOT)) &#123; <span class="comment">// 处理延迟取消的情况</span></div><div class="line">               transaction.changeStatus(TransactionStatus.CANCELLING);</div><div class="line">               transactionConfigurator.getTransactionRepository().update(transaction);</div><div class="line">               transaction.rollback();</div><div class="line">               transactionConfigurator.getTransactionRepository().delete(transaction);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable throwable) &#123;</div><div class="line">           <span class="keyword">if</span> (throwable <span class="keyword">instanceof</span> OptimisticLockException</div><div class="line">                   || ExceptionUtils.getRootCause(throwable) <span class="keyword">instanceof</span> OptimisticLockException) &#123;</div><div class="line">               logger.warn(String.format(<span class="string">"optimisticLockException happened while recover. txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)), throwable);</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               logger.error(String.format(<span class="string">"recover failed, txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)), throwable);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure><ul><li>当单个事务超过最大重试次数时，不再重试，只打印异常，此时需要<strong>人工介入</strong>解决。可以接入 ELK 收集日志监控报警。</li><li>当<strong>分支事务</strong>超过最大可重试时间时，不再重试。可能有同学和我一开始理解的是相同的，实际<strong>分支事务</strong>对应的应用服务器也可以重试<strong>分支事务</strong>，不是必须<strong>根事务</strong>发起重试，从而一起重试<strong>分支事务</strong>。这点要注意下。</li><li>当事务处于 TransactionStatus.CONFIRMING 状态时，提交事务，逻辑和 <code>TransactionManager#commit()</code> 类似。</li><li>当事务处于 TransactionStatus.CONFIRMING 状态，或者<strong>事务类型为根事务</strong>，回滚事务，逻辑和 <code>TransactionManager#rollback()</code> 类似。这里加判断的<strong>事务类型为根事务</strong>，用于处理延迟回滚异常的事务的回滚。</li></ul><h1 id="666-彩蛋"><a href="#666-彩蛋" class="headerlink" title="666. 彩蛋"></a>666. 彩蛋</h1><p>在写本文的过程中，无意中翻到蚂蚁云的文档，分享给看到此处的真爱们。</p><p>真爱们，请猛击<a href="https://git.cloud.alipay.com/dx/AntCloudPayPublic" rel="external nofollow noopener noreferrer" target="_blank">《AntCloudPayPublic》</a>跳转。</p><p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/02.png" alt=""></p><p>胖友，分享一个朋友圈可好？</p></div><footer class="article-footer clearfix"><div class="article-categories"><span></span> <a class="article-category-link" href="/categories/TCC-Transaction/">TCC-Transaction</a></div><div class="article-share" id="share"><div data-url="http://www.iocoder.cn/TCC-Transaction/transaction-recovery/" data-title="TCC-Transaction 源码分析 —— 事务恢复 | 芋道源码 —— 纯源码解析BLOG" data-tsina="null" class="share clearfix"></div></div></footer></article><nav class="article-nav clearfix"><div class="prev"><a href="/TCC-Transaction/dubbo-support/" title="TCC-Transaction 源码分析 —— Dubbo 支持"><strong>PREVIOUS:</strong><br><span>TCC-Transaction 源码分析 —— Dubbo 支持</span></a></div><div class="next"><a href="/TCC-Transaction/transaction-repository/" title="TCC-Transaction 源码分析 —— 事务存储器"><strong>NEXT:</strong><br><span>TCC-Transaction 源码分析 —— 事务存储器</span></a></div></nav></div></div><footer><div id="footer"><img src="http://www.iocoder.cn/images/common/wechat_mp_simple.png" style="display:none"><p class="copyright">© 2017 <a href="http://www.iocoder.cn" target="_blank" title="王文斌">王文斌</a> && <span style="display:inline" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span> && <span style="display:inline" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span> && Hosted by <a href="https://pages.coding.me" style="font-weight:700" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a> && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a></p></div></footer><script src="/js/jquery-2.1.0.min.js"></script><script type="text/javascript">$(document).ready(function(){function e(){"number"==typeof window.innerWidth?n=window.innerWidth:document.documentElement&&document.documentElement.clientWidth&&(n=document.documentElement.clientWidth)}$(".navbar").click(function(){$("header nav").toggleClass("shownav")});var n=0,s=$("#main"),a=$("#asidepart"),o=$(".closeaside"),d=$(".openaside");$(window).resize(function(){e(),n>=1024?$("header nav").removeClass("shownav"):(s.removeClass("moveMain"),a.css("display","block").removeClass("fadeOut"),d.css("display","none"),$("#toc.toc-aside").css("display","none"))}),o.click(function(){a.addClass("fadeOut").css("display","none"),d.css("display","block").addClass("fadeIn"),s.addClass("moveMain")}),d.click(function(){d.css("display","none").removeClass("beforeFadeIn"),a.css("display","block").removeClass("fadeOut").addClass("fadeIn"),s.removeClass("moveMain")}),$(window).scroll(function(){d.css("top",Math.max(80,260-$(this).scrollTop()))})})</script><script type="text/javascript">$(document).ready(function(){var a=$(".article-content>iframe"),t=$(".article-content>embed"),n=$("#toc");$("article h2");ah=$("article h2"),ta=$("#toc.toc-aside"),o=$(".openaside"),c=$(".closeaside"),a.length>0&&a.wrap('<div class="video-container" />'),t.length>0&&t.wrap('<div class="video-container" />'),0==ah.length?n.css("display","none"):(c.click(function(){ta.css("display","block").addClass("fadeIn")}),o.click(function(){ta.css("display","none")}),$(window).scroll(function(){ta.css("top",Math.max(140,320-$(this).scrollTop()))}))})</script><script type="text/javascript">$(document).ready(function(){var t=$(".share"),a=t.attr("data-url"),e=encodeURIComponent(a),r=['<a href="#" class="overlay" id="qrcode"></a>','<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url='+e+'"/></div>','<a href="#textlogo" class="article-back-to-top" title="Top"></a>','<a href="https://www.facebook.com/sharer.php?u='+e+'" class="article-share-facebook" target="_blank" title="Facebook"></a>','<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>','<a href="https://twitter.com/intent/tweet?url='+e+'" class="article-share-twitter" target="_blank" title="Twitter"></a>','<a href="http://service.weibo.com/share/share.php?title='+t.attr("data-title")+"&url="+e+"&ralateUid="+t.attr("data-tsina")+'&searchPic=true&style=number" class="article-share-weibo" target="_blank" title="Weibo"></a>','<span title="Share to"></span>'].join("");t.append(r),$(".article-share-qrcode").click(function(){var t=$("#qrcode-pic").attr("data-src");$("#qrcode-pic").attr("src",t),$("#qrcode-pic").load(function(){$(".qrcode strong").text(" ")})})})</script><link rel="stylesheet" href="/alert/css/alert.css"><script src="/alert/js/alert.js"></script><script src="/js/jquery.cookie.js"></script><script src="/js/util.js"></script></body>
+Rocke">
+    
+
+    
+    <meta name="keywords" content="Java,架构,后端,服务端,RocketMQ,MyCAT,分布式消息队列,分布式存储,技术博客,Sharding-JDBC,分库分表">
+    
+
+    
+    
+    <link rel="alternate" href="atom.xml" title="芋道源码 —— 纯源码解析BLOG" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/images/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='9e70e3362807c1bd185a79655b307027';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+
+    <!-- 百度站长-被动推送 -->
+    <script>
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    </script>
+
+    <!-- 360搜索-自动收录 -->
+    <script>
+        (function(){
+            var src = (document.location.protocol == "http:") ? "http://js.passport.qihucdn.com/11.0.1.js?f05b61dd54bbc38386611a5238672938":"https://jspassport.ssl.qhimg.com/11.0.1.js?f05b61dd54bbc38386611a5238672938";
+            document.write('<script src="' + src + '" id="sozz"><\/script>');
+        })();
+    </script>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</head>
+</html>
+  <body>
+    <header>
+      <div>
+    
+    <div id="textlogo">
+        <h1 class="site-name"><a href="/" title="芋道源码 —— 纯源码解析BLOG">芋道源码 —— 纯源码解析BLOG</a></h1>
+        <a class="blog-motto">
+            
+            愿半生编码，如一生老友！
+            
+        </a>
+    </div>
+    <div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+        </a></div>
+    <nav class="animated">
+        <ul>
+            <ul>
+                
+                <li><a href="/">文章</a></li>
+                
+                <li><a href="https://github.com/YunaiV" rel="external nofollow noopener noreferrer" target="_blank">Github</a></li>
+                
+                <li><a href="http://www.iocoder.cn/images/common/wechat_mp_2017_07_31_bak.jpg">微信公众号</a></li>
+                
+                <li><a href="/link_url">友链</a></li>
+                
+                <!--<li>-->
+                    <!---->
+                        <!--<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">-->
+                            <!--<label>Search</label>-->
+                            <!--<input type="text" id="search" name="q" autocomplete="off" maxlength="20"-->
+                                   <!--placeholder="搜索"/>-->
+                            <!--<input type="hidden" name="q" value="site:www.iocoder.cn">-->
+                        <!--</form>-->
+                        <!---->
+                <!--</li>-->
+            </ul>
+    </ul></nav>
+</div>
+
+    </header>
+    <div id="container">
+        <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="toc" class="toc-aside">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">2. 事务重试配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">3. 事务重试定时任务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">4. 异常事务恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 加载异常事务集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 恢复异常事务集合</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">666. 彩蛋</span></a></li></ol>
+</div>
+
+<div id="asidepart">
+    <!--<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>-->
+    <aside class="clearfix">
+        <div id="authorInfo">
+            <!---->
+            <!--<div class="author-logo"></div>-->
+            <!---->
+
+            <div> <img width="100%" src="/images/common/wechat_mp_2017_07_31_bak.jpg"> </div>
+
+            <div class="social-list">
+                
+                
+                
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="categorieslist">
+    <p class="asidetitle">微信公众号福利：芋道源码</p>
+    <ul>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 0. 阅读源码葵花宝典 </a></li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 1. RocketMQ / MyCAT / Sharding-JDBC 详细中文注释源码 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 2. 您对于源码的疑问每条留言都将得到认真回复 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg"> 3. 新的源码解析文章实时收到通知，每周六十点更新 </a> </li>
+
+        <li> <a href="/images/common/wechat_mp_2017_07_31_bak.jpg">4. 认真的源码交流微信群 </a> </li>
+
+
+    </ul>
+</div>
+        
+        
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+            
+			    <li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/Elastic-Job-Cloud/" title="Elastic-Job-Cloud">Elastic-Job-Cloud<sup>6</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/Elastic-Job-Lite/" title="Elastic-Job-Lite">Elastic-Job-Lite<sup>16</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>14</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/Sharding-JDBC/" title="Sharding-JDBC">Sharding-JDBC<sup>18</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/TCC-Transaction/" title="TCC-Transaction">TCC-Transaction<sup>6</sup></a></li>
+            
+		
+            
+			    <li><a href="/categories/技术杂文/" title="技术杂文">技术杂文<sup>4</sup></a></li>
+            
+		
+		</ul>
+</div>
+
+        
+    </aside>
+</div>
+        <div id="main" class="post" itemscope="" itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/TCC-Transaction/transaction-recovery/" title="TCC-Transaction 源码分析 —— 事务恢复" itemprop="url">TCC-Transaction 源码分析 —— 事务恢复</a>
+  </h1>
+  <p class="article-author">
+      <!--By-->
+    <!---->
+      <!--<a href="http://www.iocoder.cn" title="王文斌">王文斌</a>-->
+    <!---->
+  </p>
+  <p class="article-time">
+    <!--<time datetime="2018-02-21T16:00:00.000Z" itemprop="datePublished">2018-02-22</time>-->
+    <!--更新日期:<time datetime="2017-09-17T11:06:38.000Z" itemprop="dateModified">2017-09-17</time>-->
+    <!---->
+      总阅读量:<span id="busuanzi_value_page_pv"></span>次
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<p><strong>本文主要基于 TCC-Transaction 1.2.3.3 正式版</strong></p>
+<ul>
+<li><a href="#">1. 概述</a></li>
+<li><a href="#">2. 事务重试配置</a></li>
+<li><a href="#">3. 事务重试定时任务</a></li>
+<li><a href="#">4. 异常事务恢复</a>
+<ul>
+<li><a href="#">4.1 加载异常事务集合</a></li>
+<li><a href="#">4.2 恢复异常事务集合</a></li>
+</ul>
+</li>
+<li><a href="#">666. 彩蛋</a></li>
+</ul>
+<hr>
+<p><img src="http://www.iocoder.cn/images/common/wechat_mp_2017_07_31.jpg" alt=""></p>
+<blockquote>
+<p>🙂🙂🙂关注**微信公众号：【芋道源码】**有福利：</p>
+<ol>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>所有</strong>源码分析文章列表</li>
+<li>RocketMQ / MyCAT / Sharding-JDBC <strong>中文注释源码 GitHub 地址</strong></li>
+<li>您对于源码的疑问每条留言<strong>都</strong>将得到<strong>认真</strong>回复。<strong>甚至不知道如何读源码也可以请教噢</strong>。</li>
+<li><strong>新的</strong>源码解析文章<strong>实时</strong>收到通知。<strong>每周更新一篇左右</strong>。</li>
+<li><strong>认真的</strong>源码交流微信群。</li>
+</ol>
+</blockquote>
+<hr>
+<h1>1. 概述</h1>
+<p>本文分享 <strong>TCC 恢复</strong>。主要涉及如下二个 package 路径下的类：</p>
+<ul>
+<li><code>org.mengyun.tcctransaction.recover</code>
+<ul>
+<li>RecoverConfig，事务恢复配置<strong>接口</strong></li>
+<li>TransactionRecovery，事务恢复逻辑</li>
+</ul>
+</li>
+<li><code>org.mengyun.tcctransaction.spring.recover</code> ：
+<ul>
+<li>DefaultRecoverConfig，默认事务恢复配置<strong>实现</strong></li>
+<li>RecoverScheduledJob，事务恢复定时任务</li>
+</ul>
+</li>
+</ul>
+<p>本文涉及到的类关系如下图( <a href="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/01.png">打开大图</a> )：</p>
+<p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/01.png" alt=""></p>
+<p>在<a href="http://www.iocoder.cn/TCC-Transaction/transaction-repository/?self">《TCC-Transaction 源码分析 —— 事务存储器》</a>中，事务信息被持久化到外部的存储器中。<strong>事务存储是事务恢复的基础</strong>。通过读取外部存储器中的异常事务，定时任务会按照一定频率对事务进行重试，直到事务完成或超过最大重试次数。</p>
+<p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_15/01.png" alt=""></p>
+<blockquote>
+<p>你行好事会因为得到赞赏而愉悦<br>
+同理，开源项目贡献者会因为 Star 而更加有动力<br>
+为 TCC-Transaction 点赞！<a href="https://github.com/changmingxie/tcc-transaction" rel="external nofollow noopener noreferrer" target="_blank">传送门</a></p>
+</blockquote>
+<p>ps：笔者假设你已经阅读过<a href="https://github.com/changmingxie/tcc-transaction/wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%971.2.x" rel="external nofollow noopener noreferrer" target="_blank">《tcc-transaction 官方文档 —— 使用指南1.2.x》</a>。</p>
+<h1>2. 事务重试配置</h1>
+<p><code>org.mengyun.tcctransaction.recover.RecoverConfig</code>，事务恢复配置<strong>接口</strong>，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">RecoverConfig</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 最大重试次数</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getMaxRetryCount</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 恢复间隔时间，单位：秒</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getRecoverDuration</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> cron 表达式</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function">String <span class="title">getCronExpression</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    Set&lt;Class&lt;? extends Exception&gt;&gt; getDelayCancelExceptions();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 设置延迟取消异常集合</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> delayRecoverExceptions 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setDelayCancelExceptions</span><span class="params">(Set&lt;Class&lt;? extends Exception&gt;&gt; delayRecoverExceptions)</span></span>;</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li><code>#getMaxRetryCount()</code>，单个事务恢复最大重试次数。超过最大重试次数后，目前仅打出错误日志，下文会看到实现。</li>
+<li><code>#getRecoverDuration()</code>，单个事务恢复重试的间隔时间，单位：秒。</li>
+<li><code>#getCronExpression()</code>，定时任务 cron 表达式。</li>
+<li><code>#getDelayCancelExceptions()</code>，延迟取消异常集合。</li>
+</ul>
+<hr>
+<p><code>org.mengyun.tcctransaction.spring.recover.DefaultRecoverConfig</code>，<strong>默认</strong>事务恢复配置实现，实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultRecoverConfig</span> <span class="keyword">implements</span> <span class="title">RecoverConfig</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> RecoverConfig INSTANCE = <span class="keyword">new</span> DefaultRecoverConfig();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 最大重试次数</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> maxRetryCount = <span class="number">30</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 恢复间隔时间，单位：秒</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> recoverDuration = <span class="number">120</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * cron 表达式</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> String cronExpression = <span class="string">"0 */1 * * * ?"</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 延迟取消异常集合</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">private</span> Set&lt;Class&lt;? extends Exception&gt;&gt; delayCancelExceptions = <span class="keyword">new</span> HashSet&lt;Class&lt;? extends Exception&gt;&gt;();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DefaultRecoverConfig</span><span class="params">()</span> </span>&#123;</div><div class="line">        delayCancelExceptions.add(OptimisticLockException.class);</div><div class="line">        delayCancelExceptions.add(SocketTimeoutException.class);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDelayCancelExceptions</span><span class="params">(Set&lt;Class&lt;? extends Exception&gt;&gt; delayCancelExceptions)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.delayCancelExceptions.addAll(delayCancelExceptions);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li><code>maxRetryCount</code>，单个事务恢复最大重试次数 为 30。</li>
+<li><code>recoverDuration</code>，单个事务恢复重试的间隔时间为 120 秒。</li>
+<li><code>cronExpression</code>，定时任务 cron 表达式为 <code>&quot;0 */1 * * * ?&quot;</code>，每分钟执行一次。如果你希望定时任务执行的更频繁，可以修改 cron 表达式，例如 <code>0/30 * * * * ?</code>，每 30 秒执行一次。</li>
+<li><code>delayCancelExceptions</code>，延迟取消异常集合。在 DefaultRecoverConfig 构造方法里，预先添加了 OptimisticLockException / SocketTimeoutException 。
+<ul>
+<li>针对 <strong>SocketTimeoutException</strong> ：try 阶段，本地参与者调用远程参与者( 远程服务，例如 Dubbo，Http 服务)，远程参与者 try 阶段的方法逻辑执行时间较长，超过 Socket 等待时长，发生 SocketTimeoutException，如果立刻执行事务回滚，远程参与者 try 的方法未执行完成，可能导致 cancel 的方法实际未执行( try 的方法未执行完成，数据库事务【非 TCC 事务】未提交，cancel 的方法读取数据时发现未变更，导致方法实际未执行，最终 try 的方法执行完后，提交数据库事务【非 TCC 事务】，较为极端 )，最终引起数据不一致。在<strong>事务恢复</strong>时，会对这种情况的事务进行取消回滚，如果此时远程参与者的 try 的方法还未结束，还是可能发生数据不一致。
+<ul>
+<li>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/87" rel="external nofollow noopener noreferrer" target="_blank">为什么 tcc 事务切面中对乐观锁与socket超时异常不做回滚处理，只抛异常？</a></li>
+</ul>
+</li>
+<li>针对 OptimisticLockException ：还是 SocketTimeoutException 的情况，事务恢复间隔时间小于 Socket 超时时间，此时事务恢复调用远程参与者取消回滚事务，远程参与者下次更新事务时，会因为乐观锁更新失败，抛出 OptimisticLockException。如果 CompensableTransactionInterceptor 此时立刻取消回滚，可能会和定时任务的取消回滚冲突，因此统一交给定时任务处理。
+<ul>
+<li>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/53" rel="external nofollow noopener noreferrer" target="_blank">事务恢复的疑问</a></li>
+<li>这块笔者还有一些疑问，如果有别的可能性导致这个情况，麻烦告知下笔者。谢谢。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1>3. 事务重试定时任务</h1>
+<p><code>org.mengyun.tcctransaction.spring.recover.RecoverScheduledJob</code>，事务恢复定时任务，基于 Quartz 实现调度，不断不断不断执行事务恢复。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RecoverScheduledJob</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> TransactionRecovery transactionRecovery;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> TransactionConfigurator transactionConfigurator;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> Scheduler scheduler;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="comment">// Quartz JobDetail</span></div><div class="line">            MethodInvokingJobDetailFactoryBean jobDetail = <span class="keyword">new</span> MethodInvokingJobDetailFactoryBean();</div><div class="line">            jobDetail.setTargetObject(transactionRecovery);</div><div class="line">            jobDetail.setTargetMethod(<span class="string">"startRecover"</span>);</div><div class="line">            jobDetail.setName(<span class="string">"transactionRecoveryJob"</span>);</div><div class="line">            jobDetail.setConcurrent(<span class="keyword">false</span>); <span class="comment">// 禁止并发</span></div><div class="line">            jobDetail.afterPropertiesSet();</div><div class="line">            <span class="comment">// Quartz CronTriggerFactoryBean</span></div><div class="line">            CronTriggerFactoryBean cronTrigger = <span class="keyword">new</span> CronTriggerFactoryBean();</div><div class="line">            cronTrigger.setBeanName(<span class="string">"transactionRecoveryCronTrigger"</span>);</div><div class="line">            cronTrigger.setCronExpression(transactionConfigurator.getRecoverConfig().getCronExpression());</div><div class="line">            cronTrigger.setJobDetail(jobDetail.getObject());</div><div class="line">            cronTrigger.afterPropertiesSet();</div><div class="line">            <span class="comment">// 启动任务调度</span></div><div class="line">            scheduler.scheduleJob(jobDetail.getObject(), cronTrigger.getObject());</div><div class="line">            <span class="comment">// 启动 Quartz Scheduler</span></div><div class="line">            scheduler.start();</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SystemException(e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>调用 <code>MethodInvokingJobDetailFactoryBean#setConcurrent(false)</code> 方法，禁用任务并发执行。</li>
+<li>调用 <code>MethodInvokingJobDetailFactoryBean#setTargetObject(...)</code> + <code>MethodInvokingJobDetailFactoryBean#setTargetMethod(...)</code> 方法，设置任务调用 <code>TransactionRecovery#startRecover(...)</code> 方法执行。</li>
+</ul>
+<p><strong>如果应用集群部署，会不会相同事务被多个定时任务同时重试</strong>？</p>
+<p>答案是不会，事务在重试时会乐观锁更新，同时只有一个应用节点能更新成功。</p>
+<p>官方解释：<a href="https://github.com/changmingxie/tcc-transaction/issues/98" rel="external nofollow noopener noreferrer" target="_blank">多机部署下，所有机器都宕机，从异常中恢复时，所有的机器岂不是都可以查询到所有的需要恢复的服务？</a></p>
+<p>当然极端情况下，Socket 调用超时时间大于事务重试间隔，第一个节点在重试某个事务，一直未执行完成，第二个节点已经可以重试。</p>
+<p>ps：建议，Socket 调用超时时间小于事务重试间隔。</p>
+<p><strong>是否定时任务和应用服务器解耦</strong>？</p>
+<p>蚂蚁金服的分布式事务服务 DTS 采用 client-server 模式：</p>
+<ul>
+<li>xts-client ：负责事务的创建、提交、回滚、记录。</li>
+<li>xts-server ：负责异常事务的恢复。</li>
+</ul>
+<blockquote>
+<p>FROM <a href="https://www.cloud.alipay.com/docs/2/46887" rel="external nofollow noopener noreferrer" target="_blank">《蚂蚁金融云 DTS 文档》</a><br>
+分布式事务服务 (Distributed Transaction Service, DTS) 是一个分布式事务框架，用来保障在大规模分布式环境下事务的最终一致性。DTS 从架构上分为 xts-client 和 xts-server 两部分，前者是一个嵌入客户端应用的 JAR 包，主要负责事务数据的写入和处理；后者是一个独立的系统，主要负责异常事务的恢复。</p>
+</blockquote>
+<h1>4. 异常事务恢复</h1>
+<p><code>org.mengyun.tcctransaction.recover.TransactionRecovery</code>，异常事务恢复，实现主体代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionRecovery</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 启动恢复事务逻辑</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startRecover</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// 加载异常事务集合</span></div><div class="line">        List&lt;Transaction&gt; transactions = loadErrorTransactions();</div><div class="line">        <span class="comment">// 恢复异常事务集合</span></div><div class="line">        recoverErrorTransactions(transactions);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2>4.1 加载异常事务集合</h2>
+<p>调用 <code>#loadErrorTransactions()</code> 方法，加载异常事务集合。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> List&lt;Transaction&gt; <span class="title">loadErrorTransactions</span><span class="params">()</span> </span>&#123;</div><div class="line">   TransactionRepository transactionRepository = transactionConfigurator.getTransactionRepository();</div><div class="line">   <span class="keyword">long</span> currentTimeInMillis = Calendar.getInstance().getTimeInMillis();</div><div class="line">   RecoverConfig recoverConfig = transactionConfigurator.getRecoverConfig();</div><div class="line">   <span class="keyword">return</span> transactionRepository.findAllUnmodifiedSince(<span class="keyword">new</span> Date(currentTimeInMillis - recoverConfig.getRecoverDuration() * <span class="number">1000</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li><strong>异常事务的定义</strong>：当前时间超过 - 事务变更时间( 最后执行时间 ) &gt;= 事务恢复间隔( <code>RecoverConfig#getRecoverDuration()</code> )。这里有一点要注意，已完成的事务会从事务存储器删除。</li>
+</ul>
+<h2>4.2 恢复异常事务集合</h2>
+<p>调用 <code>#recoverErrorTransactions(...)</code> 方法，恢复异常事务集合。实现代码如下：</p>
+<p><figure class="highlight java"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">recoverErrorTransactions</span><span class="params">(List&lt;Transaction&gt; transactions)</span> </span>&#123;</div><div class="line">   <span class="keyword">for</span> (Transaction transaction : transactions) &#123;</div><div class="line">       <span class="comment">// 超过最大重试次数</span></div><div class="line">       <span class="keyword">if</span> (transaction.getRetriedCount() &gt; transactionConfigurator.getRecoverConfig().getMaxRetryCount()) &#123;</div><div class="line">           logger.error(String.format(<span class="string">"recover failed with max retry count,will not try again. txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)));</div><div class="line">           <span class="keyword">continue</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// 分支事务超过最大可重试时间</span></div><div class="line">       <span class="keyword">if</span> (transaction.getTransactionType().equals(TransactionType.BRANCH)</div><div class="line">               &amp;&amp; (transaction.getCreateTime().getTime() +</div><div class="line">               transactionConfigurator.getRecoverConfig().getMaxRetryCount() *</div><div class="line">                       transactionConfigurator.getRecoverConfig().getRecoverDuration() * <span class="number">1000</span></div><div class="line">               &gt; System.currentTimeMillis())) &#123;</div><div class="line">           <span class="keyword">continue</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// Confirm / Cancel</span></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="comment">// 增加重试次数</span></div><div class="line">           transaction.addRetriedCount();</div><div class="line">           <span class="comment">// Confirm</span></div><div class="line">           <span class="keyword">if</span> (transaction.getStatus().equals(TransactionStatus.CONFIRMING)) &#123;</div><div class="line">               transaction.changeStatus(TransactionStatus.CONFIRMING);</div><div class="line">               transactionConfigurator.getTransactionRepository().update(transaction);</div><div class="line">               transaction.commit();</div><div class="line">               transactionConfigurator.getTransactionRepository().delete(transaction);</div><div class="line">           <span class="comment">// Cancel</span></div><div class="line">           &#125; <span class="keyword">else</span> <span class="keyword">if</span> (transaction.getStatus().equals(TransactionStatus.CANCELLING)</div><div class="line">                   || transaction.getTransactionType().equals(TransactionType.ROOT)) &#123; <span class="comment">// 处理延迟取消的情况</span></div><div class="line">               transaction.changeStatus(TransactionStatus.CANCELLING);</div><div class="line">               transactionConfigurator.getTransactionRepository().update(transaction);</div><div class="line">               transaction.rollback();</div><div class="line">               transactionConfigurator.getTransactionRepository().delete(transaction);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable throwable) &#123;</div><div class="line">           <span class="keyword">if</span> (throwable <span class="keyword">instanceof</span> OptimisticLockException</div><div class="line">                   || ExceptionUtils.getRootCause(throwable) <span class="keyword">instanceof</span> OptimisticLockException) &#123;</div><div class="line">               logger.warn(String.format(<span class="string">"optimisticLockException happened while recover. txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)), throwable);</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               logger.error(String.format(<span class="string">"recover failed, txid:%s, status:%s,retried count:%d,transaction content:%s"</span>, transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)), throwable);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>当单个事务超过最大重试次数时，不再重试，只打印异常，此时需要<strong>人工介入</strong>解决。可以接入 ELK 收集日志监控报警。</li>
+<li>当<strong>分支事务</strong>超过最大可重试时间时，不再重试。可能有同学和我一开始理解的是相同的，实际<strong>分支事务</strong>对应的应用服务器也可以重试<strong>分支事务</strong>，不是必须<strong>根事务</strong>发起重试，从而一起重试<strong>分支事务</strong>。这点要注意下。</li>
+<li>当事务处于 TransactionStatus.CONFIRMING 状态时，提交事务，逻辑和 <code>TransactionManager#commit()</code> 类似。</li>
+<li>当事务处于 TransactionStatus.CONFIRMING 状态，或者<strong>事务类型为根事务</strong>，回滚事务，逻辑和 <code>TransactionManager#rollback()</code> 类似。这里加判断的<strong>事务类型为根事务</strong>，用于处理延迟回滚异常的事务的回滚。</li>
+</ul>
+<h1>666. 彩蛋</h1>
+<p>在写本文的过程中，无意中翻到蚂蚁云的文档，分享给看到此处的真爱们。</p>
+<p>真爱们，请猛击<a href="https://git.cloud.alipay.com/dx/AntCloudPayPublic" rel="external nofollow noopener noreferrer" target="_blank">《AntCloudPayPublic》</a>跳转。</p>
+<p><img src="http://www.iocoder.cn/images/TCC-Transaction/2018_02_22/02.png" alt=""></p>
+<p>胖友，分享一个朋友圈可好？</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/TCC-Transaction/">TCC-Transaction</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.iocoder.cn/TCC-Transaction/transaction-recovery/" data-title="TCC-Transaction 源码分析 —— 事务恢复 | 芋道源码 —— 纯源码解析BLOG" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev">
+ <a href="/TCC-Transaction/dubbo-support/" title="TCC-Transaction 源码分析 —— Dubbo 支持">
+  <strong>PREVIOUS:</strong><br>
+  <span>
+  TCC-Transaction 源码分析 —— Dubbo 支持</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/TCC-Transaction/transaction-repository/" title="TCC-Transaction 源码分析 —— 事务存储器">
+ <strong>NEXT:</strong><br> 
+ <span>TCC-Transaction 源码分析 —— 事务存储器
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+    </div>
+    <footer><div id="footer">
+    <img src="http://www.iocoder.cn/images/common/wechat_mp_simple.png" style="display: none">
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://www.iocoder.cn" target="_blank" title="王文斌">王文斌</a>
+		
+            && <span style="display: inline;" id="busuanzi_container_site_uv">总访客数 <span id="busuanzi_value_site_uv" font="微软雅黑"></span> 次</span>
+            && <span style="display: inline;" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv" font="微软雅黑"></span> 次</span>
+            && Hosted by <a href="https://pages.coding.me" style="font-weight: bold" rel="external nofollow noopener noreferrer" target="_blank">Coding Pages</a>
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo" rel="external nofollow noopener noreferrer">hexo</a> && Theme by <a href="http://gengbiao.me" target="_blank" title="coney" rel="external nofollow noopener noreferrer">coney</a>
+            </p></div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/alert/css/alert.css">
+<script src="/alert/js/alert.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+<script src="/js/util.js"></script>
+
+
+
+
+  </body>
+
+

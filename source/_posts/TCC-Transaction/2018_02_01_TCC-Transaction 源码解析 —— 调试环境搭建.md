@@ -17,6 +17,8 @@ permalink: TCC-Transaction/build-debugging-environment
 
 -------
 
+**本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
+
 - [1. 依赖工具](#)
 - [2. 源码拉取](#)
 - [3. 初始化数据库](#)

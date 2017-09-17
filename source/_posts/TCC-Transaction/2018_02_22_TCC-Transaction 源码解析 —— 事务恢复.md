@@ -6,6 +6,8 @@ permalink: TCC-Transaction/transaction-recovery
 
 ---
 
+**本文主要基于 TCC-Transaction 1.2.3.3 正式版**  
+
 - [1. 概述](#)
 - [2. 事务重试配置](#)
 - [3. 事务重试定时任务](#)
